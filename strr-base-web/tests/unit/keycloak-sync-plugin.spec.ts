@@ -76,4 +76,3 @@ describe('keycloak sync plugin', () => {
     expect(consoleWarnSpy).toHaveBeenCalledWith('[Auth] Tab focused: failed to refresh token:', expect.any(Error))
   })
 })
-
