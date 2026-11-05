@@ -76,4 +76,4 @@ serialPipeline:
       service-account: "sa-api@bcrbk9-prod.iam.gserviceaccount.com"
       database-iam-username: "sa-api@bcrbk9-prod.iam"
       max-scale: "10"
-      container-concurrency: "20"
+      container-concurrency: "7"
