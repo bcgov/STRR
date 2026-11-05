@@ -87,12 +87,17 @@ vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => mockStore
 }))
 
-vi.stubGlobal('useAsyncData', () => ({
+const defaultAsyncData = () => ({
   data: {
     applications: mockApplications,
     total: mockApplications.length
-  }
-}))
+  },
+  status: ref('idle'),
+  refresh: vi.fn()
+})
+
+vi.stubGlobal('useAsyncData', defaultAsyncData)
+vi.stubGlobal('useLazyAsyncData', defaultAsyncData)
 
 const { mockUseExaminerFeatureFlags } = vi.hoisted(() => ({
   mockUseExaminerFeatureFlags: vi.fn()
@@ -184,6 +189,12 @@ describe('Examiner Dashboard Page', () => {
     expect(applicationText).toContain(header.hostStatus)
     expect(applicationText).toContain(displayContactFullName(registration.primaryContact))
     expect(applicationText).toContain(registration.unitAddress.city)
+  })
+
+  it('binds table loading state to query status', () => {
+    const table = wrapper.findComponent({ name: 'UTable' })
+    expect(table.exists()).toBe(true)
+    expect(table.props('loading')).toBe(false)
   })
 
   it('renders the assignee column correctly', () => {

@@ -1,6 +1,14 @@
 // selected action to track the examiner's current intent
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
-const isMainActionDisabled = ref(false)
+const hasOpenConditionForm = ref(false)
+
+// Main action is disabled when APPROVE is selected AND an inline condition form is open
+const isMainActionDisabled = computed(() => {
+  const isApprove =
+    decisionIntent.value === ApplicationActionsE.APPROVE ||
+    decisionIntent.value === RegistrationActionsE.APPROVE
+  return isApprove && hasOpenConditionForm.value
+})
 
 // list of defined conditions that examiner can select from the list
 const preDefinedConditions: string[] = [
@@ -24,15 +32,6 @@ export const useExaminerDecision = () => {
     decisionEmailFormRef
   } = storeToRefs(useExaminerStore())
 
-  // TODO: list of status when to show Decision panel for Applications
-  // const decisionRequiredStatuses = [
-  //   ApplicationStatus.FULL_REVIEW,
-  //   ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED,
-  //   ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
-  //   ApplicationStatus.NOC_PENDING,
-  //   ApplicationStatus.NOC_EXPIRED
-  // ]
-
   const showDecisionPanel = computed(() =>
     isExaminerDecisionsEnabled.value && (!isApplication.value || !hasRegistrationNumber.value)
   )
@@ -42,21 +41,34 @@ export const useExaminerDecision = () => {
     return await validateForm(decisionEmailFormRef.value, true).then(errors => !errors)
   }
 
-  const resetDecision = (): void => {
-    decisionIntent.value = null
+  const clearDecisionState = (): void => {
     decisionEmailContent.value.content = ''
     decisionEmailFormRef?.value?.clear?.()
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
+    hasOpenConditionForm.value = false
+  }
+
+  const resetDecision = (): void => {
+    decisionIntent.value = null
+    clearDecisionState()
+  }
+
+  const selectDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE): void => {
+    if (decisionIntent.value === action) { return }
+    clearDecisionState()
+    decisionIntent.value = action
   }
 
   return {
     showDecisionPanel,
     decisionIntent,
     preDefinedConditions,
+    hasOpenConditionForm,
     isMainActionDisabled,
     isDecisionEmailValid,
+    selectDecisionIntent,
     resetDecision
   }
 }

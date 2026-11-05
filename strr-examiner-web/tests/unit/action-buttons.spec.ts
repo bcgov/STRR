@@ -25,6 +25,10 @@ const activeReg = ref<any>({ id: 'reg-123', status: RegistrationStatus.ACTIVE, c
 const isApplication = ref(false)
 const isAssignedToUser = ref(true)
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
+const hasOpenConditionForm = ref(false)
+const isMainActionDisabled = computed(() =>
+  decisionIntent.value === ApplicationActionsE.APPROVE && hasOpenConditionForm.value
+)
 const conditions = ref([])
 const customConditions = ref(null)
 const minBookingDays = ref<number | null>(null)
@@ -58,7 +62,7 @@ vi.mock('@/stores/examiner', () => ({
 vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     decisionIntent,
-    isMainActionDisabled: ref(false),
+    isMainActionDisabled,
     isDecisionEmailValid: mockIsDecisionEmailValid
   })
 }))
@@ -95,6 +99,7 @@ describe('ActionButtons Component', () => {
     activeHeader.value = { examinerActions: [], isSetAside: false, assignee: { username: '' } }
     activeReg.value = { id: 'reg-123', status: RegistrationStatus.ACTIVE, conditionsOfApproval: null }
     isAssignedToUser.value = true
+    hasOpenConditionForm.value = false
     isApplication.value = false
     decisionIntent.value = null
     conditions.value = []
@@ -366,66 +371,70 @@ describe('ActionButtons Component', () => {
     expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
   })
 
-  it('should display error modal, log error, and not clear content when send notice fails for registration', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    mockSendNotice.mockRejectedValueOnce(new Error('Network error'))
+  it(
+    'should display error modal, log error, and not clear content when send notice fails for registration',
+    async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      mockSendNotice.mockRejectedValueOnce(new Error('Network error'))
 
-    decisionIntent.value = ApplicationActionsE.SEND_NOC
-    decisionEmailContent.value = { content: 'notice of consideration body' }
+      decisionIntent.value = ApplicationActionsE.SEND_NOC
+      decisionEmailContent.value = { content: 'notice of consideration body' }
 
-    const wrapper = await mount()
+      const wrapper = await mount()
 
-    await clickMainButton(wrapper)
-    await flushPromises()
+      await clickMainButton(wrapper)
+      await flushPromises()
 
-    expect(mockSendNotice).toHaveBeenCalledOnce()
-    expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error))
-    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
-    expect(mockOpenErrorModal).toHaveBeenCalledWith(
-      'Error',
-      'An error occurred sending the Notice of Consideration for this application.',
-      false
-    )
-    expect(decisionEmailContent.value.content).toBe('notice of consideration body')
-    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+      expect(mockSendNotice).toHaveBeenCalledOnce()
+      expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error))
+      expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+      expect(mockOpenErrorModal).toHaveBeenCalledWith(
+        'Error',
+        'An error occurred sending the Notice of Consideration for this application.',
+        false
+      )
+      expect(decisionEmailContent.value.content).toBe('notice of consideration body')
+      expect(mockRefreshNuxtData).not.toHaveBeenCalled()
 
-    consoleErrorSpy.mockRestore()
-  })
+      consoleErrorSpy.mockRestore()
+    })
 
-  it('should display error modal, log error, and not clear content when send notice fails for application', async () => {
-    isApplication.value = true
-    activeHeader.value = {
-      applicationNumber: 'APP-100',
-      examinerActions: [ApplicationActionsE.SEND_NOC],
-      isSetAside: false,
-      assignee: { username: 'examiner1' }
-    }
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    mockSendNoticeForApplication.mockRejectedValueOnce(new Error('API error'))
+  it(
+    'should display error modal, log error, and not clear content when send notice fails for application',
+    async () => {
+      isApplication.value = true
+      activeHeader.value = {
+        applicationNumber: 'APP-100',
+        examinerActions: [ApplicationActionsE.SEND_NOC],
+        isSetAside: false,
+        assignee: { username: 'examiner1' }
+      }
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      mockSendNoticeForApplication.mockRejectedValueOnce(new Error('API error'))
 
-    decisionIntent.value = ApplicationActionsE.SEND_NOC
-    decisionEmailContent.value = { content: 'app notice body' }
+      decisionIntent.value = ApplicationActionsE.SEND_NOC
+      decisionEmailContent.value = { content: 'app notice body' }
 
-    const wrapper = await mount()
+      const wrapper = await mount()
 
-    await clickMainButton(wrapper)
-    await flushPromises()
+      await clickMainButton(wrapper)
+      await flushPromises()
 
-    expect(mockSendNoticeForApplication).toHaveBeenCalledOnce()
-    expect(mockSendNoticeForApplication).toHaveBeenCalledWith('APP-100', 'app notice body')
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error))
-    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
-    expect(mockOpenErrorModal).toHaveBeenCalledWith(
-      'Error',
-      'An error occurred sending the Notice of Consideration for this application.',
-      false
-    )
-    expect(decisionEmailContent.value.content).toBe('app notice body')
-    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+      expect(mockSendNoticeForApplication).toHaveBeenCalledOnce()
+      expect(mockSendNoticeForApplication).toHaveBeenCalledWith('APP-100', 'app notice body')
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error))
+      expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+      expect(mockOpenErrorModal).toHaveBeenCalledWith(
+        'Error',
+        'An error occurred sending the Notice of Consideration for this application.',
+        false
+      )
+      expect(decisionEmailContent.value.content).toBe('app notice body')
+      expect(mockRefreshNuxtData).not.toHaveBeenCalled()
 
-    consoleErrorSpy.mockRestore()
-  })
+      consoleErrorSpy.mockRestore()
+    })
 
   it('should update registration status with SUSPENDED when suspend is clicked with valid email', async () => {
     decisionIntent.value = RegistrationActionsE.SUSPEND
@@ -476,5 +485,64 @@ describe('ActionButtons Component', () => {
 
     expect(mockWithdrawApplication).toHaveBeenCalledWith('APP-005', false)
     expect(mockIsDecisionEmailValid).not.toHaveBeenCalled()
+  })
+
+  it('should disable main action button when Approve is selected and hasOpenConditionForm is true', async () => {
+    isApplication.value = true
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    hasOpenConditionForm.value = true
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123'
+    }
+
+    const wrapper = await mount()
+
+    const mainBtn = wrapper.find('[data-testid="main-action-button"]')
+    expect(mainBtn.exists()).toBe(true)
+    expect(mainBtn.attributes('disabled')).toBeDefined()
+  })
+
+  it('should not disable Send Notice main button even if hasOpenConditionForm was true', async () => {
+    isApplication.value = false
+    decisionIntent.value = ApplicationActionsE.SEND_NOC
+    hasOpenConditionForm.value = true
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      examinerActions: [ApplicationActionsE.SEND_NOC]
+    }
+
+    const wrapper = await mount()
+
+    const mainBtn = wrapper.find('[data-testid="main-action-button"]')
+    expect(mainBtn.exists()).toBe(true)
+    expect(mainBtn.text()).toContain('Send Notice')
+    expect(mainBtn.attributes('disabled')).toBeUndefined()
+  })
+
+  it('should successfully execute send notice when Send Notice button is clicked', async () => {
+    isApplication.value = false
+    decisionIntent.value = ApplicationActionsE.SEND_NOC
+    decisionEmailContent.value = { content: 'Please review registration conditions.' }
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      examinerActions: [ApplicationActionsE.SEND_NOC]
+    }
+
+    const wrapper = await mount()
+
+    const mainBtn = wrapper.find('[data-testid="main-action-button"]')
+    expect(mainBtn.exists()).toBe(true)
+    expect(mainBtn.attributes('disabled')).toBeUndefined()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockSendNotice).toHaveBeenCalledOnce()
+    expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'Please review registration conditions.')
   })
 })

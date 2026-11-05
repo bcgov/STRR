@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import { enI18n } from '../mocks/i18n'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
 
-const mockIsMainActionDisabled = ref(false)
+const mockHasOpenConditionForm = ref(false)
 
 vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
@@ -16,7 +16,7 @@ vi.mock('@/composables/useExaminerDecision', () => ({
       'partOfStrataHotel',
       'fractionalOwnership'
     ],
-    isMainActionDisabled: mockIsMainActionDisabled
+    hasOpenConditionForm: mockHasOpenConditionForm
   })
 }))
 
@@ -29,7 +29,7 @@ const defaultProps = () => ({
 describe('Approval Conditions Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockIsMainActionDisabled.value = false
+    mockHasOpenConditionForm.value = false
   })
 
   it('should render the approval conditions select menu', async () => {
@@ -67,7 +67,7 @@ describe('Approval Conditions Component', () => {
       expect(wrapper.find('[data-testid="custom-condition"]').exists()).toBe(true)
     })
 
-    it('should disable main action when custom condition form is open', async () => {
+    it('should set hasOpenConditionForm when custom condition form is open', async () => {
       const wrapper = await mountSuspended(ApprovalConditions, {
         global: { plugins: [enI18n] },
         props: defaultProps()
@@ -77,7 +77,7 @@ describe('Approval Conditions Component', () => {
       await wrapper.find('[data-testid="open-custom-condition-button"]').trigger('click')
       await flushPromises()
 
-      expect(mockIsMainActionDisabled.value).toBe(true)
+      expect(mockHasOpenConditionForm.value).toBe(true)
     })
 
     it('should show error when adding empty custom condition', async () => {
@@ -168,7 +168,7 @@ describe('Approval Conditions Component', () => {
       expect(emitted).toBeUndefined()
     })
 
-    it('should re-enable main action when custom condition form is closed', async () => {
+    it('should reset hasOpenConditionForm when custom condition form is closed', async () => {
       const wrapper = await mountSuspended(ApprovalConditions, {
         global: { plugins: [enI18n] },
         props: defaultProps()
@@ -177,11 +177,11 @@ describe('Approval Conditions Component', () => {
 
       await wrapper.find('[data-testid="open-custom-condition-button"]').trigger('click')
       await flushPromises()
-      expect(mockIsMainActionDisabled.value).toBe(true)
+      expect(mockHasOpenConditionForm.value).toBe(true)
 
       await wrapper.find('[data-testid="remove-custom-condition-button"]').trigger('click')
       await flushPromises()
-      expect(mockIsMainActionDisabled.value).toBe(false)
+      expect(mockHasOpenConditionForm.value).toBe(false)
     })
 
     it('should disable open-custom-condition-button when 3 custom conditions are already selected', async () => {
@@ -238,7 +238,7 @@ describe('Approval Conditions Component', () => {
       expect(wrapper.find('[data-testid="min-booking-days"]').exists()).toBe(true)
     })
 
-    it('should disable main action when min booking days form is open', async () => {
+    it('should set hasOpenConditionForm to true when min booking days form is open', async () => {
       const wrapper = await mountSuspended(ApprovalConditions, {
         global: { plugins: [enI18n] },
         props: defaultProps()
@@ -248,7 +248,7 @@ describe('Approval Conditions Component', () => {
       await wrapper.find('[data-testid="open-min-book-days-button"]').trigger('click')
       await flushPromises()
 
-      expect(mockIsMainActionDisabled.value).toBe(true)
+      expect(mockHasOpenConditionForm.value).toBe(true)
     })
 
     it('should emit updates and close form when valid min booking days is added', async () => {
@@ -318,7 +318,7 @@ describe('Approval Conditions Component', () => {
       expect(btn.attributes('disabled')).toBeDefined()
     })
 
-    it('should re-enable main action when min booking days form is closed via remove', async () => {
+    it('should reset hasOpenConditionForm when min booking days form is closed via remove', async () => {
       const wrapper = await mountSuspended(ApprovalConditions, {
         global: { plugins: [enI18n] },
         props: defaultProps()
@@ -327,11 +327,27 @@ describe('Approval Conditions Component', () => {
 
       await wrapper.find('[data-testid="open-min-book-days-button"]').trigger('click')
       await flushPromises()
-      expect(mockIsMainActionDisabled.value).toBe(true)
+      expect(mockHasOpenConditionForm.value).toBe(true)
 
       await wrapper.find('[data-testid="remove-min-book-days-button"]').trigger('click')
       await flushPromises()
-      expect(mockIsMainActionDisabled.value).toBe(false)
+      expect(mockHasOpenConditionForm.value).toBe(false)
+    })
+
+    it('should reset hasOpenConditionForm to false on unmount when an incomplete condition was open', async () => {
+      const wrapper = await mountSuspended(ApprovalConditions, {
+        global: { plugins: [enI18n] },
+        props: defaultProps()
+      })
+      await flushPromises()
+
+      await wrapper.find('[data-testid="open-min-book-days-button"]').trigger('click')
+      await flushPromises()
+      expect(mockHasOpenConditionForm.value).toBe(true)
+
+      wrapper.unmount()
+      await flushPromises()
+      expect(mockHasOpenConditionForm.value).toBe(false)
     })
   })
 })

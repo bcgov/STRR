@@ -2,7 +2,13 @@
 import { onMounted } from 'vue'
 
 const { t } = useNuxtApp().$i18n
-const { showDecisionPanel, decisionIntent, preDefinedConditions, resetDecision } = useExaminerDecision()
+const {
+  showDecisionPanel,
+  decisionIntent,
+  preDefinedConditions,
+  resetDecision,
+  selectDecisionIntent
+} = useExaminerDecision()
 const {
   isApplication,
   isAssignedToUser,
@@ -17,16 +23,10 @@ const {
 } = storeToRefs(useExaminerStore())
 
 const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) => {
-  // do not reset anything for same actions
   if (decisionIntent.value === action) { return }
-  decisionIntent.value = action
-  // reset
+  selectDecisionIntent(action)
   localConditions.value = []
-  conditions.value = []
-  customConditions.value = null
-  minBookingDays.value = null
-  decisionEmailFormRef?.value?.clear?.()
-  decisionEmailContent.value.content = ''
+  customCondition.value = ''
   if (action === ApplicationActionsE.APPROVE) {
     loadExistingConditions()
   }
