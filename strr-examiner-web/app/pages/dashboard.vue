@@ -475,7 +475,7 @@ const {
   data: registrationListResp,
   status: regStatus,
   refresh: refreshRegistrations
-} = await useAsyncData(
+} = useAsyncData(
   'registration-list-resp',
   () => {
     // only fetch when on registrations tab
@@ -485,6 +485,7 @@ const {
     return exStore.fetchRegistrations()
   },
   {
+    lazy: true,
     default: () => ({ registrations: [], total: 0 }),
     transform: (res: ApiRegistrationListResp) => {
       if (res.registrations.length === 0) {
@@ -532,7 +533,7 @@ const {
   data: applicationListResp,
   status,
   refresh: refreshApplications
-} = await useAsyncData(
+} = useAsyncData(
   'application-list-resp',
   () => {
     // only fetch when on applications tab
@@ -542,6 +543,7 @@ const {
     return exStore.fetchApplications()
   },
   {
+    lazy: true,
     default: () => ({ applications: [], total: 0 }),
     transform: (res: ApiApplicationsListResp) => {
       if (!res.applications.length) {
@@ -859,7 +861,7 @@ const tabLinks = computed(() => [
           </div>
           <div class="flex flex-wrap items-center gap-3 text-gray-900">
             <UPagination
-              v-if="applicationOrRegistrationList.total > exStore.tableLimit"
+              v-if="(applicationOrRegistrationList?.total || 0) > exStore.tableLimit"
               v-model="exStore.tablePage"
               :page-count="exStore.tableLimit"
               size="lg"
@@ -931,7 +933,9 @@ const tabLinks = computed(() => [
         :key="isApplicationTab ? 'applications-table' : 'registrations-table'"
         v-model:sort="sort"
         :columns="columnsTable"
-        :rows="isApplicationTab ? applicationListResp.applications : registrationListResp.registrations"
+        :rows="isApplicationTab
+          ? (applicationListResp?.applications ?? [])
+          : (registrationListResp?.registrations ?? [])"
         :loading="isApplicationTab ? status === 'pending' : regStatus === 'pending'"
         sort-mode="manual"
         :empty-state="{

@@ -186,6 +186,12 @@ describe('Examiner Dashboard Page', () => {
     expect(applicationText).toContain(registration.unitAddress.city)
   })
 
+  it('binds table loading state to query status', () => {
+    const table = wrapper.findComponent({ name: 'UTable' })
+    expect(table.exists()).toBe(true)
+    expect(table.props('loading')).toBe(false)
+  })
+
   it('renders the assignee column correctly', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
     const { applications } = wrapper.vm.applicationOrRegistrationList
