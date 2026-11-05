@@ -7,7 +7,19 @@ export default defineNuxtPlugin(() => {
 
   const api = $fetch.create({
     baseURL: strrApiUrl,
-    onRequest ({ options }) {
+    async onRequest ({ options }) {
+      if ($keycloak?.authenticated) {
+        try {
+          // Proactively refresh if token expires within 60s
+          const refreshed = await $keycloak.updateToken(60)
+          if (refreshed) {
+            console.info('[Auth] Access token refreshed before API request.')
+          }
+        } catch (error) {
+          console.warn('[Auth] Failed to refresh token before API request:', error)
+        }
+      }
+
       const headers = options.headers ||= {}
       if (Array.isArray(headers)) {
         headers.push(['Authorization', `Bearer ${$keycloak.token}`])
