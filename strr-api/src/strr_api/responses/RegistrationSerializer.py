@@ -10,6 +10,21 @@ from strr_api.enums.enum import RegistrationStatus, RegistrationType
 from strr_api.models import Address, Application, Contact, Platform, PropertyManager, Registration, StrataHotel
 
 
+def _drop_nulls(value: Any) -> Any:
+    """Recursively remove None-valued keys from dicts (and dicts nested in lists).
+
+    The registration JSON schemas declare optional fields as non-nullable (e.g. {"type": "string"}), and the
+    host UI posts the GET /registrations/{id} payload back for renewals, so optional fields must be omitted
+    rather than emitted as null. The query API (OAS) instead requires these keys present and nullable, which is
+    why the shared helpers emit the full shape and only the internal serializer strips nulls.
+    """
+    if isinstance(value, dict):
+        return {k: _drop_nulls(v) for k, v in value.items() if v is not None}
+    if isinstance(value, list):
+        return [_drop_nulls(v) for v in value]
+    return value
+
+
 class RegistrationSerializer:
     """Registration response serializer."""
 
@@ -99,15 +114,18 @@ class RegistrationSerializer:
                 )
         registration_data["documents"] = documents
 
+        details: dict[str, Any] = {}
         if registration.registration_type == RegistrationType.HOST.value:
-            RegistrationSerializer.populate_host_registration_details(registration_data, registration)
+            RegistrationSerializer.populate_host_registration_details(details, registration)
 
         elif registration.registration_type == RegistrationType.PLATFORM.value:
-            RegistrationSerializer.populate_platform_registration_details(registration_data, registration)
+            RegistrationSerializer.populate_platform_registration_details(details, registration)
 
         elif registration.registration_type == RegistrationType.STRATA_HOTEL.value:
-            RegistrationSerializer.populate_strata_hotel_registration_details(registration_data, registration)
+            RegistrationSerializer.populate_strata_hotel_registration_details(details, registration)
 
+        # Keep top-level sections (e.g. secondaryContact: null) but omit null optional fields inside them.
+        registration_data.update({k: _drop_nulls(v) for k, v in details.items()})
         return registration_data
 
     @classmethod
@@ -257,28 +275,19 @@ class RegistrationSerializer:
         registration_data["unitAddress"] = cls._serialize_unit_address(registration.rental_property)
 
         str_requirements = cls.get_str_requirements_from_application(registration)
-        bl_exp = registration.rental_property.local_business_licence_expiry_date
+        rental_prop = registration.rental_property
+        jurisdiction = rental_prop.jurisdiction or (
+            str_requirements.get("organizationNm") if str_requirements else None
+        )
 
         registration_data["unitDetails"] = {
-            "parcelIdentifier": registration.rental_property.parcel_identifier,
-            "businessLicense": registration.rental_property.local_business_licence,
-            "businessLicenseExpiryDate": bl_exp.strftime("%Y-%m-%d") if bl_exp else None,
-            "blExemptReason": registration.rental_property.bl_exempt_reason,
-            "propertyType": registration.rental_property.property_type.name,
-            "ownershipType": registration.rental_property.ownership_type,
-            "rentalUnitSpaceType": registration.rental_property.space_type,
-            "hostResidence": registration.rental_property.host_residence,
-            "isUnitOnPrincipalResidenceProperty": registration.rental_property.is_unit_on_principal_residence_property,
-            "numberOfRoomsForRent": registration.rental_property.number_of_rooms_for_rent,
-            "strataHotelRegistrationNumber": registration.rental_property.strata_hotel_registration_number,
-            "prExemptReason": registration.rental_property.pr_exempt_reason,
-            "strataHotelCategory": registration.rental_property.strata_hotel_category,
-            "jurisdiction": registration.rental_property.jurisdiction
-            or (str_requirements.get("organizationNm") if str_requirements else None),
-            "prRequired": registration.rental_property.pr_required,
-            "blRequired": registration.rental_property.bl_required,
-            "rentalUnitSetupOption": registration.rental_property.rental_space_option,
-            "hostType": registration.rental_property.host_type,
+            "propertyType": rental_prop.property_type.name,
+            **cls._base_unit_details(rental_prop, jurisdiction),
+            "ownershipType": cls._enum_val(rental_prop.ownership_type),
+            "rentalUnitSpaceType": cls._enum_val(rental_prop.space_type),
+            "hostResidence": cls._enum_val(rental_prop.host_residence),
+            "isUnitOnPrincipalResidenceProperty": rental_prop.is_unit_on_principal_residence_property,
+            "numberOfRoomsForRent": rental_prop.number_of_rooms_for_rent,
         }
 
         if str_requirements:
@@ -323,6 +332,25 @@ class RegistrationSerializer:
             registration_data["propertyManager"]["initiatedByPropertyManager"] = cls._get_initiated_by_property_manager(
                 registration
             )
+
+    @classmethod
+    def _base_unit_details(cls, rental, jurisdiction: Optional[str]) -> dict[str, Any]:
+        """Optional unit detail fields shared by the host and query serializers (always emitted; nullable)."""
+        bl_exp = rental.local_business_licence_expiry_date
+        return {
+            "parcelIdentifier": rental.parcel_identifier,
+            "businessLicense": rental.local_business_licence,
+            "businessLicenseExpiryDate": bl_exp.strftime("%Y-%m-%d") if bl_exp else None,
+            "blExemptReason": rental.bl_exempt_reason,
+            "strataHotelRegistrationNumber": rental.strata_hotel_registration_number,
+            "prExemptReason": cls._enum_val(rental.pr_exempt_reason),
+            "strataHotelCategory": cls._enum_val(rental.strata_hotel_category),
+            "jurisdiction": jurisdiction,
+            "prRequired": rental.pr_required,
+            "blRequired": rental.bl_required,
+            "rentalUnitSetupOption": cls._enum_val(rental.rental_space_option),
+            "hostType": cls._enum_val(rental.host_type),
+        }
 
     @classmethod
     def _get_initiated_by_property_manager(cls, registration: Registration) -> bool | None:
@@ -422,22 +450,10 @@ class RegistrationSerializer:
 
         str_req = cls.get_str_requirements_from_application(reg)
         app_jurisdiction = str_req.get("organizationNm") if str_req else None
-        bl_exp = rental.local_business_licence_expiry_date
 
         snapshot["unitDetails"] = {
-            "parcelIdentifier": rental.parcel_identifier,
-            "businessLicense": rental.local_business_licence,
-            "businessLicenseExpiryDate": bl_exp.strftime("%Y-%m-%d") if bl_exp else None,
-            "blExemptReason": rental.bl_exempt_reason,
             "propertyType": cls._enum_val(rental.property_type),
-            "strataHotelRegistrationNumber": rental.strata_hotel_registration_number,
-            "prExemptReason": cls._enum_val(rental.pr_exempt_reason),
-            "strataHotelCategory": cls._enum_val(rental.strata_hotel_category),
-            "jurisdiction": rental.jurisdiction or app_jurisdiction,
-            "prRequired": rental.pr_required,
-            "blRequired": rental.bl_required,
-            "rentalUnitSetupOption": cls._enum_val(rental.rental_space_option),
-            "hostType": cls._enum_val(rental.host_type),
+            **cls._base_unit_details(rental, rental.jurisdiction or app_jurisdiction),
         }
         snapshot["strRequirements"] = (
             {
@@ -455,18 +471,18 @@ class RegistrationSerializer:
     @classmethod
     def _serialize_unit_address(cls, rental) -> dict[str, Any]:
         """Serialize rental property unit address."""
-        addr = rental.address
+        addr = rental.address if rental else None
         return {
-            "unitNumber": addr.unit_number if addr else None,
-            "streetNumber": addr.street_number if addr else None,
-            "streetName": addr.street_address if addr else None,
-            "addressLineTwo": addr.street_address_additional if addr else None,
-            "city": addr.city if addr else None,
-            "postalCode": addr.postal_code if addr else None,
-            "province": addr.province if addr else None,
-            "country": addr.country if addr else None,
-            "nickname": rental.nickname,
-            "locationDescription": addr.location_description if addr else None,
+            "streetNumber": getattr(addr, "street_number", None),
+            "streetName": getattr(addr, "street_address", None),
+            "city": getattr(addr, "city", None),
+            "postalCode": getattr(addr, "postal_code", None),
+            "province": getattr(addr, "province", None),
+            "country": getattr(addr, "country", None),
+            "unitNumber": getattr(addr, "unit_number", None),
+            "addressLineTwo": getattr(addr, "street_address_additional", None),
+            "locationDescription": getattr(addr, "location_description", None),
+            "nickname": getattr(rental, "nickname", None),
         }
 
     @classmethod
@@ -487,6 +503,19 @@ class RegistrationSerializer:
         }
 
     @classmethod
+    def _host_contact_pii_fields(cls, c: Optional[Contact], include_pii: bool) -> dict[str, Any]:
+        """Extract PII and business fields for host contact query serialization."""
+        if not c:
+            return {"dateOfBirth": None, "socialInsuranceNumber": None, "businessNumber": None}
+        dob = c.date_of_birth.strftime("%Y-%m-%d") if include_pii and c.date_of_birth else None
+        sin = c.social_insurance_number if include_pii else None
+        return {
+            "dateOfBirth": dob,
+            "socialInsuranceNumber": sin,
+            "businessNumber": c.business_number,
+        }
+
+    @classmethod
     def _serialize_query_host_contact(
         cls, prop_contact, reg_json: Optional[dict] = None, include_pii: bool = False, is_primary: bool = True
     ) -> Optional[dict[str, Any]]:
@@ -497,20 +526,18 @@ class RegistrationSerializer:
         person = cls._serialize_person_contact(c) or {}
         person.pop("jobTitle", None)
         override_path = "primaryContact.emailAddress" if is_primary else "secondaryContact.emailAddress"
-        email = cls._get_override_value(reg_json, override_path, c.email if c else None)
-        dob = c.date_of_birth.strftime("%Y-%m-%d") if (include_pii and c and c.date_of_birth) else None
-        sin = c.social_insurance_number if (include_pii and c) else None
 
-        return {
+        data = {
             "contactType": cls._enum_val(prop_contact.contact_type) or "INDIVIDUAL",
             **person,
-            "dateOfBirth": dob,
-            "socialInsuranceNumber": sin,
-            "businessNumber": c.business_number if (c and (is_primary or include_pii)) else None,
-            "businessLegalName": prop_contact.business_legal_name if is_primary else None,
-            "emailAddress": email,
+            "emailAddress": cls._get_override_value(reg_json, override_path, c.email if c else None),
             "mailingAddress": cls._serialize_mailing_address(c.address if c else None),
         }
+        if is_primary or include_pii:
+            data.update(cls._host_contact_pii_fields(c, include_pii))
+        if is_primary:
+            data["businessLegalName"] = prop_contact.business_legal_name
+        return data
 
     @classmethod
     def _serialize_query_property_manager(
@@ -546,10 +573,10 @@ class RegistrationSerializer:
         return {
             "propertyManagerType": pm_type,
             "initiatedByPropertyManager": cls._get_initiated_by_property_manager(reg),
-            "businessLegalName": pm.business_legal_name if is_biz else None,
-            "businessNumber": pm.business_number if is_biz else None,
             "mailingAddress": cls._serialize_mailing_address(mailing_addr),
             "contact": contact,
+            "businessLegalName": pm.business_legal_name if is_biz else None,
+            "businessNumber": pm.business_number if is_biz else None,
         }
 
     @classmethod
@@ -559,11 +586,11 @@ class RegistrationSerializer:
             return None
         return {
             "address": addr.street_address,
-            "addressLineTwo": addr.street_address_additional,
             "city": addr.city,
             "province": addr.province,
             "postalCode": addr.postal_code,
             "country": addr.country,
+            "addressLineTwo": addr.street_address_additional,
             "locationDescription": addr.location_description,
         }
 
@@ -574,12 +601,12 @@ class RegistrationSerializer:
             return None
         return {
             "firstName": c.firstname,
-            "middleName": c.middlename,
             "lastName": c.lastname,
-            "preferredName": c.preferredname,
-            "jobTitle": c.job_title,
             "emailAddress": c.email,
             "phoneNumber": c.phone_number,
+            "middleName": c.middlename,
+            "preferredName": c.preferredname,
+            "jobTitle": c.job_title,
             "phoneCountryCode": c.phone_country_code,
             "extension": c.phone_extension,
             "faxNumber": c.fax_number,

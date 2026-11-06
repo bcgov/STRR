@@ -127,6 +127,8 @@ class UnitDetails:
         numberOfRoomsForRent=None,
         rentalUnitSetupOption=None,
         hostType=None,
+        jurisdiction=None,
+        **kwargs,
     ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
@@ -143,6 +145,7 @@ class UnitDetails:
         self.strataHotelCategory = strataHotelCategory
         self.rentalUnitSetupOption = rentalUnitSetupOption
         self.hostType = hostType
+        self.jurisdiction = jurisdiction
 
 
 class MailingAddress:
