@@ -16,13 +16,13 @@ export function formatPhoneNumberUI <T extends ApiPhone> (phone: T): ConnectPhon
 
 export function formatAddress <T extends ApiBaseAddress> (add: ConnectAddress) {
   return <T>{
-    country: add.country,
-    address: add.street,
-    addressLineTwo: add.streetAdditional,
-    city: add.city,
-    province: add.region,
-    postalCode: add.postalCode,
-    locationDescription: add.locationDescription
+    country: add.country?.trim(),
+    address: add.street?.trim(),
+    addressLineTwo: add.streetAdditional?.trim(),
+    city: add.city?.trim(),
+    province: add.region?.trim(),
+    postalCode: add.postalCode?.trim(),
+    locationDescription: add.locationDescription?.trim()
   }
 }
 
