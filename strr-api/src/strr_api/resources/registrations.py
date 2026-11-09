@@ -760,6 +760,8 @@ def get_todos(registration_id):
                         todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
 
         return {"todos": todos}, HTTPStatus.OK
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
     except Exception as exception:
         logger.error(exception)
         logging.error("Traceback: %s", traceback.format_exc())

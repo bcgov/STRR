@@ -456,6 +456,8 @@ class RegistrationService:
         jurisdiction = None
         if registration_request.strRequirements and isinstance(registration_request.strRequirements, dict):
             jurisdiction = registration_request.strRequirements.get("organizationNm")
+        if not jurisdiction and getattr(registration_request.unitDetails, "jurisdiction", None):
+            jurisdiction = registration_request.unitDetails.jurisdiction
 
         rental_property = RentalProperty(
             address=Address(

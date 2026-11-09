@@ -90,6 +90,69 @@ def test_host_renewal_application_submission(session, client, jwt, request_json,
         assert len(response_json.get("applications")) == 0
 
 
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_host_renewal_round_trip_from_registration_api(session, client, jwt):
+    """
+    Industry-standard round-trip integration test:
+    1. Create and approve a host registration.
+    2. Call GET /registrations/{id} to obtain the real serialized payload.
+    3. Simulate client submitting a renewal with the serialized registration payload.
+    4. Verify that schema validation passes and renewal application is successfully created.
+    """
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert rv.status_code == 200
+        app_num = rv.json.get("header").get("applicationNumber")
+
+        set_application_ready_for_examiner_review(app_num)
+        approved_resp, _ = assign_examiner_and_full_review_approve(client, jwt, app_num)
+        registration_id = approved_resp.get("header").get("registrationId")
+        assert registration_id is not None
+
+        # 2. Call GET /registrations/{id} (invokes RegistrationSerializer in API route)
+        rv_reg = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert rv_reg.status_code == 200
+        serialized = rv_reg.json
+
+        # Verify serializer safely omitted None locationDescription (preventing None-type schema error)
+        mailing_addr = serialized.get("primaryContact", {}).get("mailingAddress", {})
+        assert "locationDescription" not in mailing_addr
+        unit_addr = serialized.get("unitAddress", {})
+        assert "locationDescription" not in unit_addr
+
+        # 3. Build renewal payload from GET response
+        renewal_payload = {
+            "header": {
+                "applicationType": "renewal",
+                "registrationId": registration_id,
+            },
+            "registration": {
+                "registrationType": "HOST",
+                "primaryContact": serialized.get("primaryContact"),
+                "secondaryContact": serialized.get("secondaryContact"),
+                "unitAddress": serialized.get("unitAddress"),
+                "unitDetails": serialized.get("unitDetails"),
+                "listingDetails": serialized.get("listingDetails"),
+            },
+        }
+        if serialized.get("propertyManager"):
+            renewal_payload["registration"]["propertyManager"] = serialized.get("propertyManager")
+
+        # 4. POST to /applications to submit renewal (verifies strict schema validation)
+        rv_renewal = client.post("/applications", json=renewal_payload, headers=headers)
+        assert rv_renewal.status_code == 200, f"Renewal failed with: {rv_renewal.json}"
+        renewal_app_num = rv_renewal.json.get("header").get("applicationNumber")
+        assert renewal_app_num is not None
+
+        renewal_app = Application.find_by_application_number(application_number=renewal_app_num)
+        assert renewal_app.registration_id == registration_id
+        assert renewal_app.type == "renewal"
+
+
 @pytest.mark.parametrize(
     "request_json, isUnitOnPrincipalResidence",
     [
