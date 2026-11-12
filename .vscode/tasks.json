@@ -33,15 +33,26 @@
     {
       "label": "Interactions Update: Run Job",
       "type": "shell",
-      // Point this directly to your virtual environment's python binary
-      "command": "${workspaceFolder}/jobs/interactions-update/.venv/bin/python",
-      "args": [
-        "-m",
-        "interactions_update"
-      ],
+      "command": "make run",
       "options": {
-        "cwd": "${workspaceFolder}/jobs/interactions-update",
-        "envFile": "${workspaceFolder}/jobs/interactions-update/.env"
+        "cwd": "${workspaceFolder}/jobs/interactions-update"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Backfiller: Run Job",
+      "type": "shell",
+      "command": "make run",
+      "options": {
+        "cwd": "${workspaceFolder}/jobs/strr-backfiller"
       },
       "presentation": {
         "echo": true,

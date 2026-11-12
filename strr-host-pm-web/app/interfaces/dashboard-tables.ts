@@ -8,6 +8,7 @@ export interface ApplicationRow {
   dateSubmitted?: Date | string
   applicationNumber: string
   paymentToken?: number
+  hasEmailDeliveryFailure?: boolean
   disabled?: boolean
   class?: string
 }
@@ -24,8 +25,12 @@ export interface RegistrationRecord {
   registrationType?: ApplicationType
   expiryDate?: string
   status?: RegistrationStatus
+  hasEmailDeliveryFailure?: boolean
+  has_email_delivery_failure?: boolean
   header?: {
     hostStatus?: string
+    hasEmailDeliveryFailure?: boolean
+    has_email_delivery_failure?: boolean
     applications?: RegistrationApplicationSummary[]
   }
   unitAddress: ApiUnitAddress
@@ -45,6 +50,7 @@ export interface RegistrationRow {
   renewalDraftApplicationNumber?: string
   canRenew: boolean
   registrationId: number
+  hasEmailDeliveryFailure?: boolean
 }
 
 export interface RenewalTodoDetails {

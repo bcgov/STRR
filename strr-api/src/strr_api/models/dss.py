@@ -31,11 +31,13 @@ class DSSOrganization(db.Model):
     def lookup_by_geocode(cls, longitude: str, latitude: str):
         """Return the details for a geocode if it is within a known geometry."""
         search_point = f"SRID=4326;POINT ({longitude} {latitude})"
-        sql_query = text("""
+        sql_query = text(
+            """
             SELECT do1.organization_nm, do1.is_principal_residence_required, do1.is_business_licence_required
             FROM dss_organization do1
             WHERE do1.organization_id = dss_containing_organization_id(:search_point)
-        """)
+        """
+        )
         result = db.session.execute(sql_query, {"search_point": search_point}).fetchone()
         if result:
             return {

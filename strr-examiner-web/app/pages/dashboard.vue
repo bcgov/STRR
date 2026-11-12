@@ -468,7 +468,8 @@ const sharedListWatchSources = [
   () => exStore.tableFilters.registrationNumber,
   () => exStore.tableFilters.searchText,
   () => exStore.tableFilters.localGov,
-  () => exStore.tableFilters.adjudicator
+  () => exStore.tableFilters.adjudicator,
+  () => exStore.tableFilters.hasEmailFailure
 ]
 
 const {
@@ -502,6 +503,12 @@ const {
         localGov: getLocalGovColumnForRegistration(reg),
         adjudicator: getAdjudicatorColumn(reg.header),
         showRenewalBadge: shouldShowRenewalBadge(reg),
+        hasEmailDeliveryFailure: Boolean(
+          reg.header?.hasEmailDeliveryFailure ||
+          reg.header?.has_email_delivery_failure ||
+          reg.hasEmailDeliveryFailure ||
+          reg.has_email_delivery_failure
+        ),
         hasRecentDocumentUpload: reg.status !== RegistrationStatus.EXPIRED &&
           hasRecentDocumentUpload(getDocumentsFromRegistration(reg), reg.nocSentDate)
       }))
@@ -564,6 +571,12 @@ const {
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
         adjudicator: getAdjudicatorColumn(app.header),
+        hasEmailDeliveryFailure: Boolean(
+          app.header?.hasEmailDeliveryFailure ||
+          app.header?.has_email_delivery_failure ||
+          app.hasEmailDeliveryFailure ||
+          app.has_email_delivery_failure
+        ),
         hasRecentDocumentUpload: hasRecentDocumentUpload(
           getDocumentsFromApplication(app),
           NOC_APP_STATUSES.has(app.header.status) ? app.header.nocSentDate : undefined
@@ -848,6 +861,16 @@ const tabLinks = computed(() => [
               :count="applicationOrRegistrationList?.total || 0"
             />
             <UButton
+              :label="$t('label.filterEmailFailures')"
+              icon="i-mdi-email-alert-outline"
+              size="xs"
+              :color="exStore.tableFilters.hasEmailFailure ? 'red' : 'gray'"
+              :variant="exStore.tableFilters.hasEmailFailure ? 'solid' : 'outline'"
+              :aria-pressed="Boolean(exStore.tableFilters.hasEmailFailure)"
+              data-testid="filter-email-failure-toggle"
+              @click="exStore.tableFilters.hasEmailFailure = !exStore.tableFilters.hasEmailFailure"
+            />
+            <UButton
               :label="$t('label.clearAllFilters')"
               icon="i-mdi-close"
               variant="link"
@@ -1119,6 +1142,25 @@ const tabLinks = computed(() => [
                     {{ t('label.recentDocumentBadge') }}
                   </div>
                 </UTooltip>
+                <UTooltip
+                  v-if="row.hasEmailDeliveryFailure"
+                  :text="t('label.emailFailureHint')"
+                  :popper="{ placement: 'top', offsetDistance: 8 }"
+                >
+                  <span
+                    class="inline-flex shrink-0 items-center gap-1 rounded bg-red-100 px-2 py-0.5
+                      text-xs font-semibold text-red-900"
+                    data-testid="email-failure-badge"
+                    :aria-label="t('label.emailFailureHint')"
+                  >
+                    <UIcon
+                      name="i-mdi-email-alert-outline"
+                      class="size-4 shrink-0 text-red-800"
+                      aria-hidden="true"
+                    />
+                    {{ t('label.emailFailureBadge') }}
+                  </span>
+                </UTooltip>
                 <span>{{ row.applicationNumber }}</span>
               </div>
             </div>
@@ -1143,6 +1185,25 @@ const tabLinks = computed(() => [
                     />
                     {{ t('label.recentDocumentBadge') }}
                   </div>
+                </UTooltip>
+                <UTooltip
+                  v-if="row.hasEmailDeliveryFailure"
+                  :text="t('label.emailFailureHint')"
+                  :popper="{ placement: 'top', offsetDistance: 8 }"
+                >
+                  <span
+                    class="inline-flex shrink-0 items-center gap-1 rounded bg-red-100 px-2 py-0.5
+                      text-xs font-semibold text-red-900"
+                    data-testid="email-failure-badge"
+                    :aria-label="t('label.emailFailureHint')"
+                  >
+                    <UIcon
+                      name="i-mdi-email-alert-outline"
+                      class="size-4 shrink-0 text-red-800"
+                      aria-hidden="true"
+                    />
+                    {{ t('label.emailFailureBadge') }}
+                  </span>
                 </UTooltip>
                 <span>{{ row.registrationNumber }}</span>
               </div>
@@ -1188,6 +1249,25 @@ const tabLinks = computed(() => [
                   />
                   {{ t('label.recentDocumentBadge') }}
                 </div>
+              </UTooltip>
+              <UTooltip
+                v-if="row.hasEmailDeliveryFailure"
+                :text="t('label.emailFailureHint')"
+                :popper="{ placement: 'top', offsetDistance: 8 }"
+              >
+                <span
+                  class="inline-flex shrink-0 items-center gap-1 rounded bg-red-100 px-2 py-0.5
+                    text-xs font-semibold text-red-900"
+                  data-testid="email-failure-badge"
+                  :aria-label="t('label.emailFailureHint')"
+                >
+                  <UIcon
+                    name="i-mdi-email-alert-outline"
+                    class="size-4 shrink-0 text-red-800"
+                    aria-hidden="true"
+                  />
+                  {{ t('label.emailFailureBadge') }}
+                </span>
               </UTooltip>
               <span>{{ row.applicationNumber }}</span>
             </div>

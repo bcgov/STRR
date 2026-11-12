@@ -25,6 +25,10 @@ export default {
       title: 'Important: Business licence – Required.',
       description: 'Your local government requires a business licence to operate a short-term rental at this address.'
     },
+    emailDeliveryFailure: {
+      title: 'Important: Email notification could not be delivered.',
+      description: 'An email sent to an applicant or property manager on this record bounced or could not be delivered. Please review the Individuals and Businesses section and contact the Short-Term Rental Registry to verify and update your contact email address.'
+    },
     platformMatchRequired: '{boldStart}Important: Platform Address Match Required.{boldEnd} If you’re hosting on a Platform (e.g., Airbnb, Vrbo), make sure the address listed there matches this STR Registry address exactly. If it doesn’t, please contact the Platform directly to update it.',
     leavingApplication: "{boldStart}Important:{boldEnd} After selecting {boldStart}Proceed to Payment{boldEnd}, you'll leave your application and won't be able to review or change your information. This applies even if payment isn't completed."
   },
@@ -544,7 +548,8 @@ export default {
     },
     dashboardBadges: {
       renewalDraft: 'Renewal Draft',
-      renewalInProgress: 'Renewal In Progress'
+      renewalInProgress: 'Renewal In Progress',
+      emailDeliveryFailure: 'Email Delivery Failed'
     },
     chooseAccount: {
       title: 'Choose Account - My Short-Term Rental Registry',

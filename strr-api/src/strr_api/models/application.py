@@ -52,6 +52,7 @@ from strr_api.common.enum import BaseEnum, auto
 from strr_api.enums.enum import ApplicationType, StrrRequirement
 from strr_api.models.base_model import BaseModel
 from strr_api.models.dataclass import ApplicationSearch
+from strr_api.models.interactions import CustomerInteraction
 from strr_api.models.rental import Registration
 from strr_api.models.user import User
 
@@ -163,6 +164,17 @@ class Application(BaseModel):
 
     noc = db.relationship("NoticeOfConsideration", back_populates="application", uselist=False)
 
+    @property
+    def has_email_delivery_failure(self) -> bool:
+        """Return whether this application has any failed email delivery recipient."""
+        cached = getattr(self, "_has_email_delivery_failure", None)
+        if cached is not None:
+            return bool(cached)
+        try:
+            return CustomerInteraction.has_application_email_delivery_failure(self.id)
+        except Exception:  # pylint: disable=broad-exception-caught
+            return False
+
     @classmethod
     def find_by_id(cls, application_id: int) -> Application | None:
         """Return the application by id."""
@@ -220,6 +232,20 @@ class Application(BaseModel):
                     f"%{filter_criteria.local_gov}%"
                 ),
             )
+        query = cls._apply_draft_and_scope_filters(query, filter_criteria)
+        query = cls._apply_email_failure_filter(query, filter_criteria.has_email_failure)
+        sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
+        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
+        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        return paginated_result
+
+    @classmethod
+    def _apply_draft_and_scope_filters(cls, query, filter_criteria: ApplicationSearch):
+        """Apply draft exclusion and applications-only scope filters."""
         if not filter_criteria.include_draft_registration:
             query = query.filter(
                 ~db.and_(
@@ -235,22 +261,22 @@ class Application(BaseModel):
                 )
             )
         if filter_criteria.applications_only:
-            # Exclude all applications that have an associated registration.
             query = query.filter(Application.registration_id.is_(None))
-            # Also exclude when application_json has a registrationId in header (any non-null, non-empty value)
             no_reg_in_json = db.or_(
                 Application.application_json["header"]["registrationId"].astext.is_(None),
                 Application.application_json["header"]["registrationId"].astext == "",
             )
             query = query.filter(no_reg_in_json)
-        sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
-        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
-            query = query.order_by(sort_column.asc())
-        else:
-            query = query.order_by(sort_column.desc())
+        return query
 
-        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
-        return paginated_result
+    @classmethod
+    def _apply_email_failure_filter(cls, query, has_email_failure: bool | None):
+        """Apply email delivery failure filter expression."""
+        if has_email_failure is True:
+            return query.filter(CustomerInteraction.application_email_failure_exists_expr(Application.id))
+        if has_email_failure is False:
+            return query.filter(~CustomerInteraction.application_email_failure_exists_expr(Application.id))
+        return query
 
     @classmethod
     def get_by_registration_id(cls, registration_id: int) -> Application | None:
@@ -504,6 +530,10 @@ class Application(BaseModel):
                     f"%{filter_criteria.local_gov}%"
                 ),
             )
+        if filter_criteria.has_email_failure is True:
+            query = query.filter(CustomerInteraction.application_email_failure_exists_expr(Application.id))
+        elif filter_criteria.has_email_failure is False:
+            query = query.filter(~CustomerInteraction.application_email_failure_exists_expr(Application.id))
         if not filter_criteria.account_id:
             query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
@@ -584,6 +614,11 @@ class ApplicationSerializer:
         application_dict["header"]["paymentAccount"] = application.payment_account
         application_dict["header"]["status"] = application.status
         application_dict["header"]["isSetAside"] = application.is_set_aside
+        has_failure = bool(getattr(application, "has_email_delivery_failure", False))
+        application_dict["header"]["hasEmailDeliveryFailure"] = has_failure
+        application_dict["header"]["has_email_delivery_failure"] = has_failure
+        application_dict["hasEmailDeliveryFailure"] = has_failure
+        application_dict["has_email_delivery_failure"] = has_failure
         application_dict["header"]["hostStatus"] = (
             "Pending Review"
             if application.is_set_aside

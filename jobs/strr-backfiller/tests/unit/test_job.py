@@ -355,6 +355,41 @@ def test_run_executes_registration_backfill_when_config_enabled(mocker):
     mock_backfill.assert_called_once_with(mock_app, batch_size=25)
 
 
+def test_run_executes_interaction_recipients_backfill_when_config_enabled(mocker):
+    from backfiller.job import backfill_interaction_recipients, run
+
+    mock_app = MagicMock()
+    mock_app.config.get.side_effect = lambda key, default=None: {
+        "BACKFILL_INTERACTION_RECIPIENTS": True,
+        "BACKFILL_INTERACTION_RECIPIENTS_BATCH_SIZE": 500,
+    }.get(key, default)
+    _mock_run_context(mock_app)
+    mocker.patch("backfiller.job.create_app", return_value=mock_app)
+    mock_backfill = mocker.patch("backfiller.job.backfill_interaction_recipients")
+    run()
+    mock_backfill.assert_called_once_with(mock_app, batch_size=500)
+
+
+def test_backfill_interaction_recipients_delegates_to_service(mocker):
+    from backfiller.job import backfill_interaction_recipients
+
+    mock_app = MagicMock()
+    mock_service = mocker.patch(
+        "strr_api.services.interaction.InteractionService.backfill_interaction_recipients",
+        create=True,
+    )
+    mock_service.return_value = {
+        "total_processed": 100,
+        "total_recipients_created": 150,
+        "total_skipped": 10,
+        "total_errors": 0,
+    }
+
+    backfill_interaction_recipients(mock_app, batch_size=200)
+    mock_service.assert_called_once_with(batch_size=200)
+    mock_app.logger.info.assert_called()
+
+
 def test_run_skips_backfill_when_disabled(mocker):
     mock_app = MagicMock()
     mock_app.config.get.return_value = False

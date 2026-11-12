@@ -223,7 +223,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     localGov: '',
-    adjudicator: ''
+    adjudicator: '',
+    hasEmailFailure: false
   })
 
   // approval method statuses to show how registration was approved (via its application status)
@@ -395,12 +396,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     if (tableFilters.adjudicator) {
       queryParams.assignee = tableFilters.adjudicator
     }
+    if (tableFilters.hasEmailFailure) {
+      queryParams.hasEmailFailure = true
+    }
     return queryParams
   }
 
   const fetchApplications = () => {
     const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
     const applicationsOnly = isSplitDashboardTableEnabled.value
+    const emailFailureFilter = tableFilters.hasEmailFailure ? { hasEmailFailure: true } : {}
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       return $strrApi<ApiApplicationsListResp>('/applications/search', {
         query: {
@@ -416,7 +421,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
           requirement: tableFilters.requirements,
-          localGov: tableFilters.localGov || undefined
+          localGov: tableFilters.localGov || undefined,
+          ...emailFailureFilter
         }
       })
     } else {
@@ -435,7 +441,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           requirement: tableFilters.requirements,
           localGov: tableFilters.localGov || undefined,
           includeDraftRegistration: false,
-          applicationsOnly
+          applicationsOnly,
+          ...emailFailureFilter
         }
       })
     }
@@ -886,7 +893,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
         localGov: '',
-        adjudicator: ''
+        adjudicator: '',
+        hasEmailFailure: false
       }
     )
     tablePage.value = 1

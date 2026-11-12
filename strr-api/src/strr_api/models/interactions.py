@@ -38,13 +38,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 from sql_versioning import Versioned
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text, or_
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, exists, or_, select
 from sqlalchemy.dialects.postgresql import ENUM as SQLEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from strr_api.enums.enum import ChannelType, InteractionStatus
+from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus
 
 from .base_model import SimpleBaseModel
 from .db import db
@@ -53,6 +53,66 @@ if TYPE_CHECKING:
     from .application import Application
     from .rental import Registration
     from .user import User
+
+FAILURE_DELIVERY_STATUSES = (
+    DeliveryStatus.PERMANENT_FAILURE,
+    DeliveryStatus.TEMPORARY_FAILURE,
+    DeliveryStatus.TECHNICAL_FAILURE,
+    DeliveryStatus.BLOCKED,
+)
+
+
+class InteractionRecipient(Versioned, SimpleBaseModel):
+    """Normalized per-recipient delivery state for a customer interaction."""
+
+    __tablename__ = "interaction_recipients"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    interaction_id: Mapped[int] = mapped_column(
+        ForeignKey("interactions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    recipient_role: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    email_address: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    status: Mapped[DeliveryStatus] = mapped_column(
+        SQLEnum(DeliveryStatus, name="delivery_status"),
+        nullable=False,
+        default=DeliveryStatus.PENDING,
+    )
+    failure_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    failure_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    notify_reference: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, unique=True, index=True)
+    provider_reference: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    request_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    sent_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+    raw_payload: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+
+    interaction: Mapped["CustomerInteraction"] = relationship(
+        "CustomerInteraction",
+        back_populates="recipients",
+        foreign_keys=[interaction_id],
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_interaction_recipients_failure_lookup",
+            interaction_id,
+            status,
+            postgresql_where=status.in_(FAILURE_DELIVERY_STATUSES),
+        ),
+    )
+
+    def save(self):
+        """Store the InteractionRecipient."""
+        db.session.add(self)
+        db.session.commit()
 
 
 class CustomerInteraction(Versioned, SimpleBaseModel):
@@ -93,6 +153,12 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
     application: Mapped[Optional["Application"]] = relationship(foreign_keys=[application_id])
     registration: Mapped[Optional["Registration"]] = relationship(foreign_keys=[registration_id])
     user: Mapped[Optional["User"]] = relationship(foreign_keys=[user_id])
+    recipients: Mapped[list["InteractionRecipient"]] = relationship(
+        "InteractionRecipient",
+        back_populates="interaction",
+        cascade="all, delete-orphan",
+        order_by="InteractionRecipient.id",
+    )
 
     # Ensure it this is linked to only 1 of the 3.
     __table_args__ = (
@@ -137,3 +203,57 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
     def fetch_registration_interactions(cls, registration_id: int) -> list[CustomerInteraction]:
         """Return interactions for a registration sorted by create time."""
         return cls.query.filter(cls.registration_id == registration_id).order_by(cls.created_at).all()
+
+    @classmethod
+    def application_email_failure_exists_expr(cls, application_id_expr):
+        """Return a SQLAlchemy EXISTS expression checking if an application has any failed email recipient."""
+        return exists(
+            select(1)
+            .select_from(InteractionRecipient)
+            .join(cls, cls.id == InteractionRecipient.interaction_id)
+            .where(
+                cls.application_id == application_id_expr,
+                InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
+            )
+        )
+
+    @classmethod
+    def registration_email_failure_exists_expr(cls, registration_id_expr, application_model=None):
+        """Return a SQLAlchemy EXISTS expression checking if a registration has any failed email recipient."""
+        if application_model is not None:
+            owner_condition = or_(
+                cls.registration_id == registration_id_expr,
+                cls.application_id.in_(
+                    select(application_model.id).where(application_model.registration_id == registration_id_expr)
+                ),
+            )
+        else:
+            owner_condition = cls.registration_id == registration_id_expr
+
+        return exists(
+            select(1)
+            .select_from(InteractionRecipient)
+            .join(cls, cls.id == InteractionRecipient.interaction_id)
+            .where(
+                owner_condition,
+                InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
+            )
+        )
+
+    @classmethod
+    def has_application_email_delivery_failure(cls, application_id: int) -> bool:
+        """Evaluate whether an application has any failed email delivery recipient."""
+        if not application_id:
+            return False
+        return bool(db.session.scalar(select(cls.application_email_failure_exists_expr(application_id))))
+
+    @classmethod
+    def has_registration_email_delivery_failure(cls, registration_id: int, application_model=None) -> bool:
+        """Evaluate whether a registration (or its linked applications) has any failed email delivery recipient."""
+        if not registration_id:
+            return False
+        return bool(
+            db.session.scalar(
+                select(cls.registration_email_failure_exists_expr(registration_id, application_model=application_model))
+            )
+        )

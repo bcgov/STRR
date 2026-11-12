@@ -443,6 +443,9 @@ export default {
     renewal: 'Renewal',
     recentDocumentBadge: 'New document',
     recentDocumentUploadHint: 'New documents were submitted in response to a Notice of Consideration.',
+    emailFailureBadge: 'Delivery Failed',
+    emailFailureHint: 'An outbound email notification to a recipient on this record failed to deliver.',
+    filterEmailFailures: 'Delivery Failures',
     examinerNotes: 'Notes',
     examinerNotePlaceholder: 'Type new note here',
     noNotesAvailable: 'No notes available.'
@@ -785,9 +788,15 @@ export default {
     CREATED: 'Created',
     IN_TRANSIT: 'In transit',
     PENDING: 'Pending',
+    QUEUED: 'Queued',
+    SENDING: 'Sending',
     SENT: 'Sent',
     DELIVERED: 'Delivered',
     FAILED: 'Failed',
+    PERMANENT_FAILURE: 'Permanent failure',
+    TEMPORARY_FAILURE: 'Temporary failure',
+    TECHNICAL_FAILURE: 'Technical failure',
+    BLOCKED: 'Blocked',
     UNKNOWN: 'Unknown'
   },
   approvalConditions: {

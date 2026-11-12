@@ -23,6 +23,7 @@ const emptyFilters = () => ({
   subStatus: [],
   localGov: '',
   adjudicator: '',
+  hasEmailFailure: false,
   submissionDate: { start: null, end: null },
   lastModified: { start: null, end: null }
 })
@@ -59,6 +60,7 @@ function getStateFromStore (exStore: ReturnType<typeof useExaminerStore>) {
       subStatus: [...(filters.subStatus || [])],
       localGov: filters.localGov,
       adjudicator: filters.adjudicator,
+      hasEmailFailure: Boolean(filters.hasEmailFailure),
       submissionDate: { start: filters.submissionDate?.start ?? null, end: filters.submissionDate?.end ?? null },
       lastModified: { start: filters.lastModified?.start ?? null, end: filters.lastModified?.end ?? null }
     },

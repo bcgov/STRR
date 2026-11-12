@@ -76,6 +76,8 @@ export interface ApiExtraRegistrationDetails {
   prRequired?: boolean
   snapshots?: ApiSnapshot[]
   provisionalExtensionApplied?: boolean
+  hasEmailDeliveryFailure?: boolean
+  has_email_delivery_failure?: boolean
 }
 
 export interface ApplicationHeader {
@@ -90,6 +92,8 @@ export interface ApplicationHeader {
   hostStatus: string
   isCertificateIssued: boolean
   isSetAside: boolean | null
+  hasEmailDeliveryFailure?: boolean
+  has_email_delivery_failure?: boolean
   name: string
   paymentAccount: string
   paymentMethod: ConnectPaymentMethod
@@ -124,6 +128,8 @@ export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegist
 export interface ApiApplicationBaseResp {
   registration: any
   header: ApplicationHeader
+  hasEmailDeliveryFailure?: boolean
+  has_email_delivery_failure?: boolean
 }
 export interface ApiApplicationResp extends ApiApplicationBaseResp {
   registration: ApiBaseApplication
