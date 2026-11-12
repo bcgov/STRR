@@ -17,7 +17,7 @@ def testnormalize_notify_status_prefers_gc_notify_status():
 
 
 def testnormalize_notify_status_falls_back_to_notify_status():
-    """Maintain compatibility with older payloads that only expose notifyStatus."""
-    payload = {"notifyStatus": "DELIVERED"}
+    """BC Notify outcomes should be extracted from notify_status."""
+    payload = {"notify_status": "DELIVERED"}
 
     assert InteractionStatusHandler.normalize_notify_status(payload) == "DELIVERED"

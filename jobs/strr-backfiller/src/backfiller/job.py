@@ -290,12 +290,36 @@ def backfill_registration_search(app, batch_size=100):
     app.logger.info(f"Total errors: {stats['total_errors']}")
 
 
+def backfill_interaction_recipients(app, batch_size=1000):
+    """Backfill interaction_recipients from customer_interactions meta_data JSONB."""
+    from strr_api.services.interaction import InteractionService
+
+    app.logger.info("Starting interaction recipients backfill...")
+    stats = InteractionService.backfill_interaction_recipients(batch_size=batch_size)
+    app.logger.info("--------------------------------------")
+    app.logger.info("Interaction recipients backfill completed!")
+    app.logger.info(f"Total processed: {stats['total_processed']}")
+    app.logger.info(f"Total recipients created: {stats['total_recipients_created']}")
+    app.logger.info(f"Total skipped: {stats['total_skipped']}")
+    app.logger.info(f"Total errors: {stats['total_errors']}")
+
+
 def run():
     """Run the backfiller job."""
     try:
         app = create_app()
         with app.app_context():
             app.logger.info("Starting backfiller job....")
+
+            if app.config.get("BACKFILL_INTERACTION_RECIPIENTS", False):
+                batch_size = app.config.get(
+                    "BACKFILL_INTERACTION_RECIPIENTS_BATCH_SIZE", 1000
+                )
+                app.logger.info(
+                    "Running interaction recipients backfiller with batch size %s",
+                    batch_size,
+                )
+                backfill_interaction_recipients(app, batch_size=batch_size)
 
             if app.config.get("BACKFILL_REGISTRATION_SEARCH", False):
                 batch_size = app.config.get(

@@ -39,6 +39,7 @@ const createMockStore = (initialFilters = {}) => {
     lastModified: { start: null, end: null },
     localGov: '',
     adjudicator: '',
+    hasEmailFailure: false,
     ...initialFilters
   })
 
@@ -74,7 +75,8 @@ const createMockStore = (initialFilters = {}) => {
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
         localGov: '',
-        adjudicator: ''
+        adjudicator: '',
+        hasEmailFailure: false
       })
     }),
     assignApplication: vi.fn()
@@ -898,6 +900,15 @@ describe('Examiner Dashboard Page', () => {
       expect(hasValue(statusOptions, ApplicationStatus.PAID)).toBe(true)
       expect(hasValue(statusOptions, 'OPEN')).toBe(false)
       expect(hasValue(statusOptions, 'NOT_SUBMITTED')).toBe(false)
+    })
+
+    it('toggles hasEmailFailure filter when delivery failures button is clicked', async () => {
+      const toggleBtn = wrapper.findTestId('filter-email-failure-toggle')
+      expect(toggleBtn.exists()).toBe(true)
+      expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
+
+      await toggleBtn.trigger('click')
+      expect(mockStore.tableFilters.hasEmailFailure).toBe(true)
     })
   })
 })

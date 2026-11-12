@@ -148,10 +148,23 @@ def get_registrations():
     sort_desc: bool = request.args.get("sort_desc", "false").lower() == "true"
     offset: int = int(request.args.get("offset", 1))
     limit: int = int(request.args.get("limit", 50))
+    has_email_failure_param = request.args.get("hasEmailFailure", None)
+    has_email_failure = (
+        has_email_failure_param.lower() == "true"
+        if has_email_failure_param is not None and has_email_failure_param != ""
+        else None
+    )
 
     return (
         RegistrationService.list_registrations(
-            account_id, status, registration_type, sort_by, sort_desc, offset, limit
+            account_id,
+            status,
+            registration_type,
+            sort_by,
+            sort_desc,
+            offset,
+            limit,
+            has_email_failure=has_email_failure,
         ),
         HTTPStatus.OK,
     )
@@ -1264,6 +1277,12 @@ def search_registrations():
         local_gov = request.args.get("localGov", None) or None
         review_renew_param = request.args.get("reviewRenew", None)
         review_renew = review_renew_param.lower() == "true" if review_renew_param else None
+        has_email_failure_param = request.args.get("hasEmailFailure", None)
+        has_email_failure = (
+            has_email_failure_param.lower() == "true"
+            if has_email_failure_param is not None and has_email_failure_param != ""
+            else None
+        )
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1288,6 +1307,7 @@ def search_registrations():
             is_set_aside=is_set_aside,
             local_gov=local_gov,
             review_renew=review_renew,
+            has_email_failure=has_email_failure,
         )
 
         registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)
@@ -1370,6 +1390,12 @@ def user_search_registrations():
         registration_types = request.args.getlist("registrationType")
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
+        has_email_failure_param = request.args.get("hasEmailFailure", None)
+        has_email_failure = (
+            has_email_failure_param.lower() == "true"
+            if has_email_failure_param is not None and has_email_failure_param != ""
+            else None
+        )
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1387,6 +1413,7 @@ def user_search_registrations():
             sort_by=sort_by,
             sort_order=sort_order,
             account_id=int(account_id),
+            has_email_failure=has_email_failure,
         )
 
         registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)

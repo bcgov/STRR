@@ -99,7 +99,13 @@ const mapApplicationsList = (applications: HostApplicationResp['applications']):
       localGovernment: app.registration?.strRequirements?.organizationNm || t('text.notAvailable'),
       dateSubmitted: app.header.applicationDateTime,
       applicationNumber: app.header.applicationNumber,
-      paymentToken: app.header.paymentToken
+      paymentToken: app.header.paymentToken,
+      hasEmailDeliveryFailure: Boolean(
+        app.header?.hasEmailDeliveryFailure ||
+        app.header?.has_email_delivery_failure ||
+        (app as any).hasEmailDeliveryFailure ||
+        (app as any).has_email_delivery_failure
+      )
     }
   })
 }
@@ -258,14 +264,27 @@ function handlePayNow (row: ApplicationRow) {
       :ui="tableUI"
     >
       <template #number-data="{ row }">
-        <NuxtLink
-          v-if="!isDraftApplication(row)"
-          :to="getApplicationDetailsPath(row.applicationNumber)"
-          class="w-fit text-bcGovColor-activeBlue hover:underline"
-        >
-          {{ row.number }}
-        </NuxtLink>
-        <span v-else>{{ row.number }}</span>
+        <div class="flex flex-col gap-1">
+          <NuxtLink
+            v-if="!isDraftApplication(row)"
+            :to="getApplicationDetailsPath(row.applicationNumber)"
+            class="w-fit text-bcGovColor-activeBlue hover:underline"
+          >
+            {{ row.number }}
+          </NuxtLink>
+          <span v-else>{{ row.number }}</span>
+          <div v-if="row.hasEmailDeliveryFailure" class="flex flex-wrap gap-1">
+            <UBadge
+              color="yellow"
+              variant="subtle"
+              size="xs"
+              class="text-xs"
+              data-testid="host-email-failure-badge"
+            >
+              {{ $t('page.dashboardBadges.emailDeliveryFailure') }}
+            </UBadge>
+          </div>
+        </div>
       </template>
 
       <template #address-data="{ row }">

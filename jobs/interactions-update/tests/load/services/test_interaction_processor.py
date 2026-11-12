@@ -42,11 +42,14 @@ def _configure_notify_env(monkeypatch):
     monkeypatch.setenv("AUTH_SVC_TIMEOUT", "30")
     monkeypatch.setenv("STRR_SERVICE_ACCOUNT_CLIENT_ID", "strr-sa-client-id")
     monkeypatch.setenv("STRR_SERVICE_ACCOUNT_SECRET", "strr-sa-secret")
+    monkeypatch.setenv("STALE_SENT_HOURS", "2400")
 
     return notify_svc, auth_url
 
 
-# @pytest.mark.load
+pytestmark = pytest.mark.load
+
+
 @responses.activate
 @pytest.mark.parametrize("setup_bulk_interactions", [scenario_uno_day], indirect=True)
 def test_run(db_session, setup_bulk_interactions, monkeypatch):
@@ -72,7 +75,8 @@ def test_run(db_session, setup_bulk_interactions, monkeypatch):
             "recipients": ["test@example.com"],
             "requestDate": datetime.now(timezone.utc).isoformat(),
             "sentDate": datetime.now(timezone.utc).isoformat(),
-            "notifyStatus": InteractionStatus.DELIVERED,
+            "notifyStatus": "DELIVERED",
+            "notify_status": "DELIVERED",
             "notifyProvider": "HOUSING",
         }
         return (200, {}, json.dumps(response))
@@ -113,7 +117,7 @@ def test_run_persists_gc_notify_status_separately(
     interaction = db_session.execute(
         select(CustomerInteraction).where(CustomerInteraction.registration_id == reg_id)
     ).scalar_one()
-    interaction.notify_reference = "mock-notify-123"
+    interaction.notify_reference = f"mock-notify-gc-fail-{interaction.id}"
     db_session.commit()
 
     def notify_callback(request):
@@ -138,7 +142,6 @@ def test_run_persists_gc_notify_status_separately(
     )
 
     processor = InteractionProcessor()
-
     processor.run()
     db_session.expire_all()
     updated_interaction = db_session.get(CustomerInteraction, interaction.id)
@@ -185,6 +188,13 @@ def test_run_logs_stale_sent_interactions(
     """Test that stale SENT interactions are logged for alerting."""
 
     interaction_id = setup_bulk_interactions["interaction_ids"][0]
+
+    # Clean up any other interactions so only this one is examined
+    from sqlalchemy import delete
+
+    db_session.execute(
+        delete(CustomerInteraction).where(CustomerInteraction.id != interaction_id)
+    )
 
     # Update the interaction to be created in the past (2 hours ago)
     # so that with STALE_SENT_HOURS=0, it will be considered stale

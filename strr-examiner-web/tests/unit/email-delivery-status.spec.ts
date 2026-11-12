@@ -301,4 +301,26 @@ describe('evaluateEmailDeliveryStatus pure function', () => {
     expect(evaluateEmailDeliveryStatus('', [failedEvent]).isFailed).toBe(false)
     expect(evaluateEmailDeliveryStatus('pure-test@example.com', []).isFailed).toBe(false)
   })
+
+  it('recognizes BLOCKED status and canonical FailureType values', () => {
+    const blockedEvent: FilingHistoryEvent = {
+      ...failedEvent,
+      structuredDetails: {
+        emailType: 'HOST_RENEWAL_REMINDER',
+        interactionStatus: 'FAILED',
+        recipientStatuses: [
+          {
+            email_address: 'suppressed@example.com',
+            status: 'BLOCKED',
+            provider_status: 'BLOCKED',
+            failure_type: 'SUPPRESSION_LIST',
+            failure_reason: 'The recipient email address is blocked.'
+          }
+        ]
+      }
+    }
+    const res = evaluateEmailDeliveryStatus('suppressed@example.com', [blockedEvent])
+    expect(res.isFailed).toBe(true)
+    expect(res.reason).toBe('The recipient email address is blocked.')
+  })
 })

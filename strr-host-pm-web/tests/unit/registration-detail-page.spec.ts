@@ -190,4 +190,26 @@ describe('Registration Detail Page logic', () => {
       expect(result).toBeNull()
     })
   })
+
+  describe('email delivery failure banner detection', () => {
+    const computeHasEmailDeliveryFailure = (reg: any): boolean => {
+      return Boolean(
+        reg?.hasEmailDeliveryFailure ||
+        reg?.has_email_delivery_failure ||
+        reg?.header?.hasEmailDeliveryFailure ||
+        reg?.header?.has_email_delivery_failure
+      )
+    }
+
+    it('returns true when registration or header has email delivery failure flag', () => {
+      expect(computeHasEmailDeliveryFailure({ hasEmailDeliveryFailure: true })).toBe(true)
+      expect(computeHasEmailDeliveryFailure({ has_email_delivery_failure: true })).toBe(true)
+      expect(computeHasEmailDeliveryFailure({ header: { hasEmailDeliveryFailure: true } })).toBe(true)
+    })
+
+    it('returns false when no email delivery failure exists', () => {
+      expect(computeHasEmailDeliveryFailure({ hasEmailDeliveryFailure: false, header: {} })).toBe(false)
+      expect(computeHasEmailDeliveryFailure(null)).toBe(false)
+    })
+  })
 })

@@ -182,7 +182,13 @@ const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): Reg
       hasRenewalDraft: renewalDraftExists,
       renewalDraftApplicationNumber,
       canRenew: canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending),
-      registrationId: registration.id
+      registrationId: registration.id,
+      hasEmailDeliveryFailure: Boolean(
+        registration.hasEmailDeliveryFailure ||
+        registration.has_email_delivery_failure ||
+        registration.header?.hasEmailDeliveryFailure ||
+        registration.header?.has_email_delivery_failure
+      )
     }
   })
 }
@@ -313,7 +319,7 @@ async function handleResumeRenewalDraft (row: RegistrationRow) {
           >
             {{ row.number }}
           </NuxtLink>
-          <div class="flex gap-1">
+          <div class="flex flex-wrap gap-1">
             <UBadge
               v-if="row.hasRenewalDraft"
               color="blue"
@@ -322,6 +328,16 @@ async function handleResumeRenewalDraft (row: RegistrationRow) {
               class="text-xs"
             >
               {{ $t('page.dashboardBadges.renewalInProgress') }}
+            </UBadge>
+            <UBadge
+              v-if="row.hasEmailDeliveryFailure"
+              color="yellow"
+              variant="subtle"
+              size="xs"
+              class="text-xs"
+              data-testid="host-email-failure-badge"
+            >
+              {{ $t('page.dashboardBadges.emailDeliveryFailure') }}
             </UBadge>
           </div>
         </div>

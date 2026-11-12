@@ -31,11 +31,17 @@ const recipientStatusClass = (status: string): string => {
     return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200'
   }
 
-  if (status === 'FAILED') {
+  if (
+    status === 'FAILED' ||
+    status === 'PERMANENT_FAILURE' ||
+    status === 'TEMPORARY_FAILURE' ||
+    status === 'TECHNICAL_FAILURE' ||
+    status === 'BLOCKED'
+  ) {
     return 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200'
   }
 
-  if (status === 'IN_TRANSIT' || status === 'PENDING') {
+  if (status === 'IN_TRANSIT' || status === 'PENDING' || status === 'QUEUED' || status === 'SENDING') {
     return 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200'
   }
 
@@ -233,6 +239,13 @@ watch(highlightedFilingHistoryEvent, (newVal) => {
                               class="size-4 shrink-0 text-gray-600"
                             />
                             <span class="font-medium leading-5">{{ recipient.email }}</span>
+                            <span
+                              v-if="recipient.recipientRole"
+                              class="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-normal text-gray-600"
+                              data-testid="filing-history-recipient-role"
+                            >
+                              {{ recipient.recipientRole }}
+                            </span>
                           </div>
                           <span
                             :class="[

@@ -359,21 +359,42 @@ def test_get_application_deep_link(cfg_app, registration_type, application_numbe
 
 @pytest.mark.parametrize("with_pm", [False, True])
 def test_get_registration_email_recipients(cfg_app, with_pm):
-    primary_contact = MagicMock(is_primary=True, contact=MagicMock(email="primary@example.com"))
-    secondary = MagicMock(is_primary=False)
+    primary_contact = MagicMock(is_primary=True, contact=MagicMock(email="PRIMARY@EXAMPLE.COM"))
+    secondary = MagicMock(is_primary=False, contact=MagicMock(email="secondary@example.com"))
     rp = MagicMock(contacts=[primary_contact, secondary])
     if with_pm:
-        rp.contacts = [primary_contact]
-        rp.property_manager = MagicMock(primary_contact=MagicMock(email="pm@example.com"))
+        rp.property_manager = MagicMock(
+            primary_contact=MagicMock(email=" primary@example.com ")
+        )  # duplicate with mixed case/spaces
     else:
         rp.property_manager = None
 
-    reg = MagicMock(registration_type=Registration.RegistrationType.HOST.value, rental_property=rp)
+    reg = MagicMock(
+        registration_type=Registration.RegistrationType.HOST.value,
+        rental_property=rp,
+        user=MagicMock(email="primary@example.com"),  # duplicate applicant
+    )
     with cfg_app.app_context():
         out = el._get_registration_email_recipients(reg)
-    assert "primary@example.com" in out and "housing@test.gov" in out
-    if with_pm:
-        assert "pm@example.com" in out
+    recipients = out.split(",")
+    # Deduplication and lowercasing
+    assert recipients.count("primary@example.com") == 1
+    assert "housing@test.gov" in recipients
+    assert "secondary@example.com" in recipients
+
+
+def test_normalize_and_deduplicate_emails():
+    raw = [
+        " Host@Example.com ",
+        "host@example.com",
+        "HOST@EXAMPLE.COM",
+        "",
+        None,
+        "  ",
+        "other@example.com",
+    ]
+    deduped = el._normalize_and_deduplicate_emails(raw)
+    assert deduped == ["host@example.com", "other@example.com"]
 
 
 @patch.object(el.ApplicationSerializer, "to_dict")

@@ -12,6 +12,8 @@ STRR Backfiller Job
 Fork the repo and submitted a PR with accompanying tests.
 
 **Configuration:**
+* `BACKFILL_INTERACTION_RECIPIENTS=true` - Enable interaction recipients backfiller
+* `BACKFILL_INTERACTION_RECIPIENTS_BATCH_SIZE=1000` - Batch size (default: 1000)
 * `BACKFILL_REGISTRATION_SEARCH=true` - Enable registration search backfiller
 * `BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE=100` - Batch size (default: 100)
 

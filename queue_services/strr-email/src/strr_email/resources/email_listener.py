@@ -49,6 +49,7 @@ from flask import request
 from jinja2 import Template
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.enums.enum import ChannelType
+from strr_api.enums.enum import InteractionStatus
 from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import Application
 from strr_api.models import Platform
@@ -66,28 +67,70 @@ bp = Blueprint("worker", __name__)
 
 logger = StructuredLogging.get_logger()
 
+SUBJECT_REGISTRATION_APPROVED = "Short-Term Rental Registration Approved"
+SUBJECT_REGISTRATION_CANCELLED = "Short-Term Rental Registration Cancelled"
+SUBJECT_REGISTRATION_SUSPENDED = "Short-Term Rental Registration Suspended"
+SUBJECT_NOTICE_OF_CONSIDERATION = "Short-Term Rental Notice of Consideration"
+SUBJECT_RENEWAL_REMINDER = "Short-Term Rental Registration Renewal Reminder"
+DATE_FORMAT_LONG = "%B %d, %Y"
+
 EMAIL_SUBJECT = {
-    "HOST_AUTO_APPROVED": "Short-Term Rental Registration Approved",
-    "HOST_FULL_REVIEW_APPROVED": "Short-Term Rental Registration Approved",
+    "HOST_AUTO_APPROVED": SUBJECT_REGISTRATION_APPROVED,
+    "HOST_FULL_REVIEW_APPROVED": SUBJECT_REGISTRATION_APPROVED,
     "HOST_PROVISIONAL_REVIEW": "Short-Term Rental Registration Provisionally Approved",
     "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
-    "NOC": "Short-Term Rental Notice of Consideration",
-    "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
-    "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
+    "NOC": SUBJECT_NOTICE_OF_CONSIDERATION,
+    "PROVISIONAL_REVIEW_NOC": SUBJECT_NOTICE_OF_CONSIDERATION,
+    "REGISTRATION_NOC": SUBJECT_NOTICE_OF_CONSIDERATION,
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
     "HOST_DECLINED": "Short-Term Rental Application Refused",
-    "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
-    "HOST_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
-    "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
-    "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
-    "STRATA_HOTEL_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
-    "STRATA_HOTEL_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
-    "STRATA_HOTEL_NOC": "Short-Term Rental Notice of Consideration",
-    "STRATA_HOTEL_REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
-    "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
-    "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
-    "PLATFORM_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
+    "HOST_REGISTRATION_CANCELLED": SUBJECT_REGISTRATION_CANCELLED,
+    "HOST_REGISTRATION_SUSPENDED": SUBJECT_REGISTRATION_SUSPENDED,
+    "HOST_REGISTRATION_ACTIVE": SUBJECT_REGISTRATION_APPROVED,
+    "STRATA_HOTEL_REGISTRATION_ACTIVE": SUBJECT_REGISTRATION_APPROVED,
+    "STRATA_HOTEL_REGISTRATION_SUSPENDED": SUBJECT_REGISTRATION_SUSPENDED,
+    "STRATA_HOTEL_REGISTRATION_CANCELLED": SUBJECT_REGISTRATION_CANCELLED,
+    "STRATA_HOTEL_NOC": SUBJECT_NOTICE_OF_CONSIDERATION,
+    "STRATA_HOTEL_REGISTRATION_NOC": SUBJECT_NOTICE_OF_CONSIDERATION,
+    "HOST_RENEWAL_REMINDER": SUBJECT_RENEWAL_REMINDER,
+    "STRATA_HOTEL_RENEWAL_REMINDER": SUBJECT_RENEWAL_REMINDER,
+    "PLATFORM_RENEWAL_REMINDER": SUBJECT_RENEWAL_REMINDER,
+    "REGISTRATION_CANCELLED": SUBJECT_REGISTRATION_CANCELLED,
+    "REGISTRATION_SUSPENDED": SUBJECT_REGISTRATION_SUSPENDED,
+    "REGISTRATION_ACTIVE": SUBJECT_REGISTRATION_APPROVED,
 }
+
+
+def _fail_orphaned_interaction(email_info, reason: str) -> None:
+    """Mark a queued interaction as FAILED if interaction_uuid or interaction key is available."""
+    try:
+        interaction_uuid = getattr(email_info, "interaction_uuid", None)
+        interaction_key = getattr(email_info, "interaction", None)
+        interaction = None
+        from strr_api.models import CustomerInteraction
+
+        if interaction_uuid:
+            interaction = CustomerInteraction.find_by_uuid(interaction_uuid)
+        if not interaction and interaction_key:
+            interaction = CustomerInteraction.query.filter_by(
+                idempotency_key=interaction_key
+            ).one_or_none()
+
+        if interaction and interaction.status == InteractionStatus.QUEUED:
+            interaction.status = InteractionStatus.FAILED
+            meta = dict(interaction.meta_data or {})
+            meta["failure_reason"] = reason
+            meta["dispatch_error"] = reason
+            meta["failed_at"] = datetime.now(ZoneInfo("UTC")).isoformat()
+            interaction.meta_data = meta
+            interaction.save()
+            logger.warning(
+                "strr.email.orphaned_interaction_failed interaction_uuid=%s reason=%s",
+                interaction.interaction_uuid,
+                reason,
+            )
+    except Exception as exc:
+        logger.error("Failed to mark orphaned interaction as FAILED: %s", exc)
 
 
 @bp.route("/", methods=("POST",))
@@ -138,7 +181,17 @@ def worker():
             )
 
         template_type = _resolve_template_type(email_info.email_type, application.registration_type)
-        jinja_template = _get_jinja_template(template_type)
+        try:
+            jinja_template = _get_jinja_template(template_type)
+        except Exception as exc:
+            logger.error(
+                "Failed to load email template: %s for email_type: %s", exc, email_info.email_type
+            )
+            _fail_orphaned_interaction(email_info, f"Template not found: {template_type}")
+            return (
+                jsonify({"message": f"Template not found: {template_type}"}),
+                HTTPStatus.BAD_REQUEST,
+            )
 
         email = _get_application_update_email_content(application, email_info, jinja_template)
 
@@ -166,36 +219,117 @@ def worker():
         template_type = _resolve_template_type(
             email_info.email_type, registration.registration_type
         )
-        jinja_template = _get_jinja_template(template_type)
-
-        if registration.registration_type == Registration.RegistrationType.HOST:
-            email = _get_registration_update_email_content_for_host(
-                registration, email_info, jinja_template
+        try:
+            jinja_template = _get_jinja_template(template_type)
+        except Exception as exc:
+            logger.error(
+                "Failed to load email template: %s for email_type: %s", exc, email_info.email_type
             )
-        elif registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
-            if email_info.email_type in (
+            _fail_orphaned_interaction(email_info, f"Template not found: {template_type}")
+            return (
+                jsonify({"message": f"Template not found: {template_type}"}),
+                HTTPStatus.BAD_REQUEST,
+            )
+
+        reg_type = getattr(registration.registration_type, "value", registration.registration_type)
+        if reg_type == Registration.RegistrationType.HOST.value:
+            if template_type in (
+                "HOST_REGISTRATION_ACTIVE",
+                "HOST_REGISTRATION_SUSPENDED",
+                "HOST_REGISTRATION_CANCELLED",
+                "HOST_RENEWAL_REMINDER",
+                "REGISTRATION_NOC",
+            ):
+                email = _get_registration_update_email_content_for_host(
+                    registration, email_info, jinja_template
+                )
+            else:
+                logger.error(
+                    "Unhandled email_type %s for Host registration %s",
+                    email_info.email_type,
+                    registration.registration_number,
+                )
+                _fail_orphaned_interaction(
+                    email_info, f"Unhandled email_type: {email_info.email_type}"
+                )
+                return (
+                    jsonify({"message": f"Unhandled email_type: {email_info.email_type}"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+        elif reg_type == Registration.RegistrationType.STRATA_HOTEL.value:
+            if template_type in (
                 "STRATA_HOTEL_REGISTRATION_ACTIVE",
                 "STRATA_HOTEL_REGISTRATION_SUSPENDED",
                 "STRATA_HOTEL_REGISTRATION_CANCELLED",
                 "STRATA_HOTEL_RENEWAL_REMINDER",
                 "STRATA_HOTEL_REGISTRATION_NOC",
                 "STRATA_HOTEL_NOC",
-                "REGISTRATION_NOC",
             ):
                 email = _get_registration_update_email_content_for_strata_hotel(
                     registration, email_info, jinja_template
                 )
             else:
-                return {}, HTTPStatus.OK
-        elif registration.registration_type == Registration.RegistrationType.PLATFORM:
-            if email_info.email_type == "PLATFORM_RENEWAL_REMINDER":
+                logger.error(
+                    "Unhandled email_type %s for Strata Hotel registration %s",
+                    email_info.email_type,
+                    registration.registration_number,
+                )
+                _fail_orphaned_interaction(
+                    email_info, f"Unhandled email_type: {email_info.email_type}"
+                )
+                return (
+                    jsonify({"message": f"Unhandled email_type: {email_info.email_type}"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+        elif reg_type == Registration.RegistrationType.PLATFORM.value:
+            if template_type == "PLATFORM_RENEWAL_REMINDER":
                 email = _get_registration_update_email_content_for_platform(
                     registration, email_info, jinja_template
                 )
             else:
-                return {}, HTTPStatus.OK
+                logger.error(
+                    "Unhandled email_type %s for Platform registration %s",
+                    email_info.email_type,
+                    registration.registration_number,
+                )
+                _fail_orphaned_interaction(
+                    email_info, f"Unhandled email_type: {email_info.email_type}"
+                )
+                return (
+                    jsonify({"message": f"Unhandled email_type: {email_info.email_type}"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
         else:
-            return {}, HTTPStatus.OK
+            logger.error(
+                "Unhandled registration_type %s for email_type %s",
+                reg_type,
+                email_info.email_type,
+            )
+            _fail_orphaned_interaction(email_info, f"Unhandled registration_type: {reg_type}")
+            return (
+                jsonify({"message": f"Unhandled registration_type: {reg_type}"}),
+                HTTPStatus.BAD_REQUEST,
+            )
+    else:
+        logger.error("Missing application or registration number (event_id=%s)", event_id)
+        _fail_orphaned_interaction(email_info, "Missing application or registration number")
+        return (
+            jsonify({"message": "Missing application or registration number."}),
+            HTTPStatus.BAD_REQUEST,
+        )
+
+    if not email:
+        logger.error(
+            "Email content could not be generated for email_type: %s",
+            email_info.email_type,
+        )
+        _fail_orphaned_interaction(
+            email_info, f"Email content could not be generated for {email_info.email_type}"
+        )
+        return (
+            jsonify({"message": "Email content could not be generated."}),
+            HTTPStatus.BAD_REQUEST,
+        )
 
     # 4. InteractionService splits comma-separated recipients before sending to Notify.
     try:
@@ -228,14 +362,42 @@ def worker():
         return jsonify({"message": "Error posting email to notify-api."}), HTTPStatus.BAD_REQUEST
 
 
+_TEMPLATE_TYPE_MAP = {
+    Registration.RegistrationType.STRATA_HOTEL.value: {
+        "NOC": "STRATA_HOTEL_NOC",
+        "STRATA_HOTEL_NOC": "STRATA_HOTEL_NOC",
+        "REGISTRATION_NOC": "STRATA_HOTEL_REGISTRATION_NOC",
+        "STRATA_HOTEL_REGISTRATION_NOC": "STRATA_HOTEL_REGISTRATION_NOC",
+        "REGISTRATION_CANCELLED": "STRATA_HOTEL_REGISTRATION_CANCELLED",
+        "STRATA_HOTEL_REGISTRATION_CANCELLED": "STRATA_HOTEL_REGISTRATION_CANCELLED",
+        "REGISTRATION_SUSPENDED": "STRATA_HOTEL_REGISTRATION_SUSPENDED",
+        "STRATA_HOTEL_REGISTRATION_SUSPENDED": "STRATA_HOTEL_REGISTRATION_SUSPENDED",
+        "REGISTRATION_ACTIVE": "STRATA_HOTEL_REGISTRATION_ACTIVE",
+        "STRATA_HOTEL_REGISTRATION_ACTIVE": "STRATA_HOTEL_REGISTRATION_ACTIVE",
+        "RENEWAL_REMINDER": "STRATA_HOTEL_RENEWAL_REMINDER",
+        "STRATA_HOTEL_RENEWAL_REMINDER": "STRATA_HOTEL_RENEWAL_REMINDER",
+    },
+    Registration.RegistrationType.HOST.value: {
+        "REGISTRATION_CANCELLED": "HOST_REGISTRATION_CANCELLED",
+        "HOST_REGISTRATION_CANCELLED": "HOST_REGISTRATION_CANCELLED",
+        "REGISTRATION_SUSPENDED": "HOST_REGISTRATION_SUSPENDED",
+        "HOST_REGISTRATION_SUSPENDED": "HOST_REGISTRATION_SUSPENDED",
+        "REGISTRATION_ACTIVE": "HOST_REGISTRATION_ACTIVE",
+        "HOST_REGISTRATION_ACTIVE": "HOST_REGISTRATION_ACTIVE",
+        "RENEWAL_REMINDER": "HOST_RENEWAL_REMINDER",
+        "HOST_RENEWAL_REMINDER": "HOST_RENEWAL_REMINDER",
+    },
+    Registration.RegistrationType.PLATFORM.value: {
+        "RENEWAL_REMINDER": "PLATFORM_RENEWAL_REMINDER",
+        "PLATFORM_RENEWAL_REMINDER": "PLATFORM_RENEWAL_REMINDER",
+    },
+}
+
+
 def _resolve_template_type(email_type: str, reg_type) -> str:
-    """Resolve the template type, mapping generic NOCs to Strata Hotel NOCs if needed."""
-    if reg_type == Registration.RegistrationType.STRATA_HOTEL:
-        if email_type in ("NOC", "STRATA_HOTEL_NOC"):
-            return "STRATA_HOTEL_NOC"
-        if email_type in ("REGISTRATION_NOC", "STRATA_HOTEL_REGISTRATION_NOC"):
-            return "STRATA_HOTEL_REGISTRATION_NOC"
-    return email_type
+    """Resolve the template type, mapping generic NOCs and cancellations to specific templates."""
+    reg_type_str = getattr(reg_type, "value", reg_type)
+    return _TEMPLATE_TYPE_MAP.get(reg_type_str, {}).get(email_type, email_type)
 
 
 def _get_jinja_template(template_type: str) -> Template:
@@ -252,10 +414,19 @@ def _get_registration_update_email_content_for_host(
 ):
     noc_content = ""
     noc_expiry_date = ""
-    if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
-        noc = max(registration.nocs, key=lambda noc: noc.start_date)
-        noc_content = noc.content
-        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
+    if registration.nocs and (
+        registration.noc_status
+        in [RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED]
+        or "NOC" in email_info.email_type
+    ):
+        noc = max(
+            registration.nocs,
+            key=lambda n: getattr(n, "start_date", None) or getattr(n, "created_date", None) or 0,
+        )
+        noc_content = getattr(noc, "content", "") or getattr(noc, "notice_of_consideration", "")
+        if end_date := getattr(noc, "end_date", None):
+            noc_expiry_date = end_date.strftime(DATE_FORMAT_LONG)
+    noc_content = noc_content or email_info.custom_content or ""
     recipients = _get_registration_email_recipients(registration)
     html_out = jinja_template.render(
         reg_num=registration.registration_number,
@@ -271,7 +442,7 @@ def _get_registration_update_email_content_for_host(
         custom_content=email_info.custom_content,
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
-        expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        expiry_date=registration.expiry_date.strftime(DATE_FORMAT_LONG),
         registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
     )
@@ -297,7 +468,7 @@ def _get_registration_update_email_content_for_platform(
     html_out = jinja_template.render(
         reg_num=registration.registration_number,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
-        expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        expiry_date=registration.expiry_date.strftime(DATE_FORMAT_LONG),
         registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
         service_provider=platform.legal_name,
@@ -331,13 +502,13 @@ def _get_registration_update_email_content_for_strata_hotel(
         )
         noc_content = getattr(noc, "content", "") or getattr(noc, "notice_of_consideration", "")
         if end_date := getattr(noc, "end_date", None):
-            noc_expiry_date = end_date.strftime("%B %d, %Y")
+            noc_expiry_date = end_date.strftime(DATE_FORMAT_LONG)
     noc_content = noc_content or email_info.custom_content or ""
 
     strata_hotel = registration.strata_hotel_registration.strata_hotel
     recipients = _get_strata_hotel_notification_recipients(strata_hotel)
     expiry_date_str = (
-        registration.expiry_date.strftime("%B %d, %Y") if registration.expiry_date else ""
+        registration.expiry_date.strftime(DATE_FORMAT_LONG) if registration.expiry_date else ""
     )
     html_out = jinja_template.render(
         reg_num=registration.registration_number,
@@ -367,30 +538,43 @@ def _get_registration_update_email_content_for_strata_hotel(
     return email
 
 
+def _normalize_and_deduplicate_emails(emails: list[Any]) -> list[str]:
+    """Strip, lowercase, and deduplicate a list of email strings preserving order."""
+    seen = set()
+    result = []
+    for email in emails:
+        if email and isinstance(email, str) and email.strip():
+            normalized = email.strip().lower()
+            if normalized not in seen:
+                seen.add(normalized)
+                result.append(normalized)
+    return result
+
+
 def _get_strata_hotel_notification_recipients(strata_hotel: StrataHotel) -> str:
-    recipients: list[str] = []
+    raw_recipients: list[str] = []
 
-    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
-        recipients.append(housing_recipient_email)
+    if housing_recipient_email := current_app.config.get("EMAIL_HOUSING_RECIPIENT_EMAIL"):
+        raw_recipients.append(housing_recipient_email)
 
-    for representative in strata_hotel.representatives:
+    for representative in getattr(strata_hotel, "representatives", []) or []:
         if representative.contact and representative.contact.email:
-            if representative.contact.email not in recipients:
-                recipients.append(representative.contact.email)
+            raw_recipients.append(representative.contact.email)
 
-    return ",".join(recipients)
+    return ",".join(_normalize_and_deduplicate_emails(raw_recipients))
 
 
 def _get_platform_notification_recipients(platform: Platform) -> str:
-    recipients: list[str] = []
+    raw_recipients: list[str] = []
 
-    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
-        recipients.append(housing_recipient_email)
+    if housing_recipient_email := current_app.config.get("EMAIL_HOUSING_RECIPIENT_EMAIL"):
+        raw_recipients.append(housing_recipient_email)
 
-    for representative in platform.representatives:
-        recipients.append(representative.contact.email)
+    for representative in getattr(platform, "representatives", []) or []:
+        if representative.contact and representative.contact.email:
+            raw_recipients.append(representative.contact.email)
 
-    return ",".join(recipients)
+    return ",".join(_normalize_and_deduplicate_emails(raw_recipients))
 
 
 def _get_application_update_email_content(application, email_info, jinja_template):
@@ -400,8 +584,8 @@ def _get_application_update_email_content(application, email_info, jinja_templat
     noc_sent_date = ""
     if noc := application.noc:
         noc_content = noc.content
-        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
-        noc_sent_date = noc.creation_date.strftime("%B %d, %Y")
+        noc_expiry_date = noc.end_date.strftime(DATE_FORMAT_LONG)
+        noc_sent_date = noc.creation_date.strftime(DATE_FORMAT_LONG)
     recipients = _get_email_recipients(app_dict)
     client_recipients = _get_client_recipients(app_dict)
     html_out = jinja_template.render(
@@ -497,51 +681,84 @@ def _get_service_provider(app_dict: dict, reg_type: Registration.RegistrationTyp
     return app_dict["registration"]["businessDetails"]["legalName"]
 
 
+def _extract_property_manager_email(property_manager) -> str | None:
+    """Extract email address from property manager entity."""
+    if not property_manager:
+        return None
+    pm_contact = getattr(property_manager, "primary_contact", None) or getattr(
+        property_manager, "contact", None
+    )
+    if pm_contact:
+        return getattr(pm_contact, "email", None) or getattr(pm_contact, "email_address", None)
+    return None
+
+
+def _extract_host_registration_emails(registration: Registration) -> list[str]:
+    """Extract emails for host rental property contacts, property manager, and applicant."""
+    emails: list[str] = []
+    if not registration.rental_property:
+        return emails
+
+    for property_contact in registration.rental_property.contacts or []:
+        contact = getattr(property_contact, "contact", None)
+        if contact and contact.email:
+            emails.append(contact.email)
+
+    if pm_email := _extract_property_manager_email(registration.rental_property.property_manager):
+        emails.append(pm_email)
+
+    applicant = getattr(registration, "user", None)
+    applicant_email = getattr(applicant, "email", None) if applicant else None
+    if applicant_email:
+        emails.append(applicant_email)
+
+    return emails
+
+
 def _get_registration_email_recipients(registration: Registration) -> str:
-    "Return the email recipients in a string separated by commas."
-    recipients: list[str] = []
+    """Return the email recipients in a string separated by commas, normalized and deduplicated."""
+    raw_recipients: list[str] = []
 
-    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
-        recipients.append(housing_recipient_email)
+    if housing_recipient_email := current_app.config.get("EMAIL_HOUSING_RECIPIENT_EMAIL"):
+        raw_recipients.append(housing_recipient_email)
 
-    if registration.registration_type == Registration.RegistrationType.HOST.value:
-        # Host recipients - completing party is always the host or property manager
-        # the primary contact email should always be there (this is the primary host)
-        primary_property_contact = list(
-            filter(lambda x: x.is_primary is True, registration.rental_property.contacts)
-        )[0]
-        recipients.append(primary_property_contact.contact.email)
-        if property_manager := registration.rental_property.property_manager:
-            # will have a person or business email
-            recipients.append(property_manager.primary_contact.email)
-    return ",".join(recipients)
+    reg_type = getattr(registration.registration_type, "value", registration.registration_type)
+    if reg_type == Registration.RegistrationType.HOST.value:
+        raw_recipients.extend(_extract_host_registration_emails(registration))
+
+    return ",".join(_normalize_and_deduplicate_emails(raw_recipients))
 
 
 def _get_host_client_recipients(reg: dict) -> list[str]:
-    recipients = [reg["primaryContact"]["emailAddress"]]
+    raw = []
+    if primary := reg.get("primaryContact"):
+        if email := primary.get("emailAddress"):
+            raw.append(email)
     if property_manager := reg.get("propertyManager"):
-        email = (
-            property_manager.get("contact", {}).get("emailAddress")
-            or property_manager["business"]["primaryContact"]["emailAddress"]
-        )
-        recipients.append(email)
-    return recipients
+        email = property_manager.get("contact", {}).get("emailAddress") or property_manager.get(
+            "business", {}
+        ).get("primaryContact", {}).get("emailAddress")
+        if email:
+            raw.append(email)
+    return _normalize_and_deduplicate_emails(raw)
 
 
 def _get_platform_client_recipients(reg: dict) -> list[str]:
-    recipients = [rep["emailAddress"] for rep in reg.get("platformRepresentatives", [])]
-    if (
-        comp_party := reg.get("completingParty", {}).get("emailAddress")
-    ) and comp_party not in recipients:
-        recipients.append(comp_party)
-    return recipients
+    raw = [
+        rep.get("emailAddress")
+        for rep in reg.get("platformRepresentatives", [])
+        if rep.get("emailAddress")
+    ]
+    if comp_party := reg.get("completingParty", {}).get("emailAddress"):
+        raw.append(comp_party)
+    return _normalize_and_deduplicate_emails(raw)
 
 
 def _get_strata_hotel_client_recipients(reg: dict) -> list[str]:
-    recipients: list[str] = []
+    raw = []
     for rep in reg.get("strataHotelRepresentatives", []):
-        if (rep_email := rep.get("emailAddress")) and rep_email not in recipients:
-            recipients.append(rep_email)
+        if rep_email := rep.get("emailAddress"):
+            raw.append(rep_email)
 
     for rep in reg.get("strataHotelDetails", {}).get("representatives", []):
         rep_email = (
@@ -549,14 +766,12 @@ def _get_strata_hotel_client_recipients(reg: dict) -> list[str]:
             or rep.get("contact", {}).get("email")
             or rep.get("contact", {}).get("emailAddress")
         )
-        if rep_email and rep_email not in recipients:
-            recipients.append(rep_email)
+        if rep_email:
+            raw.append(rep_email)
 
-    if (
-        comp_party := reg.get("completingParty", {}).get("emailAddress")
-    ) and comp_party not in recipients:
-        recipients.append(comp_party)
-    return recipients
+    if comp_party := reg.get("completingParty", {}).get("emailAddress"):
+        raw.append(comp_party)
+    return _normalize_and_deduplicate_emails(raw)
 
 
 def _get_client_recipients(app_dict: dict) -> str:
@@ -577,18 +792,16 @@ def _get_client_recipients(app_dict: dict) -> str:
 
 
 def _get_email_recipients(app_dict: dict) -> str:
-    "Return the email recipients in a string separated by commas."
-    recipients: list[str] = []
+    """Return the email recipients in a string separated by commas, normalized and deduplicated."""
+    raw_recipients: list[str] = []
 
-    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
-        recipients.append(housing_recipient_email)
+    if housing_recipient_email := current_app.config.get("EMAIL_HOUSING_RECIPIENT_EMAIL"):
+        raw_recipients.append(housing_recipient_email)
 
     if client_recipients := _get_client_recipients(app_dict):
-        for email in client_recipients.split(","):
-            if email not in recipients:
-                recipients.append(email)
+        raw_recipients.extend(client_recipients.split(","))
 
-    return ",".join(recipients)
+    return ",".join(_normalize_and_deduplicate_emails(raw_recipients))
 
 
 def _get_tac_url(application: Application) -> str:
