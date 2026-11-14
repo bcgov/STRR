@@ -257,7 +257,8 @@ describe('Store - Examiner', () => {
       submissionDate: { start: null, end: null },
       lastModified: { start: null, end: null },
       localGov: '',
-      adjudicator: ''
+      adjudicator: '',
+      hasEmailFailure: false
     })
   })
 
@@ -392,6 +393,26 @@ describe('Store - Examiner', () => {
         assignee: 'examiner1',
         requirement: []
       }
+    }))
+  })
+
+  it('should include hasEmailFailure=true when email failure filter is enabled', async () => {
+    const store = useExaminerStore()
+    store.tableFilters.hasEmailFailure = true
+
+    await store.fetchApplications()
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications', expect.objectContaining({
+      query: expect.objectContaining({
+        hasEmailFailure: true
+      })
+    }))
+
+    mockStrrApi.mockClear()
+    await store.fetchRegistrations()
+    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/search', expect.objectContaining({
+      query: expect.objectContaining({
+        hasEmailFailure: true
+      })
     }))
   })
 

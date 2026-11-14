@@ -43,7 +43,7 @@ from .conditions_of_approval import ConditionsOfApproval
 from .db import db  # noqa: I001
 from .events import Events
 from .examiner_note import ExaminerNote
-from .interactions import CustomerInteraction
+from .interactions import FAILURE_DELIVERY_STATUSES, CustomerInteraction, InteractionRecipient
 from .ltsa import LTSARecord
 from .notice_of_consideration import NoticeOfConsideration
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
@@ -68,6 +68,8 @@ __all__ = (
     "Document",
     "Events",
     "ExaminerNote",
+    "FAILURE_DELIVERY_STATUSES",
+    "InteractionRecipient",
     "LTSARecord",
     "NoticeOfConsideration",
     "PlatformBrand",

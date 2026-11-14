@@ -625,6 +625,7 @@ class RegistrationService:
         sort_desc: bool = False,
         offset: int = 1,
         limit: int = 50,
+        has_email_failure: bool | None = None,
     ):
         """List registrations for current user in a paginated manner."""
         UserService.get_or_create_user_in_context()
@@ -636,6 +637,15 @@ class RegistrationService:
             query = query.filter(Registration.status == status.upper())
         if registration_type:
             query = query.filter(Registration.registration_type == registration_type.upper())
+        if has_email_failure is not None:
+            # pylint: disable=import-outside-toplevel
+            from strr_api.models.application import Application
+            from strr_api.models.interactions import CustomerInteraction
+
+            failure_expr = CustomerInteraction.registration_email_failure_exists_expr(
+                Registration.id, application_model=Application
+            )
+            query = query.filter(failure_expr if has_email_failure else ~failure_expr)
 
         sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
         sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]

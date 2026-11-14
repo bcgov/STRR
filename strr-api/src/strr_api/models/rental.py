@@ -103,6 +103,21 @@ class Registration(Versioned, BaseModel):
     conditionsOfApproval = relationship("ConditionsOfApproval", back_populates="registration", uselist=False)
     snapshots = relationship("RegistrationSnapshot", back_populates="registration")
 
+    @property
+    def has_email_delivery_failure(self) -> bool:
+        """Return whether this registration (or any linked application) has any failed email recipient."""
+        cached = getattr(self, "_has_email_delivery_failure", None)
+        if cached is not None:
+            return bool(cached)
+        try:
+            # pylint: disable=import-outside-toplevel
+            from strr_api.models.application import Application
+            from strr_api.models.interactions import CustomerInteraction
+
+            return CustomerInteraction.has_registration_email_delivery_failure(self.id, application_model=Application)
+        except Exception:  # pylint: disable=broad-exception-caught
+            return False
+
     __table_args__ = (
         db.Index("idx_registration_tsv", registration_tsv, postgresql_using="gin"),
         db.Index(
@@ -175,6 +190,15 @@ class Registration(Versioned, BaseModel):
             query = query.join(User, Registration.reviewer_id == User.id).filter(
                 User.username.ilike(f"%{filter_criteria.assignee}%")
             )
+        if filter_criteria.has_email_failure is not None:
+            # pylint: disable=import-outside-toplevel
+            from strr_api.models.application import Application
+            from strr_api.models.interactions import CustomerInteraction
+
+            failure_expr = CustomerInteraction.registration_email_failure_exists_expr(
+                Registration.id, application_model=Application
+            )
+            query = query.filter(failure_expr if filter_criteria.has_email_failure else ~failure_expr)
         return query
 
     @classmethod

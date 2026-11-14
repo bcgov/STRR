@@ -124,4 +124,25 @@ describe('Application Detail Page logic', () => {
       expect(expectedMiddleware).toContain('dashboard-redirect')
     })
   })
+
+  describe('email delivery failure banner detection', () => {
+    const computeHasEmailDeliveryFailure = (app: any): boolean => {
+      return Boolean(
+        app?.hasEmailDeliveryFailure ||
+        app?.has_email_delivery_failure ||
+        app?.header?.hasEmailDeliveryFailure ||
+        app?.header?.has_email_delivery_failure
+      )
+    }
+
+    it('returns true when application or header has email delivery failure flag', () => {
+      expect(computeHasEmailDeliveryFailure({ hasEmailDeliveryFailure: true })).toBe(true)
+      expect(computeHasEmailDeliveryFailure({ header: { hasEmailDeliveryFailure: true } })).toBe(true)
+    })
+
+    it('returns false when no email delivery failure exists', () => {
+      expect(computeHasEmailDeliveryFailure({ header: { hasEmailDeliveryFailure: false } })).toBe(false)
+      expect(computeHasEmailDeliveryFailure(undefined)).toBe(false)
+    })
+  })
 })

@@ -302,4 +302,35 @@ describe('useFilingHistory helpers', () => {
 
     expect(getEmailFilingHistoryTypeLabel(event)).toBe('')
   })
+
+  it('includes recipientRole and normalized failure statuses in getEmailFilingHistoryDetails', async () => {
+    const { getEmailFilingHistoryDetails } = await import('~/composables/useFilingHistory')
+
+    const event = {
+      createdDate: '2026-07-08T20:53:21.399598+00:00',
+      eventName: FilingHistoryEventName.EMAIL_FAILED,
+      eventType: FilingHistoryEventType.REGISTRATION,
+      idir: null,
+      message: 'Email failed',
+      details: null,
+      structuredDetails: {
+        emailType: 'HOST_RENEWAL_REMINDER',
+        interactionStatus: 'FAILED',
+        recipientStatuses: [
+          {
+            email_address: 'pm@example.com',
+            recipient_role: 'PROPERTY_MANAGER',
+            status: 'PERMANENT_FAILURE',
+            failure_reason: 'The recipient email address could not be reached.'
+          }
+        ]
+      }
+    }
+
+    const details = getEmailFilingHistoryDetails(event, t)
+    expect(details.recipients).toHaveLength(1)
+    expect(details.recipients[0]?.recipientRole).toBe('PROPERTY_MANAGER')
+    expect(details.recipients[0]?.statusLabel).toBe('Permanent failure')
+    expect(details.recipients[0]?.failureReason).toBe('The recipient email address could not be reached.')
+  })
 })

@@ -40,6 +40,7 @@ export const EMAIL_EVENTS: Set<FilingHistoryEventName> = new Set([
 
 export type EmailRecipientAccordionDetail = {
   email: string
+  recipientRole?: string
   status: string
   statusLabel: string
   sentDate?: string
@@ -101,6 +102,14 @@ const humanizeRecipientStatus = (
     .join(' ')
 }
 
+const FAILURE_RECIPIENT_STATUSES = new Set([
+  'FAILED',
+  'PERMANENT_FAILURE',
+  'TEMPORARY_FAILURE',
+  'TECHNICAL_FAILURE',
+  'BLOCKED'
+])
+
 const getEmailAccordionDetails = (
   event: FilingHistoryEvent,
   t: FilingHistoryTranslate = defaultTranslate
@@ -126,7 +135,7 @@ const getEmailAccordionDetails = (
       details.push(`Sent: ${recipient.sent_date}`)
     }
 
-    if (recipient.status === 'FAILED' && recipient.failure_reason) {
+    if (FAILURE_RECIPIENT_STATUSES.has((recipient.status || '').toUpperCase()) && recipient.failure_reason) {
       details.push(`Failure reason: ${recipient.failure_reason}`)
     }
 
@@ -163,14 +172,16 @@ export const getEmailFilingHistoryDetails = (
   return {
     emailTypeLabel: humanizeEmailType(structured.emailType, t),
     recipients: recipients.map((recipient) => {
+      const isFailure = FAILURE_RECIPIENT_STATUSES.has((recipient.status || '').toUpperCase())
       return {
         email: recipient.email_address || 'Unknown email',
+        ...(recipient.recipient_role ? { recipientRole: recipient.recipient_role } : {}),
         status: recipient.status || 'UNKNOWN',
         statusLabel: humanizeRecipientStatus(recipient.status, t),
         sentDate: recipient.sent_date && (recipient.status === 'SENT' || recipient.status === 'DELIVERED')
           ? recipient.sent_date
           : undefined,
-        failureReason: recipient.status === 'FAILED' ? recipient.failure_reason || undefined : undefined
+        failureReason: isFailure ? recipient.failure_reason || undefined : undefined
       }
     })
   }

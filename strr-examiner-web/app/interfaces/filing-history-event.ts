@@ -2,6 +2,7 @@ import type { FilingHistoryEventName } from '~/enums/filing-history'
 
 export interface EmailRecipientStatus {
   email_address?: string
+  recipient_role?: string | null
   status?: string
   provider_status?: string
   failure_type?: string | null

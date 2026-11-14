@@ -14,10 +14,11 @@ from unittest.mock import patch
 
 from dateutil.parser import isoparse
 
-from strr_api.enums.enum import RegistrationStatus
+from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus, RegistrationStatus
+from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from strr_api.services.registration_service import RegistrationService
 from tests.integration.helpers import assert_json_keys, assert_status
-from tests.integration.registration_seed import seed_registration_document
+from tests.integration.registration_seed import seed_registration_document, seed_serializable_host_registration
 from tests.shared_test_constants import ACCOUNT_ID
 
 _original_get_registration = RegistrationService.get_registration
@@ -375,3 +376,203 @@ def test_post_registration_document_ok_staff_with_upload_patch(
     body = rv.get_json()
     keys = {d.get("fileKey") for d in (body.get("documents") or [])}
     assert "staff-upload-key-01" in keys
+
+
+def test_get_registrations_filter_has_email_failure(
+    client, session, headers_strr_examiner, random_string, integration_account_id
+):
+    suffix_fail = random_string(8).upper().replace("-", "")[:8]
+    reg_num_fail = f"FAIL{suffix_fail}"
+    reg_fail = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number=reg_num_fail,
+    )
+    interaction_fail = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        registration_id=reg_fail["registration_id"],
+    )
+    session.add(interaction_fail)
+    session.flush()
+
+    recipient_fail = InteractionRecipient(
+        interaction_id=interaction_fail.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="reg_fail@test.com",
+        status=DeliveryStatus.PERMANENT_FAILURE,
+        failure_type="PERMANENT_FAILURE",
+        failure_reason="Invalid recipient email",
+        notify_reference=f"notify-reg-fail-{suffix_fail}",
+    )
+    session.add(recipient_fail)
+
+    suffix_ok = random_string(8).upper().replace("-", "")[:8]
+    reg_num_ok = f"OK{suffix_ok}"
+    reg_ok = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number=reg_num_ok,
+    )
+    interaction_ok = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.DELIVERED,
+        registration_id=reg_ok["registration_id"],
+    )
+    session.add(interaction_ok)
+    session.flush()
+
+    recipient_ok = InteractionRecipient(
+        interaction_id=interaction_ok.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="reg_ok@test.com",
+        status=DeliveryStatus.DELIVERED,
+        notify_reference=f"notify-reg-ok-{suffix_ok}",
+    )
+    session.add(recipient_ok)
+    session.commit()
+
+    # Query registrations hasEmailFailure=true
+    rv = client.get("/registrations?hasEmailFailure=true", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    reg_ids = [r["registrationNumber"] for r in data["registrations"] if "registrationNumber" in r]
+    assert reg_num_fail in reg_ids
+    assert reg_num_ok not in reg_ids
+    fail_item = next(r for r in data["registrations"] if r.get("registrationNumber") == reg_num_fail)
+    assert fail_item["hasEmailDeliveryFailure"] is True
+
+    # Query registrations hasEmailFailure=false
+    rv = client.get("/registrations?hasEmailFailure=false", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    reg_ids_ok = [r["registrationNumber"] for r in data["registrations"] if "registrationNumber" in r]
+    assert reg_num_fail not in reg_ids_ok
+    assert reg_num_ok in reg_ids_ok
+    ok_item = next(r for r in data["registrations"] if r.get("registrationNumber") == reg_num_ok)
+    assert ok_item["hasEmailDeliveryFailure"] is False
+
+    # Staff search registrations with hasEmailFailure
+    rv_search_fail = client.get(
+        f"/registrations/search?text={reg_num_fail}&hasEmailFailure=true", headers=headers_strr_examiner()
+    )
+    assert_status(rv_search_fail, HTTPStatus.OK)
+    assert any(r.get("registrationNumber") == reg_num_fail for r in rv_search_fail.get_json()["registrations"])
+
+    rv_search_excl = client.get(
+        f"/registrations/search?text={reg_num_fail}&hasEmailFailure=false", headers=headers_strr_examiner()
+    )
+    assert_status(rv_search_excl, HTTPStatus.OK)
+    assert not any(r.get("registrationNumber") == reg_num_fail for r in rv_search_excl.get_json()["registrations"])
+
+
+def test_get_registration_events_delivery_structured_details(
+    client, session, headers_strr_examiner, serializable_host_registration
+):
+    rid = serializable_host_registration["registration_id"]
+
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        registration_id=rid,
+    )
+    session.add(interaction)
+    session.flush()
+
+    recipient = InteractionRecipient(
+        interaction_id=interaction.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="examiner-reg-target@test.com",
+        status=DeliveryStatus.PERMANENT_FAILURE,
+        failure_type="PERMANENT_FAILURE",
+        failure_reason="Mailbox full",
+        notify_reference="notify-reg-event-999",
+        provider_reference="provider-reg-event-999",
+    )
+    session.add(recipient)
+    session.commit()
+
+    rv = client.get(
+        f"/registrations/{rid}/events?include_interaction_delivery=true",
+        headers=headers_strr_examiner(),
+    )
+    assert_status(rv, HTTPStatus.OK)
+    events = rv.get_json()
+    email_event = next((e for e in events if e.get("eventName") == "EMAIL_FAILED"), None)
+    assert email_event is not None
+    assert email_event["structuredDetails"]["interactionStatus"] == "FAILED"
+    recipients = email_event["structuredDetails"]["recipientStatuses"]
+    assert isinstance(recipients, list)
+    assert len(recipients) == 1
+    assert recipients[0]["email_address"] == "examiner-reg-target@test.com"
+    assert recipients[0]["status"] == "FAILED"
+    assert recipients[0]["failure_type"] == "PERMANENT_FAILURE"
+    assert recipients[0]["failure_reason"] == "Mailbox full"
+    assert recipients[0]["notify_reference"] == "notify-reg-event-999"
+    assert recipients[0]["provider_reference"] == "provider-reg-event-999"
+    assert recipients[0]["recipient_role"] == "PRIMARY_HOST"
+
+
+def test_get_registrations_inherits_linked_application_email_failure(
+    client, session, headers_strr_examiner, random_string, integration_account_id
+):
+    """A registration with no direct interactions inherits hasEmailFailure from its linked application."""
+    from strr_api.models.application import Application as AppModel
+    from tests.integration.application_seed import generate_application_number, seed_listable_application
+
+    suffix = random_string(8).upper().replace("-", "")[:8]
+    reg_number = f"LINKED{suffix}"
+    reg = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number=reg_number,
+    )
+    rid = reg["registration_id"]
+
+    # Seed application linked to this registration
+    app_num = generate_application_number()
+    app = seed_listable_application(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=reg["user_id"],
+        registration_id=rid,
+        application_number=app_num,
+        status=AppModel.Status.FULL_REVIEW.value,
+    )
+
+    # Attach a failed interaction to the application, NOT the registration directly
+    app_interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        application_id=app["application_id"],
+    )
+    session.add(app_interaction)
+    session.flush()
+
+    recipient = InteractionRecipient(
+        interaction_id=app_interaction.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="app-target@test.com",
+        status=DeliveryStatus.PERMANENT_FAILURE,
+        failure_type="PERMANENT_FAILURE",
+        failure_reason="Invalid recipient email address",
+        notify_reference=f"notify-linked-app-{suffix}",
+    )
+    session.add(recipient)
+    session.commit()
+
+    # Query registrations hasEmailFailure=true: registration MUST be found via linked application
+    rv = client.get("/registrations?hasEmailFailure=true", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    reg_numbers = [r["registrationNumber"] for r in data["registrations"] if "registrationNumber" in r]
+    assert reg_number in reg_numbers
+    matched = next(r for r in data["registrations"] if r.get("registrationNumber") == reg_number)
+    assert matched["hasEmailDeliveryFailure"] is True
+
+    # Query registrations hasEmailFailure=false: registration MUST be excluded
+    rv_excl = client.get("/registrations?hasEmailFailure=false", headers=headers_strr_examiner())
+    assert_status(rv_excl, HTTPStatus.OK)
+    data_excl = rv_excl.get_json()
+    reg_numbers_excl = [r["registrationNumber"] for r in data_excl["registrations"] if "registrationNumber" in r]
+    assert reg_number not in reg_numbers_excl

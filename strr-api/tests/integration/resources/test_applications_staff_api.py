@@ -7,7 +7,9 @@ from unittest.mock import patch
 import pytest
 from flask import Response
 
+from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus
 from strr_api.models.application import Application as AppModel
+from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from tests.integration.application_seed import generate_application_number, seed_listable_application
 from tests.integration.helpers import assert_json_keys, assert_status, load_mock_json
 from tests.shared_test_constants import MOCK_PAYMENT_COMPLETED_RESPONSE
@@ -305,3 +307,266 @@ def test_get_payment_receipt_ok_patched(
         rv = client.get(f"/applications/{num}/payment/receipt", headers=headers_public_user())
     assert_status(rv, HTTPStatus.OK)
     assert rv.data.startswith(b"%PDF")
+
+
+def test_get_applications_filter_has_email_failure(
+    client, session, headers_strr_examiner, serializable_host_registration, integration_account_id
+):
+    # Seed application with email failure
+    num_fail = generate_application_number()
+    app_fail = seed_listable_application(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=serializable_host_registration["user_id"],
+        registration_id=serializable_host_registration["registration_id"],
+        application_number=num_fail,
+        status=AppModel.Status.FULL_REVIEW.value,
+    )
+    interaction_fail = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        application_id=app_fail["application_id"],
+    )
+    session.add(interaction_fail)
+    session.flush()
+
+    recipient_fail = InteractionRecipient(
+        interaction_id=interaction_fail.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="host_fail@test.com",
+        status=DeliveryStatus.PERMANENT_FAILURE,
+        failure_type="PERMANENT_FAILURE",
+        failure_reason="Invalid recipient email",
+        notify_reference="notify-app-fail-001",
+    )
+    session.add(recipient_fail)
+
+    # Seed application with successful email delivery
+    num_ok = generate_application_number()
+    app_ok = seed_listable_application(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=serializable_host_registration["user_id"],
+        registration_id=serializable_host_registration["registration_id"],
+        application_number=num_ok,
+        status=AppModel.Status.FULL_REVIEW.value,
+    )
+    interaction_ok = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.DELIVERED,
+        application_id=app_ok["application_id"],
+    )
+    session.add(interaction_ok)
+    session.flush()
+
+    recipient_ok = InteractionRecipient(
+        interaction_id=interaction_ok.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="host_ok@test.com",
+        status=DeliveryStatus.DELIVERED,
+        notify_reference="notify-app-ok-002",
+    )
+    session.add(recipient_ok)
+    session.commit()
+
+    # Query hasEmailFailure=true
+    rv = client.get(f"/applications?hasEmailFailure=true&text={num_fail}", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    matched = [a for a in data["applications"] if a["header"]["applicationNumber"] == num_fail]
+    assert len(matched) == 1
+    assert matched[0]["header"]["hasEmailDeliveryFailure"] is True
+    assert matched[0]["hasEmailDeliveryFailure"] is True
+
+    # Query hasEmailFailure=false should exclude the failed app
+    rv = client.get(f"/applications?hasEmailFailure=false&text={num_fail}", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    assert not any(a["header"]["applicationNumber"] == num_fail for a in data["applications"])
+
+    # Query hasEmailFailure=false should include the successful app
+    rv = client.get(f"/applications?hasEmailFailure=false&text={num_ok}", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    matched_ok = [a for a in data["applications"] if a["header"]["applicationNumber"] == num_ok]
+    assert len(matched_ok) == 1
+    assert matched_ok[0]["header"]["hasEmailDeliveryFailure"] is False
+    assert matched_ok[0]["hasEmailDeliveryFailure"] is False
+
+    # Query hasEmailFailure=true should exclude the successful app
+    rv = client.get(f"/applications?hasEmailFailure=true&text={num_ok}", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    assert not any(a["header"]["applicationNumber"] == num_ok for a in data["applications"])
+
+    # Applications search endpoint with hasEmailFailure
+    rv_search_fail = client.get(
+        f"/applications/search?text={num_fail}&hasEmailFailure=true", headers=headers_strr_examiner()
+    )
+    assert_status(rv_search_fail, HTTPStatus.OK)
+    assert any(a["header"]["applicationNumber"] == num_fail for a in rv_search_fail.get_json()["applications"])
+
+    rv_search_excl = client.get(
+        f"/applications/search?text={num_fail}&hasEmailFailure=false", headers=headers_strr_examiner()
+    )
+    assert_status(rv_search_excl, HTTPStatus.OK)
+    assert not any(a["header"]["applicationNumber"] == num_fail for a in rv_search_excl.get_json()["applications"])
+
+
+def test_get_application_events_delivery_structured_details(
+    client, session, headers_strr_examiner, serializable_application
+):
+    aid = serializable_application["application_id"]
+    num = serializable_application["application_number"]
+
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        application_id=aid,
+    )
+    session.add(interaction)
+    session.flush()
+
+    recipient = InteractionRecipient(
+        interaction_id=interaction.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="examiner-target@test.com",
+        status=DeliveryStatus.PERMANENT_FAILURE,
+        failure_type="PERMANENT_FAILURE",
+        failure_reason="Mailbox unavailable",
+        notify_reference="notify-app-event-999",
+        provider_reference="provider-app-event-999",
+    )
+    session.add(recipient)
+    session.commit()
+
+    rv = client.get(
+        f"/applications/{num}/events?include_interaction_delivery=true",
+        headers=headers_strr_examiner(),
+    )
+    assert_status(rv, HTTPStatus.OK)
+    events = rv.get_json()
+    email_event = next((e for e in events if e.get("eventName") == "EMAIL_FAILED"), None)
+    assert email_event is not None
+    assert email_event["structuredDetails"]["interactionStatus"] == "FAILED"
+    recipients = email_event["structuredDetails"]["recipientStatuses"]
+    assert isinstance(recipients, list)
+    assert len(recipients) == 1
+    assert recipients[0]["email_address"] == "examiner-target@test.com"
+    assert recipients[0]["status"] == "FAILED"
+    assert recipients[0]["failure_type"] == "PERMANENT_FAILURE"
+    assert recipients[0]["failure_reason"] == "Mailbox unavailable"
+    assert recipients[0]["notify_reference"] == "notify-app-event-999"
+    assert recipients[0]["provider_reference"] == "provider-app-event-999"
+    assert recipients[0]["recipient_role"] == "PRIMARY_HOST"
+
+
+def test_get_application_partial_delivery_failure_multi_recipient(
+    client, session, headers_strr_examiner, serializable_host_registration, integration_account_id
+):
+    """An interaction with 1 delivered and 1 failed recipient marks application as having email failure."""
+    num = generate_application_number()
+    app = seed_listable_application(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=serializable_host_registration["user_id"],
+        registration_id=serializable_host_registration["registration_id"],
+        application_number=num,
+        status=AppModel.Status.FULL_REVIEW.value,
+    )
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        application_id=app["application_id"],
+    )
+    session.add(interaction)
+    session.flush()
+
+    rec_host = InteractionRecipient(
+        interaction_id=interaction.id,
+        recipient_role="PRIMARY_HOST",
+        email_address="host-ok@test.com",
+        status=DeliveryStatus.DELIVERED,
+        notify_reference=f"notify-multi-host-{num}",
+    )
+    rec_pm = InteractionRecipient(
+        interaction_id=interaction.id,
+        recipient_role="PROPERTY_MANAGER",
+        email_address="pm-fail@test.com",
+        status=DeliveryStatus.TECHNICAL_FAILURE,
+        failure_type="GATEWAY_ERROR",
+        failure_reason="Mailbox provider unavailable",
+        notify_reference=f"notify-multi-pm-{num}",
+    )
+    session.add_all([rec_host, rec_pm])
+    session.commit()
+
+    # Query hasEmailFailure=true
+    rv = client.get(f"/applications?hasEmailFailure=true&text={num}", headers=headers_strr_examiner())
+    assert_status(rv, HTTPStatus.OK)
+    data = rv.get_json()
+    matched = [a for a in data["applications"] if a["header"]["applicationNumber"] == num]
+    assert len(matched) == 1
+    assert matched[0]["header"]["hasEmailDeliveryFailure"] is True
+
+    # Query events
+    rv_events = client.get(
+        f"/applications/{num}/events?include_interaction_delivery=true",
+        headers=headers_strr_examiner(),
+    )
+    assert_status(rv_events, HTTPStatus.OK)
+    events = rv_events.get_json()
+    email_event = next((e for e in events if e.get("eventName") == "EMAIL_FAILED"), None)
+    assert email_event is not None
+    recipients = email_event["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 2
+    r_host = next(r for r in recipients if r["recipient_role"] == "PRIMARY_HOST")
+    assert r_host["status"] == "DELIVERED"
+    r_pm = next(r for r in recipients if r["recipient_role"] == "PROPERTY_MANAGER")
+    assert r_pm["status"] == "FAILED"
+    assert r_pm["failure_type"] == "GATEWAY_ERROR"
+    assert r_pm["failure_reason"] == "Mailbox provider unavailable"
+
+
+def test_get_application_events_fallback_to_metadata_when_recipients_table_empty(
+    client, session, headers_strr_examiner, serializable_application
+):
+    """Historical interactions before backfill (empty interaction_recipients) gracefully fallback to metadata JSON."""
+    aid = serializable_application["application_id"]
+    num = serializable_application["application_number"]
+
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        application_id=aid,
+        meta_data={
+            "notify_delivery": {
+                "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                "recipient_statuses": {
+                    "legacy-ref-123": {
+                        "email_address": "legacy@gov.bc.ca",
+                        "status": "FAILED",
+                        "failure_type": "permanent",
+                        "failure_reason": "Address not found",
+                        "notify_reference": "legacy-ref-123",
+                    }
+                },
+            }
+        },
+    )
+    session.add(interaction)
+    session.commit()
+
+    rv = client.get(
+        f"/applications/{num}/events?include_interaction_delivery=true",
+        headers=headers_strr_examiner(),
+    )
+    assert_status(rv, HTTPStatus.OK)
+    events = rv.get_json()
+    email_event = next((e for e in events if e.get("eventName") == "EMAIL_FAILED"), None)
+    assert email_event is not None
+    recipients = email_event["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 1
+    assert recipients[0]["email_address"] == "legacy@gov.bc.ca"
+    assert recipients[0]["status"] == "FAILED"
+    assert recipients[0]["failure_reason"] == "Address not found"

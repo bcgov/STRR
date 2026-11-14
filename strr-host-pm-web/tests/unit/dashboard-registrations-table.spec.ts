@@ -346,4 +346,28 @@ describe('Dashboard Registrations Table', () => {
     expect(expiryCells[0]?.classes()).toContain('text-bcGovColor-error')
     expect(expiryCells[1]?.classes()).toContain('text-bcGovColor-caution')
   })
+
+  it('renders email delivery failure badge when hasEmailDeliveryFailure is true', async () => {
+    asyncDataMocks['host-registrations-list'] = {
+      registrations: [
+        createRegistration({
+          hasEmailDeliveryFailure: true,
+          header: {
+            hostStatus: 'Registered',
+            hasEmailDeliveryFailure: true,
+            applications: []
+          }
+        })
+      ],
+      total: 1
+    }
+
+    const wrapper = await mountSuspended(RegistrationsTable, {
+      global: { plugins: [baseEnI18n] }
+    })
+
+    const failureBadge = wrapper.find('[data-testid="host-email-failure-badge"]')
+    expect(failureBadge.exists()).toBe(true)
+    expect(failureBadge.text()).toContain('Email Delivery Failed')
+  })
 })

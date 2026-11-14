@@ -56,6 +56,7 @@ class RegistrationSerializer:
     @classmethod
     def serialize(cls, registration: Registration):
         """Return a Registration object from a database model."""
+        has_failure = bool(getattr(registration, "has_email_delivery_failure", False))
         registration_data = {
             "id": registration.id,
             "user_id": registration.user_id,
@@ -69,6 +70,8 @@ class RegistrationSerializer:
             "registrationNumber": registration.registration_number,
             "nocStatus": registration.noc_status.name if registration.noc_status else None,
             "provisionalExtensionApplied": registration.provisional_extension_applied,
+            "hasEmailDeliveryFailure": has_failure,
+            "has_email_delivery_failure": has_failure,
         }
 
         if registration.noc_status and registration.nocs:
@@ -131,8 +134,11 @@ class RegistrationSerializer:
     @classmethod
     def _populate_header_data(cls, registration_data: dict, registration: Registration):
         """Populates header data into response object."""
+        has_failure = bool(getattr(registration, "has_email_delivery_failure", False))
         registration_data["header"] = {}
         registration_data["header"]["isSetAside"] = registration.is_set_aside
+        registration_data["header"]["hasEmailDeliveryFailure"] = has_failure
+        registration_data["header"]["has_email_delivery_failure"] = has_failure
         registration_data["header"]["hostStatus"] = RegistrationSerializer.HOST_STATUSES.get(
             registration.status, registration.status.name
         )

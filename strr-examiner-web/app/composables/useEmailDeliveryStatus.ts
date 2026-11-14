@@ -32,16 +32,25 @@ const isDeliveryFailure = (recipient: EmailRecipientStatus): boolean => {
 
   return (
     status === 'FAILED' ||
+    status === 'PERMANENT_FAILURE' ||
+    status === 'TEMPORARY_FAILURE' ||
+    status === 'TECHNICAL_FAILURE' ||
+    status === 'BLOCKED' ||
     providerStatus === 'PERMANENT_FAILURE' ||
     providerStatus === 'TEMPORARY_FAILURE' ||
     providerStatus === 'TECHNICAL_FAILURE' ||
     providerStatus === 'VIRUS_SCAN_FAILED' ||
+    providerStatus === 'BLOCKED' ||
     failureType === 'PERMANENT' ||
     failureType === 'TEMPORARY' ||
     failureType === 'TECHNICAL' ||
     failureType === 'PERMANENT_FAILURE' ||
     failureType === 'TEMPORARY_FAILURE' ||
-    failureType === 'TECHNICAL_FAILURE'
+    failureType === 'TECHNICAL_FAILURE' ||
+    failureType === 'PERMANENT_BOUNCE' ||
+    failureType === 'MAILBOX_FULL' ||
+    failureType === 'GATEWAY_ERROR' ||
+    failureType === 'SUPPRESSION_LIST'
   )
 }
 

@@ -29,6 +29,8 @@ export interface ApiRegistrationHeader {
     displayName: string
   }
   isSetAside: boolean | null
+  hasEmailDeliveryFailure?: boolean
+  has_email_delivery_failure?: boolean
 }
 
 export interface ApiRegistrationListResp {
