@@ -1083,14 +1083,22 @@ class InteractionService:
         return resp.json()
 
     @classmethod
-    def _create_backfill_recipient(cls, interaction_id: int, spec: dict) -> InteractionRecipient | None:
+    def _create_backfill_recipient(
+        cls,
+        interaction_id: int,
+        spec: dict,
+        seen_refs_in_batch: set[str] | None = None,
+    ) -> InteractionRecipient | None:
         email_addr = spec.get("email_address")
         if not email_addr:
             return None
 
-        ref_val = str(spec["notify_reference"]).strip() if spec.get("notify_reference") else None
-        if ref_val and InteractionRecipient.query.filter_by(notify_reference=ref_val).first():
-            ref_val = None
+        raw_ref = str(spec["notify_reference"]).strip() if spec.get("notify_reference") else None
+        ref_val = cls._claim_unique_notify_ref(
+            raw_ref,
+            interaction_id=None,
+            seen_refs_in_batch=seen_refs_in_batch if seen_refs_in_batch is not None else set(),
+        )
 
         return InteractionRecipient(
             interaction_id=interaction_id,
@@ -1107,7 +1115,12 @@ class InteractionService:
         )
 
     @classmethod
-    def _backfill_single_interaction(cls, interaction: CustomerInteraction, stats: dict[str, int]) -> None:
+    def _backfill_single_interaction(
+        cls,
+        interaction: CustomerInteraction,
+        stats: dict[str, int],
+        seen_refs_in_batch: set[str] | None = None,
+    ) -> None:
         meta_data = interaction.meta_data if isinstance(interaction.meta_data, dict) else {}
         specs = cls._extract_recipient_specs(
             meta_data=meta_data,
@@ -1120,7 +1133,7 @@ class InteractionService:
             return
 
         for spec in specs:
-            recipient = cls._create_backfill_recipient(interaction.id, spec)
+            recipient = cls._create_backfill_recipient(interaction.id, spec, seen_refs_in_batch=seen_refs_in_batch)
             if recipient:
                 db.session.add(recipient)
                 stats["total_recipients_created"] += 1
@@ -1169,6 +1182,7 @@ class InteractionService:
                 .all()
             }
 
+            seen_refs_in_batch: set[str] = set()
             for interaction in batch:
                 stats["total_processed"] += 1
                 if interaction.id in existing_ids:
@@ -1176,7 +1190,7 @@ class InteractionService:
                     continue
 
                 try:
-                    cls._backfill_single_interaction(interaction, stats)
+                    cls._backfill_single_interaction(interaction, stats, seen_refs_in_batch=seen_refs_in_batch)
                 except Exception:
                     logger.exception("Error backfilling interaction %s", interaction.id)
                     stats["total_errors"] += 1

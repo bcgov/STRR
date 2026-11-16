@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { DateTime } from 'luxon'
-import { useFilingHistory } from '~/composables/useFilingHistory'
+import { FAILURE_RECIPIENT_STATUSES, useFilingHistory } from '~/composables/useFilingHistory'
 
 defineEmits<{ close: [void] }>()
 
@@ -31,13 +31,7 @@ const recipientStatusClass = (status: string): string => {
     return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200'
   }
 
-  if (
-    status === 'FAILED' ||
-    status === 'PERMANENT_FAILURE' ||
-    status === 'TEMPORARY_FAILURE' ||
-    status === 'TECHNICAL_FAILURE' ||
-    status === 'BLOCKED'
-  ) {
+  if (FAILURE_RECIPIENT_STATUSES.has(status)) {
     return 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200'
   }
 

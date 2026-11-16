@@ -637,20 +637,19 @@ class RegistrationService:
             query = query.filter(Registration.status == status.upper())
         if registration_type:
             query = query.filter(Registration.registration_type == registration_type.upper())
-        if has_email_failure is not None:
-            # pylint: disable=import-outside-toplevel
-            from strr_api.models.application import Application
-            from strr_api.models.interactions import CustomerInteraction
-
-            failure_expr = CustomerInteraction.registration_email_failure_exists_expr(
-                Registration.id, application_model=Application
-            )
-            query = query.filter(failure_expr if has_email_failure else ~failure_expr)
+        query = Registration.apply_email_failure_filter(query, has_email_failure)
 
         sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
         sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]
         query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
         paginated_result = query.paginate(per_page=limit, page=offset)
+        # pylint: disable=import-outside-toplevel
+        from strr_api.models.application import Application
+        from strr_api.models.interactions import CustomerInteraction
+
+        CustomerInteraction.populate_registration_email_failure_flags(
+            paginated_result.items, application_model=Application, known_filter=has_email_failure
+        )
 
         search_results = []
         noc_reg_dicts = []
@@ -1281,6 +1280,15 @@ class RegistrationService:
     def search_registrations(filter_criteria: RegistrationSearch) -> dict:
         """List all registrations matching the search criteria."""
         paginated_result = Registration.search_registrations(filter_criteria)
+        # pylint: disable=import-outside-toplevel
+        from strr_api.models.application import Application
+        from strr_api.models.interactions import CustomerInteraction
+
+        CustomerInteraction.populate_registration_email_failure_flags(
+            paginated_result.items,
+            application_model=Application,
+            known_filter=filter_criteria.has_email_failure,
+        )
         search_results = []
         noc_reg_dicts = []
         all_file_keys = []

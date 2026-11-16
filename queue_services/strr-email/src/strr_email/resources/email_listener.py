@@ -133,6 +133,27 @@ def _fail_orphaned_interaction(email_info, reason: str) -> None:
         logger.error("Failed to mark orphaned interaction as FAILED: %s", exc)
 
 
+def _reject_with_orphaned_failure(
+    email_info, reason: str, response_message: str | None = None
+) -> tuple:
+    """Fail any orphaned queued interaction and return a standardized 400 Bad Request response."""
+    _fail_orphaned_interaction(email_info, reason)
+    return jsonify({"message": response_message or reason}), HTTPStatus.BAD_REQUEST
+
+
+def _load_template_or_fail(email_info, template_type: str):
+    """Load a Jinja template or return (None, error_response) after marking any orphaned interaction FAILED."""
+    try:
+        return _get_jinja_template(template_type), None
+    except Exception as exc:
+        logger.error(
+            "Failed to load email template: %s for email_type: %s", exc, email_info.email_type
+        )
+        return None, _reject_with_orphaned_failure(
+            email_info, f"Template not found: {template_type}"
+        )
+
+
 @bp.route("/", methods=("POST",))
 def worker():
     """Process the incoming file uploaded event."""
@@ -181,17 +202,9 @@ def worker():
             )
 
         template_type = _resolve_template_type(email_info.email_type, application.registration_type)
-        try:
-            jinja_template = _get_jinja_template(template_type)
-        except Exception as exc:
-            logger.error(
-                "Failed to load email template: %s for email_type: %s", exc, email_info.email_type
-            )
-            _fail_orphaned_interaction(email_info, f"Template not found: {template_type}")
-            return (
-                jsonify({"message": f"Template not found: {template_type}"}),
-                HTTPStatus.BAD_REQUEST,
-            )
+        jinja_template, err_resp = _load_template_or_fail(email_info, template_type)
+        if err_resp:
+            return err_resp
 
         email = _get_application_update_email_content(application, email_info, jinja_template)
 
@@ -219,17 +232,9 @@ def worker():
         template_type = _resolve_template_type(
             email_info.email_type, registration.registration_type
         )
-        try:
-            jinja_template = _get_jinja_template(template_type)
-        except Exception as exc:
-            logger.error(
-                "Failed to load email template: %s for email_type: %s", exc, email_info.email_type
-            )
-            _fail_orphaned_interaction(email_info, f"Template not found: {template_type}")
-            return (
-                jsonify({"message": f"Template not found: {template_type}"}),
-                HTTPStatus.BAD_REQUEST,
-            )
+        jinja_template, err_resp = _load_template_or_fail(email_info, template_type)
+        if err_resp:
+            return err_resp
 
         reg_type = getattr(registration.registration_type, "value", registration.registration_type)
         if reg_type == Registration.RegistrationType.HOST.value:
@@ -249,12 +254,8 @@ def worker():
                     email_info.email_type,
                     registration.registration_number,
                 )
-                _fail_orphaned_interaction(
+                return _reject_with_orphaned_failure(
                     email_info, f"Unhandled email_type: {email_info.email_type}"
-                )
-                return (
-                    jsonify({"message": f"Unhandled email_type: {email_info.email_type}"}),
-                    HTTPStatus.BAD_REQUEST,
                 )
         elif reg_type == Registration.RegistrationType.STRATA_HOTEL.value:
             if template_type in (
@@ -274,12 +275,8 @@ def worker():
                     email_info.email_type,
                     registration.registration_number,
                 )
-                _fail_orphaned_interaction(
+                return _reject_with_orphaned_failure(
                     email_info, f"Unhandled email_type: {email_info.email_type}"
-                )
-                return (
-                    jsonify({"message": f"Unhandled email_type: {email_info.email_type}"}),
-                    HTTPStatus.BAD_REQUEST,
                 )
         elif reg_type == Registration.RegistrationType.PLATFORM.value:
             if template_type == "PLATFORM_RENEWAL_REMINDER":
@@ -292,12 +289,8 @@ def worker():
                     email_info.email_type,
                     registration.registration_number,
                 )
-                _fail_orphaned_interaction(
+                return _reject_with_orphaned_failure(
                     email_info, f"Unhandled email_type: {email_info.email_type}"
-                )
-                return (
-                    jsonify({"message": f"Unhandled email_type: {email_info.email_type}"}),
-                    HTTPStatus.BAD_REQUEST,
                 )
         else:
             logger.error(
@@ -305,17 +298,15 @@ def worker():
                 reg_type,
                 email_info.email_type,
             )
-            _fail_orphaned_interaction(email_info, f"Unhandled registration_type: {reg_type}")
-            return (
-                jsonify({"message": f"Unhandled registration_type: {reg_type}"}),
-                HTTPStatus.BAD_REQUEST,
+            return _reject_with_orphaned_failure(
+                email_info, f"Unhandled registration_type: {reg_type}"
             )
     else:
         logger.error("Missing application or registration number (event_id=%s)", event_id)
-        _fail_orphaned_interaction(email_info, "Missing application or registration number")
-        return (
-            jsonify({"message": "Missing application or registration number."}),
-            HTTPStatus.BAD_REQUEST,
+        return _reject_with_orphaned_failure(
+            email_info,
+            "Missing application or registration number",
+            "Missing application or registration number.",
         )
 
     if not email:
@@ -323,12 +314,10 @@ def worker():
             "Email content could not be generated for email_type: %s",
             email_info.email_type,
         )
-        _fail_orphaned_interaction(
-            email_info, f"Email content could not be generated for {email_info.email_type}"
-        )
-        return (
-            jsonify({"message": "Email content could not be generated."}),
-            HTTPStatus.BAD_REQUEST,
+        return _reject_with_orphaned_failure(
+            email_info,
+            f"Email content could not be generated for {email_info.email_type}",
+            "Email content could not be generated.",
         )
 
     # 4. InteractionService splits comma-separated recipients before sending to Notify.
@@ -409,9 +398,10 @@ def _get_jinja_template(template_type: str) -> Template:
     return Template(filled_template, autoescape=True)
 
 
-def _get_registration_update_email_content_for_host(
-    registration: Registration, email_info, jinja_template
-):
+def _extract_registration_noc_template_vars(
+    registration: Registration, email_info
+) -> tuple[str, str]:
+    """Extract (noc_content, noc_expiry_date) for a registration email template."""
     noc_content = ""
     noc_expiry_date = ""
     if registration.nocs and (
@@ -426,7 +416,13 @@ def _get_registration_update_email_content_for_host(
         noc_content = getattr(noc, "content", "") or getattr(noc, "notice_of_consideration", "")
         if end_date := getattr(noc, "end_date", None):
             noc_expiry_date = end_date.strftime(DATE_FORMAT_LONG)
-    noc_content = noc_content or email_info.custom_content or ""
+    return noc_content or email_info.custom_content or "", noc_expiry_date
+
+
+def _get_registration_update_email_content_for_host(
+    registration: Registration, email_info, jinja_template
+):
+    noc_content, noc_expiry_date = _extract_registration_noc_template_vars(registration, email_info)
     recipients = _get_registration_email_recipients(registration)
     html_out = jinja_template.render(
         reg_num=registration.registration_number,
@@ -489,21 +485,7 @@ def _get_registration_update_email_content_for_platform(
 def _get_registration_update_email_content_for_strata_hotel(
     registration: Registration, email_info, jinja_template
 ):
-    noc_content = ""
-    noc_expiry_date = ""
-    if registration.nocs and (
-        registration.noc_status
-        in [RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED]
-        or "NOC" in email_info.email_type
-    ):
-        noc = max(
-            registration.nocs,
-            key=lambda n: getattr(n, "start_date", None) or getattr(n, "created_date", None) or 0,
-        )
-        noc_content = getattr(noc, "content", "") or getattr(noc, "notice_of_consideration", "")
-        if end_date := getattr(noc, "end_date", None):
-            noc_expiry_date = end_date.strftime(DATE_FORMAT_LONG)
-    noc_content = noc_content or email_info.custom_content or ""
+    noc_content, noc_expiry_date = _extract_registration_noc_template_vars(registration, email_info)
 
     strata_hotel = registration.strata_hotel_registration.strata_hotel
     recipients = _get_strata_hotel_notification_recipients(strata_hotel)

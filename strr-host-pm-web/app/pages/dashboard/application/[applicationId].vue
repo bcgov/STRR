@@ -20,15 +20,7 @@ const { owners, setupBreadcrumbs, setupOwners } = useDashboardPage()
 const todos = ref<Todo[]>([])
 const showBusinessLicenseAlert = ref(false)
 
-const hasEmailDeliveryFailure = computed(() => {
-  const app = application.value as any
-  return Boolean(
-    app?.hasEmailDeliveryFailure ||
-    app?.has_email_delivery_failure ||
-    app?.header?.hasEmailDeliveryFailure ||
-    app?.header?.has_email_delivery_failure
-  )
-})
+const hasEmailDeliveryFailure = computed(() => hasRecordEmailDeliveryFailure(application.value))
 
 onMounted(async () => {
   loading.value = true

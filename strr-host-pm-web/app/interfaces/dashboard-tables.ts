@@ -62,3 +62,12 @@ export interface RenewalTodoDetails {
 }
 
 export interface RegistrationRecordWithTodos extends RegistrationRecord, RenewalTodoDetails {}
+
+export const hasRecordEmailDeliveryFailure = (record: any): boolean => {
+  return Boolean(
+    record?.hasEmailDeliveryFailure ||
+    record?.has_email_delivery_failure ||
+    record?.header?.hasEmailDeliveryFailure ||
+    record?.header?.has_email_delivery_failure
+  )
+}

@@ -102,7 +102,7 @@ const humanizeRecipientStatus = (
     .join(' ')
 }
 
-const FAILURE_RECIPIENT_STATUSES = new Set([
+export const FAILURE_RECIPIENT_STATUSES = new Set([
   'FAILED',
   'PERMANENT_FAILURE',
   'TEMPORARY_FAILURE',

@@ -134,7 +134,12 @@ class RegistrationSerializer:
     @classmethod
     def _populate_header_data(cls, registration_data: dict, registration: Registration):
         """Populates header data into response object."""
-        has_failure = bool(getattr(registration, "has_email_delivery_failure", False))
+        has_failure = bool(
+            registration_data.get(
+                "hasEmailDeliveryFailure",
+                getattr(registration, "has_email_delivery_failure", False),
+            )
+        )
         registration_data["header"] = {}
         registration_data["header"]["isSetAside"] = registration.is_set_aside
         registration_data["header"]["hasEmailDeliveryFailure"] = has_failure

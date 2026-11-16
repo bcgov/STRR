@@ -100,12 +100,7 @@ const mapApplicationsList = (applications: HostApplicationResp['applications']):
       dateSubmitted: app.header.applicationDateTime,
       applicationNumber: app.header.applicationNumber,
       paymentToken: app.header.paymentToken,
-      hasEmailDeliveryFailure: Boolean(
-        app.header?.hasEmailDeliveryFailure ||
-        app.header?.has_email_delivery_failure ||
-        (app as any).hasEmailDeliveryFailure ||
-        (app as any).has_email_delivery_failure
-      )
+      hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(app)
     }
   })
 }

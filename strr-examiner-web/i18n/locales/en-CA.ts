@@ -446,6 +446,7 @@ export default {
     emailFailureBadge: 'Delivery Failed',
     emailFailureHint: 'An outbound email notification to a recipient on this record failed to deliver.',
     filterEmailFailures: 'Delivery Failures',
+    filterEmailFailuresHint: 'Show only records with outbound email delivery failures',
     examinerNotes: 'Notes',
     examinerNotePlaceholder: 'Type new note here',
     noNotesAvailable: 'No notes available.'

@@ -241,6 +241,9 @@ class Application(BaseModel):
             query = query.order_by(sort_column.desc())
 
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        CustomerInteraction.populate_application_email_failure_flags(
+            paginated_result.items, known_filter=filter_criteria.has_email_failure
+        )
         return paginated_result
 
     @classmethod
@@ -530,10 +533,7 @@ class Application(BaseModel):
                     f"%{filter_criteria.local_gov}%"
                 ),
             )
-        if filter_criteria.has_email_failure is True:
-            query = query.filter(CustomerInteraction.application_email_failure_exists_expr(Application.id))
-        elif filter_criteria.has_email_failure is False:
-            query = query.filter(~CustomerInteraction.application_email_failure_exists_expr(Application.id))
+        query = cls._apply_email_failure_filter(query, filter_criteria.has_email_failure)
         if not filter_criteria.account_id:
             query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
@@ -542,6 +542,9 @@ class Application(BaseModel):
         else:
             query = query.order_by(sort_column.desc())
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        CustomerInteraction.populate_application_email_failure_flags(
+            paginated_result.items, known_filter=filter_criteria.has_email_failure
+        )
         return paginated_result
 
 

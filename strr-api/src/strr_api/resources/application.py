@@ -90,6 +90,12 @@ bp = Blueprint("applications", __name__)
 VALID_SORT_FIELDS = ["application_date", "id", "application_number", "decision_date"]
 
 
+def _parse_optional_bool_arg(param_name: str) -> Optional[bool]:
+    """Parse an optional boolean query parameter ('true'/'false') or return None when omitted/empty."""
+    raw_val = request.args.get(param_name, None)
+    return raw_val.lower() == "true" if raw_val is not None and raw_val != "" else None
+
+
 @bp.route("", methods=("POST",))
 @bp.route("/<string:application_number>", methods=["POST", "PUT"])
 @swag_from({"security": [{"Bearer": []}]})
@@ -358,12 +364,7 @@ def get_applications():
         include_draft_renewal = request.args.get("includeDraftRenewal", "true").lower() == "true"
         applications_only = request.args.get("applicationsOnly", "false").lower() == "true"
         local_gov = request.args.get("localGov", None) or None
-        has_email_failure_param = request.args.get("hasEmailFailure", None)
-        has_email_failure = (
-            has_email_failure_param.lower() == "true"
-            if has_email_failure_param is not None and has_email_failure_param != ""
-            else None
-        )
+        has_email_failure = _parse_optional_bool_arg("hasEmailFailure")
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1326,12 +1327,7 @@ def search_applications():
         assignee = request.args.get("assignee", None)
         requirements = request.args.getlist("requirement", None)
         local_gov = request.args.get("localGov", None) or None
-        has_email_failure_param = request.args.get("hasEmailFailure", None)
-        has_email_failure = (
-            has_email_failure_param.lower() == "true"
-            if has_email_failure_param is not None and has_email_failure_param != ""
-            else None
-        )
+        has_email_failure = _parse_optional_bool_arg("hasEmailFailure")
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1678,12 +1674,7 @@ def user_search_applications():
         registration_types = request.args.getlist("registrationType")
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
-        has_email_failure_param = request.args.get("hasEmailFailure", None)
-        has_email_failure = (
-            has_email_failure_param.lower() == "true"
-            if has_email_failure_param is not None and has_email_failure_param != ""
-            else None
-        )
+        has_email_failure = _parse_optional_bool_arg("hasEmailFailure")
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:

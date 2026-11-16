@@ -257,3 +257,92 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
                 select(cls.registration_email_failure_exists_expr(registration_id, application_model=application_model))
             )
         )
+
+    @classmethod
+    def populate_application_email_failure_flags(cls, applications: list, known_filter: bool | None = None) -> None:
+        """Batch-populate _has_email_delivery_failure on a list of Application instances to avoid N+1 queries."""
+        if not applications:
+            return
+        if known_filter is not None:
+            for app in applications:
+                setattr(app, "_has_email_delivery_failure", bool(known_filter))
+            return
+
+        unresolved = [
+            app
+            for app in applications
+            if getattr(app, "id", None) is not None and getattr(app, "_has_email_delivery_failure", None) is None
+        ]
+        if not unresolved:
+            return
+
+        try:
+            app_ids = [app.id for app in unresolved]
+            stmt = (
+                select(cls.application_id)
+                .select_from(InteractionRecipient)
+                .join(cls, cls.id == InteractionRecipient.interaction_id)
+                .where(
+                    cls.application_id.in_(app_ids),
+                    InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
+                )
+                .distinct()
+            )
+            failed_ids = set(db.session.scalars(stmt).all())
+            for app in unresolved:
+                setattr(app, "_has_email_delivery_failure", app.id in failed_ids)
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
+
+    @classmethod
+    def populate_registration_email_failure_flags(
+        cls, registrations: list, application_model=None, known_filter: bool | None = None
+    ) -> None:
+        """Batch-populate _has_email_delivery_failure on a list of Registration instances to avoid N+1 queries."""
+        if not registrations:
+            return
+        if known_filter is not None:
+            for reg in registrations:
+                setattr(reg, "_has_email_delivery_failure", bool(known_filter))
+            return
+
+        unresolved = [
+            reg
+            for reg in registrations
+            if getattr(reg, "id", None) is not None and getattr(reg, "_has_email_delivery_failure", None) is None
+        ]
+        if not unresolved:
+            return
+
+        try:
+            reg_ids = [reg.id for reg in unresolved]
+            direct_stmt = (
+                select(cls.registration_id)
+                .select_from(InteractionRecipient)
+                .join(cls, cls.id == InteractionRecipient.interaction_id)
+                .where(
+                    cls.registration_id.in_(reg_ids),
+                    InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
+                )
+                .distinct()
+            )
+            failed_ids = set(db.session.scalars(direct_stmt).all())
+
+            if application_model is not None:
+                linked_app_stmt = (
+                    select(application_model.registration_id)
+                    .select_from(InteractionRecipient)
+                    .join(cls, cls.id == InteractionRecipient.interaction_id)
+                    .join(application_model, application_model.id == cls.application_id)
+                    .where(
+                        application_model.registration_id.in_(reg_ids),
+                        InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
+                    )
+                    .distinct()
+                )
+                failed_ids.update(db.session.scalars(linked_app_stmt).all())
+
+            for reg in unresolved:
+                setattr(reg, "_has_email_delivery_failure", reg.id in failed_ids)
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass

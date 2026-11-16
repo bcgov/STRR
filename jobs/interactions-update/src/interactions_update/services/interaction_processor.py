@@ -18,22 +18,11 @@ from interactions_update.config.retry import RetryPolicy
 from interactions_update.database import get_session
 from interactions_update.handlers.interaction_status import DeliveryStatus
 from interactions_update.handlers.interaction_status import DeliveryStatusAdapter
+from interactions_update.handlers.interaction_status import FailureType
 from interactions_update.handlers.interaction_status import InteractionStatusHandler
 from interactions_update.handlers.notify_references import NotifyReferenceHandler
 from interactions_update.services.auth import AuthService
 from strr_api.enums.enum import InteractionStatus
-
-try:
-    from strr_api.enums.enum import FailureType
-except ImportError:
-    from enum import Enum
-
-    class FailureType(str, Enum):
-        PERMANENT_BOUNCE = "PERMANENT_BOUNCE"
-        MAILBOX_FULL = "MAILBOX_FULL"
-        GATEWAY_ERROR = "GATEWAY_ERROR"
-        SUPPRESSION_LIST = "SUPPRESSION_LIST"
-
 
 try:
     from strr_api.enums.enum import RecipientRole
@@ -457,26 +446,23 @@ class InteractionProcessor:
 
     def _check_stale_or_timeout(
         self, interaction: CustomerInteraction
-    ) -> tuple[bool, bool, int]:
+    ) -> tuple[bool, bool, int, int]:
         stale_sent_hours = int(os.getenv("STALE_SENT_HOURS", "24"))
+        sent_timeout_hours = int(
+            os.getenv("SENT_TIMEOUT_HOURS", str(self.SENT_TIMEOUT_HOURS))
+        )
         created_at = interaction.created_at
         if created_at and not created_at.tzinfo:
             created_at = created_at.replace(tzinfo=timezone.utc)
 
+        elapsed = (datetime.now(timezone.utc) - created_at) if created_at else None
         is_stale = bool(
-            created_at
-            and (datetime.now(timezone.utc) - created_at)
-            >= timedelta(hours=stale_sent_hours)
-        )
-        sent_timeout_hours = int(
-            os.getenv("SENT_TIMEOUT_HOURS", str(self.SENT_TIMEOUT_HOURS))
+            elapsed is not None and elapsed >= timedelta(hours=stale_sent_hours)
         )
         is_timed_out = bool(
-            created_at
-            and (datetime.now(timezone.utc) - created_at)
-            >= timedelta(hours=sent_timeout_hours)
+            elapsed is not None and elapsed >= timedelta(hours=sent_timeout_hours)
         )
-        return is_stale, is_timed_out, sent_timeout_hours
+        return is_stale, is_timed_out, sent_timeout_hours, stale_sent_hours
 
     def _handle_timeout_transition(
         self, session, interaction, meta_data, reason: str, log_event: str
@@ -620,9 +606,12 @@ class InteractionProcessor:
                 )
                 return None
 
-            is_stale, is_timed_out, sent_timeout_hours = self._check_stale_or_timeout(
-                interaction
-            )
+            (
+                is_stale,
+                is_timed_out,
+                sent_timeout_hours,
+                stale_sent_hours,
+            ) = self._check_stale_or_timeout(interaction)
             if is_stale:
                 logger.warning(
                     "strr.interactions.stale_sent_skipped interaction_id=%s created_at=%s stale_sent_hours=%s",
@@ -632,7 +621,7 @@ class InteractionProcessor:
                         if interaction.created_at
                         else None
                     ),
-                    os.getenv("STALE_SENT_HOURS", "24"),
+                    stale_sent_hours,
                 )
                 return None
 

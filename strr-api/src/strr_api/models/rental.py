@@ -190,16 +190,22 @@ class Registration(Versioned, BaseModel):
             query = query.join(User, Registration.reviewer_id == User.id).filter(
                 User.username.ilike(f"%{filter_criteria.assignee}%")
             )
-        if filter_criteria.has_email_failure is not None:
-            # pylint: disable=import-outside-toplevel
-            from strr_api.models.application import Application
-            from strr_api.models.interactions import CustomerInteraction
-
-            failure_expr = CustomerInteraction.registration_email_failure_exists_expr(
-                Registration.id, application_model=Application
-            )
-            query = query.filter(failure_expr if filter_criteria.has_email_failure else ~failure_expr)
+        query = cls.apply_email_failure_filter(query, filter_criteria.has_email_failure)
         return query
+
+    @classmethod
+    def apply_email_failure_filter(cls, query, has_email_failure: bool | None):
+        """Apply email delivery failure filter expression to a Registration query."""
+        if has_email_failure is None:
+            return query
+        # pylint: disable=import-outside-toplevel
+        from strr_api.models.application import Application
+        from strr_api.models.interactions import CustomerInteraction
+
+        failure_expr = CustomerInteraction.registration_email_failure_exists_expr(
+            Registration.id, application_model=Application
+        )
+        return query.filter(failure_expr if has_email_failure else ~failure_expr)
 
     @classmethod
     def _collect_sub_status_conditions(cls, filter_criteria: RegistrationSearch):

@@ -29,20 +29,9 @@ setupRenewalTodosWatch()
 const owners = ref<ConnectAccordionItem[]>([])
 const { isNewDashboardEnabled } = useHostFeatureFlags()
 
-const hasEmailDeliveryFailure = computed(() => {
-  const reg = registration.value as any
-  const app = application.value as any
-  return Boolean(
-    reg?.hasEmailDeliveryFailure ||
-    reg?.has_email_delivery_failure ||
-    reg?.header?.hasEmailDeliveryFailure ||
-    reg?.header?.has_email_delivery_failure ||
-    app?.hasEmailDeliveryFailure ||
-    app?.has_email_delivery_failure ||
-    app?.header?.hasEmailDeliveryFailure ||
-    app?.header?.has_email_delivery_failure
-  )
-})
+const hasEmailDeliveryFailure = computed(() =>
+  hasRecordEmailDeliveryFailure(registration.value) || hasRecordEmailDeliveryFailure(application.value)
+)
 
 const setupDashboardTodos = () => {
   todos.value.push(...getTodoApplication(

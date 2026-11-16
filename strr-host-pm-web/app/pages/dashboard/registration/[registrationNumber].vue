@@ -35,15 +35,7 @@ const submittedApplications = computed(() => {
   return apps.filter((app: any) => app.applicationStatus !== 'DRAFT')
 })
 
-const hasEmailDeliveryFailure = computed(() => {
-  const reg = registration.value as any
-  return Boolean(
-    reg?.hasEmailDeliveryFailure ||
-    reg?.has_email_delivery_failure ||
-    reg?.header?.hasEmailDeliveryFailure ||
-    reg?.header?.has_email_delivery_failure
-  )
-})
+const hasEmailDeliveryFailure = computed(() => hasRecordEmailDeliveryFailure(registration.value))
 
 onMounted(async () => {
   loading.value = true

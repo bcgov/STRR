@@ -98,6 +98,12 @@ DAYS_BEFORE_EXPIRY_BY_TYPE = {
 VALID_REGISTRATION_SORT_FIELDS = ["id", "registration_number", "start_date", "expiry_date", "status"]
 
 
+def _parse_optional_bool_arg(param_name: str):
+    """Parse an optional boolean query parameter ('true'/'false') or return None when omitted/empty."""
+    raw_val = request.args.get(param_name, None)
+    return raw_val.lower() == "true" if raw_val is not None and raw_val != "" else None
+
+
 @bp.route("", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
@@ -148,12 +154,7 @@ def get_registrations():
     sort_desc: bool = request.args.get("sort_desc", "false").lower() == "true"
     offset: int = int(request.args.get("offset", 1))
     limit: int = int(request.args.get("limit", 50))
-    has_email_failure_param = request.args.get("hasEmailFailure", None)
-    has_email_failure = (
-        has_email_failure_param.lower() == "true"
-        if has_email_failure_param is not None and has_email_failure_param != ""
-        else None
-    )
+    has_email_failure = _parse_optional_bool_arg("hasEmailFailure")
 
     return (
         RegistrationService.list_registrations(
@@ -1277,12 +1278,7 @@ def search_registrations():
         local_gov = request.args.get("localGov", None) or None
         review_renew_param = request.args.get("reviewRenew", None)
         review_renew = review_renew_param.lower() == "true" if review_renew_param else None
-        has_email_failure_param = request.args.get("hasEmailFailure", None)
-        has_email_failure = (
-            has_email_failure_param.lower() == "true"
-            if has_email_failure_param is not None and has_email_failure_param != ""
-            else None
-        )
+        has_email_failure = _parse_optional_bool_arg("hasEmailFailure")
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1390,12 +1386,7 @@ def user_search_registrations():
         registration_types = request.args.getlist("registrationType")
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
-        has_email_failure_param = request.args.get("hasEmailFailure", None)
-        has_email_failure = (
-            has_email_failure_param.lower() == "true"
-            if has_email_failure_param is not None and has_email_failure_param != ""
-            else None
-        )
+        has_email_failure = _parse_optional_bool_arg("hasEmailFailure")
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:

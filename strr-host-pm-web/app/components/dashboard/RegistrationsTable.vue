@@ -183,12 +183,7 @@ const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): Reg
       renewalDraftApplicationNumber,
       canRenew: canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending),
       registrationId: registration.id,
-      hasEmailDeliveryFailure: Boolean(
-        registration.hasEmailDeliveryFailure ||
-        registration.has_email_delivery_failure ||
-        registration.header?.hasEmailDeliveryFailure ||
-        registration.header?.has_email_delivery_failure
-      )
+      hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(registration)
     }
   })
 }

@@ -12,15 +12,9 @@ import re
 from typing import Any
 
 from strr_api.enums.enum import DeliveryStatus, FailureType, InteractionStatus
+from strr_api.models.interactions import FAILURE_DELIVERY_STATUSES
 
-FAILURE_DELIVERY_STATUS_SET = frozenset(
-    {
-        DeliveryStatus.PERMANENT_FAILURE,
-        DeliveryStatus.TEMPORARY_FAILURE,
-        DeliveryStatus.TECHNICAL_FAILURE,
-        DeliveryStatus.BLOCKED,
-    }
-)
+FAILURE_DELIVERY_STATUS_SET = frozenset(FAILURE_DELIVERY_STATUSES)
 
 
 class DeliveryStatusAdapter:
@@ -127,12 +121,12 @@ class DeliveryStatusAdapter:
         default_status: DeliveryStatus,
     ) -> DeliveryStatus:
         failure_type, _ = cls.classify_failure(raw_status, error_detail=error_detail, status_code=status_code)
-        _REFINEMENTS = {
+        refinements = {
             FailureType.MAILBOX_FULL: DeliveryStatus.TEMPORARY_FAILURE,
             FailureType.GATEWAY_ERROR: DeliveryStatus.TECHNICAL_FAILURE,
             FailureType.SUPPRESSION_LIST: DeliveryStatus.BLOCKED,
         }
-        return _REFINEMENTS.get(failure_type, default_status)
+        return refinements.get(failure_type, default_status)
 
     @classmethod
     def map_provider_status(
