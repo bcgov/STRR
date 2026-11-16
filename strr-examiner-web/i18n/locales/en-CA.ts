@@ -445,6 +445,8 @@ export default {
     recentDocumentUploadHint: 'New documents were submitted in response to a Notice of Consideration.',
     emailFailureBadge: 'Delivery Failed',
     emailFailureHint: 'An outbound email notification to a recipient on this record failed to deliver.',
+    filterAlertsPlaceholder: 'Alerts',
+    filterAlertsHeader: 'Alerts & Flags',
     filterEmailFailures: 'Delivery Failures',
     filterEmailFailuresHint: 'Show only records with outbound email delivery failures',
     examinerNotes: 'Notes',

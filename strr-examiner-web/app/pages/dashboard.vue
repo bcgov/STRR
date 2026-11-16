@@ -764,6 +764,45 @@ const registrationSubStatusOptions: { label: string; value: any; disabled?: bool
   { label: 'Set-Aside', value: 'SET_ASIDE' }
 ]
 
+const EMAIL_FAILURE_ALERT_FILTER = 'EMAIL_FAILURE'
+
+const alertFilterOptions = computed((): { label: string; value: any; disabled?: boolean; testId?: string }[] => [
+  { label: t('label.filterAlertsHeader'), value: undefined, disabled: true },
+  {
+    label: t('label.filterEmailFailures'),
+    value: EMAIL_FAILURE_ALERT_FILTER,
+    testId: 'filter-email-failure-option'
+  }
+])
+
+const selectedAlertFilters = computed<string[]>({
+  get: () => {
+    const selected: string[] = []
+    if (exStore.tableFilters.hasEmailFailure) {
+      selected.push(EMAIL_FAILURE_ALERT_FILTER)
+    }
+    return selected
+  },
+  set: (values: string[]) => {
+    exStore.tableFilters.hasEmailFailure = values.includes(EMAIL_FAILURE_ALERT_FILTER)
+  }
+})
+
+const alertFilterDisplayLabel = computed(() => {
+  if (selectedAlertFilters.value.length === 0) {
+    return t('label.filterAlertsPlaceholder')
+  }
+  if (selectedAlertFilters.value.length > 1) {
+    return t('label.multipleFilter')
+  }
+  const selectedOption = alertFilterOptions.value.find(opt => opt.value === selectedAlertFilters.value[0])
+  return selectedOption?.label ?? t('label.filterAlertsPlaceholder')
+})
+
+const clearAlertFilters = () => {
+  selectedAlertFilters.value = []
+}
+
 // Update query parameter when tab changes to persist state
 const updateTabQuery = (isApp: boolean) => {
   const query = { ...route.query }
@@ -846,28 +885,6 @@ const tabLinks = computed(() => [
                 },
               }"
             />
-            <UTooltip
-              :text="$t('label.filterEmailFailuresHint')"
-              :popper="{ placement: 'top', offsetDistance: 8 }"
-            >
-              <UButton
-                :label="$t('label.filterEmailFailures')"
-                icon="i-mdi-email-alert-outline"
-                :trailing-icon="exStore.tableFilters.hasEmailFailure ? 'i-mdi-close' : undefined"
-                size="sm"
-                :color="exStore.tableFilters.hasEmailFailure ? 'red' : 'gray'"
-                :variant="exStore.tableFilters.hasEmailFailure ? 'soft' : 'outline'"
-                :class="[
-                  'transition-colors',
-                  exStore.tableFilters.hasEmailFailure
-                    ? 'bg-red-100 text-red-900 ring-1 ring-inset ring-red-300 hover:bg-red-200'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                ]"
-                :aria-pressed="Boolean(exStore.tableFilters.hasEmailFailure)"
-                data-testid="filter-email-failure-toggle"
-                @click="exStore.tableFilters.hasEmailFailure = !exStore.tableFilters.hasEmailFailure"
-              />
-            </UTooltip>
             <ConnectI18nHelper
               class="text-sm"
               translation-path="label.resultsInTable"
@@ -990,7 +1007,77 @@ const tabLinks = computed(() => [
             :column
             :sort
             @sort="handleColumnSort(column.key)"
-          />
+          >
+            <template #append>
+              <USelectMenu
+                v-model="selectedAlertFilters"
+                :options="alertFilterOptions"
+                selected-icon=""
+                value-attribute="value"
+                option-attribute="label"
+                multiple
+                :ui-menu="{ option: { base: 'p-0' } }"
+              >
+                <template #default="{ open }">
+                  <UButton
+                    variant="select_menu_trigger"
+                    class="w-[115px] justify-between"
+                    :class="{
+                      'border-b-2 border-blue-500': open || selectedAlertFilters.length > 0
+                    }"
+                    :ui="{
+                      trailing: {
+                        wrapper: 'shrink-0 flex-grow-0 justify-end'
+                      }
+                    }"
+                    data-testid="filter-email-failure-toggle"
+                  >
+                    <span class="truncate">{{ alertFilterDisplayLabel }}</span>
+                    <template #trailing>
+                      <UIcon
+                        name="i-mdi-caret-down"
+                        class="size-5 shrink-0 text-gray-700 transition-transform"
+                        :class="[open && 'rotate-180']"
+                      />
+                      <UButton
+                        v-if="selectedAlertFilters.length > 0"
+                        variant="ghost"
+                        size="sm"
+                        icon="i-mdi-close"
+                        class="-ml-5 text-blue-500 hover:text-blue-700"
+                        data-testid="clear-alert-filters-button"
+                        @click.stop="clearAlertFilters"
+                      />
+                    </template>
+                  </UButton>
+                </template>
+                <template #option="{ option, selected }">
+                  <div
+                    v-if="option.value === undefined && option.disabled"
+                    class="w-full px-3 py-2 font-black text-gray-900 opacity-100"
+                  >
+                    <span>{{ option.label }}</span>
+                  </div>
+                  <div
+                    v-else
+                    class="flex cursor-pointer items-center gap-2 px-3 py-1.5"
+                    :data-testid="option.testId"
+                  >
+                    <UCheckbox
+                      :model-value="selected"
+                      class="pointer-events-none"
+                      :ui="{
+                        base: 'h-4 w-4',
+                        rounded: 'rounded-sm',
+                        border: 'border border-gray-500'
+                      }"
+                    />
+                    <span>{{ option.label }}</span>
+                  </div>
+                </template>
+              </USelectMenu>
+            </template>
+          </TableHeaderInput>
         </template>
 
         <template v-if="enableTableFilters" #registrationType-header="{ column }">
