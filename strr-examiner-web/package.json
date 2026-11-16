@@ -2,7 +2,7 @@
   "name": "strr-examiner-web",
   "private": true,
   "type": "module",
-  "version": "0.2.70",
+  "version": "0.2.71",
   "engines": {
     "node": ">=24"
   },
@@ -25,9 +25,8 @@
     "test:e2e:ui:all": "playwright test --ui",
     "test:e2e:chromium": "playwright test --project=chromium"
   },
-  "peerDependencies": {
+  "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
-    "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "@nuxt/devtools": "3.4.1",
     "@nuxt/image": "^2.0.0",
     "@nuxt/test-utils": "4.1.0",
@@ -44,17 +43,16 @@
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^20.0.11",
-    "nuxt": "4.5.2",
+    "otplib": "^12.0.1",
     "playwright-core": "^1.57.0",
     "sass": "^1.77.6",
     "typescript": "^5.9.3",
-    "vitest": "4.1.11",
-    "country-codes-list": "^2.0.0"
-  },
-  "devDependencies": {
-    "otplib": "^12.0.1"
+    "vitest": "4.1.11"
   },
   "dependencies": {
+    "@daxiom/nuxt-core-layer-test": "^0.0.29",
+    "country-codes-list": "^2.0.0",
+    "nuxt": "4.5.2",
     "uuid": "^11.1.0",
     "v-calendar": "^3.1.2"
   },

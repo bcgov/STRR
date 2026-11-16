@@ -39,7 +39,7 @@ export default defineNuxtConfig({
   extends: [
     useLocalBaseWeb
       ? '../strr-base-web'
-      : ['github:bcgov/STRR/strr-base-web#main', { install: true }]
+      : ['github:bcgov/STRR/strr-base-web#feature-REGBACKLOG-462-update-config', { install: true }]
   ],
 
   imports: {
