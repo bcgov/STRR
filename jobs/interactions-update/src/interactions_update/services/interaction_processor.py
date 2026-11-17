@@ -23,62 +23,9 @@ from interactions_update.handlers.interaction_status import InteractionStatusHan
 from interactions_update.handlers.notify_references import NotifyReferenceHandler
 from interactions_update.services.auth import AuthService
 from strr_api.enums.enum import InteractionStatus
-
-try:
-    from strr_api.enums.enum import RecipientRole
-except ImportError:
-    from enum import Enum
-
-    class RecipientRole(str, Enum):
-        HOST = "HOST"
-        PROPERTY_MANAGER = "PROPERTY_MANAGER"
-        REGISTRY_COPY = "REGISTRY_COPY"
-
-
+from strr_api.enums.enum import RecipientRole
 from strr_api.models import CustomerInteraction
-
-try:
-    from strr_api.models import InteractionRecipient
-except ImportError:
-    from sqlalchemy import Column
-    from sqlalchemy import DateTime
-    from sqlalchemy import Enum as SQLEnum
-    from sqlalchemy import ForeignKey
-    from sqlalchemy import Integer
-    from sqlalchemy import String
-    from sqlalchemy import Text
-    from sqlalchemy.dialects.postgresql import JSONB
-
-    from strr_api.models.db import db
-
-    class InteractionRecipient(db.Model):
-        __tablename__ = "interaction_recipients"
-        id = Column(Integer, primary_key=True)
-        interaction_id = Column(
-            Integer, ForeignKey("interactions.id", ondelete="CASCADE"), nullable=False
-        )
-        email_address = Column(String(320))
-        recipient_role = Column(String(50))
-        status = Column(
-            SQLEnum(
-                DeliveryStatus,
-                name="delivery_status",
-                values_callable=lambda x: [e.value for e in x],
-                native_enum=True,
-                create_type=False,
-            ),
-            nullable=False,
-        )
-        failure_type = Column(String(50))
-        failure_reason = Column(Text)
-        notify_reference = Column(String(100))
-        provider_reference = Column(String(100))
-        request_date = Column(DateTime(timezone=True))
-        sent_date = Column(DateTime(timezone=True))
-        updated_at = Column(DateTime(timezone=True))
-        raw_payload = Column(JSONB)
-
-
+from strr_api.models import InteractionRecipient
 from strr_api.services.auth_service import AuthService as StrRAuthService
 
 logger = logging.getLogger(__name__)
