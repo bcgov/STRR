@@ -20,7 +20,7 @@ gunicorn = "^22.0.0"
 pg8000 = "^1.31.2"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "6a31a888e9c7a659031570b1a92e5f39bc41d27a", subdirectory = "strr-api"}
+strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "f9efef8145aba99ec598c08341d3723ab4c569b0", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 
 [tool.poetry.group.test.dependencies]

@@ -4159,7 +4159,7 @@ files = [
 
 [[package]]
 name = "strr-api"
-version = "0.3.35"
+version = "0.3.40"
 description = ""
 optional = false
 python-versions = ">=3.12.2,<3.15"
@@ -4201,8 +4201,8 @@ weasyprint = "^70.0"
 [package.source]
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
-reference = "6a31a888e9c7a659031570b1a92e5f39bc41d27a"
-resolved_reference = "6a31a888e9c7a659031570b1a92e5f39bc41d27a"
+reference = "f9efef8145aba99ec598c08341d3723ab4c569b0"
+resolved_reference = "f9efef8145aba99ec598c08341d3723ab4c569b0"
 subdirectory = "strr-api"
 
 [[package]]
@@ -4856,4 +4856,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "d6d3667dd7e678265f03f3f52eef1a4c6d30542a9cae535d3549a70e37a6a8fe"
+content-hash = "3b193f10b88ca51f9990fd8a7c802bcd85b0bb0ed2d1dcb80183ce74dab070a8"
