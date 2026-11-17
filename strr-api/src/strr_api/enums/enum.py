@@ -246,3 +246,33 @@ class StrrRequirement(BaseEnum):
     PLATFORM_MEDIUM = "PLATFORM_MEDIUM"
     STRATA_PR = "STRATA_PR"
     STRATA_NO_PR = "STRATA_NO_PR"
+
+
+class DeliveryStatus(BaseEnum):
+    """Canonical email delivery status for interaction recipients."""
+
+    PENDING = "PENDING"
+    QUEUED = "QUEUED"
+    SENDING = "SENDING"
+    DELIVERED = "DELIVERED"
+    TEMPORARY_FAILURE = "TEMPORARY_FAILURE"
+    PERMANENT_FAILURE = "PERMANENT_FAILURE"
+    TECHNICAL_FAILURE = "TECHNICAL_FAILURE"
+    BLOCKED = "BLOCKED"
+
+
+class RecipientRole(BaseEnum):
+    """Role classification for an interaction recipient."""
+
+    HOST = "HOST"
+    PROPERTY_MANAGER = "PROPERTY_MANAGER"
+    REGISTRY_COPY = "REGISTRY_COPY"
+
+
+class FailureType(BaseEnum):
+    """Canonical classification for email delivery failures."""
+
+    PERMANENT_BOUNCE = "PERMANENT_BOUNCE"
+    MAILBOX_FULL = "MAILBOX_FULL"
+    GATEWAY_ERROR = "GATEWAY_ERROR"
+    SUPPRESSION_LIST = "SUPPRESSION_LIST"

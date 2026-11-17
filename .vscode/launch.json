@@ -30,5 +30,15 @@
       "console": "integratedTerminal",
       "justMyCode": false
     },
+    {
+      "name": "Backfiller: Run Job",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "backfiller",
+      "cwd": "${workspaceFolder}/jobs/strr-backfiller",
+      "envFile": "${workspaceFolder}/jobs/strr-backfiller/.env",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
   ]
 }

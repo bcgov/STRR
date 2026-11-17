@@ -468,7 +468,8 @@ const sharedListWatchSources = [
   () => exStore.tableFilters.registrationNumber,
   () => exStore.tableFilters.searchText,
   () => exStore.tableFilters.localGov,
-  () => exStore.tableFilters.adjudicator
+  () => exStore.tableFilters.adjudicator,
+  () => exStore.tableFilters.hasEmailFailure
 ]
 
 const {
@@ -502,6 +503,7 @@ const {
         localGov: getLocalGovColumnForRegistration(reg),
         adjudicator: getAdjudicatorColumn(reg.header),
         showRenewalBadge: shouldShowRenewalBadge(reg),
+        hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(reg),
         hasRecentDocumentUpload: reg.status !== RegistrationStatus.EXPIRED &&
           hasRecentDocumentUpload(getDocumentsFromRegistration(reg), reg.nocSentDate)
       }))
@@ -564,6 +566,7 @@ const {
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
         adjudicator: getAdjudicatorColumn(app.header),
+        hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(app),
         hasRecentDocumentUpload: hasRecentDocumentUpload(
           getDocumentsFromApplication(app),
           NOC_APP_STATUSES.has(app.header.status) ? app.header.nocSentDate : undefined
@@ -608,7 +611,14 @@ const columns = computed(() => {
         label: t(isApplicationTab.value
           ? 'page.dashboardList.columns.applicationNumberAlt'
           : 'page.dashboardList.columns.registrationNumberAlt'),
-        sortable
+        sortable,
+        class: 'min-w-[180px]'
+      },
+      {
+        key: 'alerts',
+        label: t('label.filterAlertsPlaceholder'),
+        sortable: false,
+        class: 'min-w-[155px]'
       },
       { key: 'status', label: t('page.dashboardList.columns.status'), sortable },
       { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable },
@@ -622,11 +632,12 @@ const columns = computed(() => {
       return splitColumns
     }
     // add sub-status column to registrations tab
-    splitColumns.splice(2, 0, { key: 'subStatus', label: 'Sub-status', sortable })
+    splitColumns.splice(3, 0, { key: 'subStatus', label: 'Sub-status', sortable })
     return splitColumns
   } else {
     return [
       { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable },
+      { key: 'alerts', label: t('label.filterAlertsPlaceholder'), sortable: false, class: 'min-w-[155px]' },
       { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable },
       { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable },
       { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable },
@@ -759,6 +770,30 @@ const registrationSubStatusOptions: { label: string; value: any; disabled?: bool
   { label: 'Approved', value: 'APPROVED' },
   { label: 'Set-Aside', value: 'SET_ASIDE' }
 ]
+
+const EMAIL_FAILURE_ALERT_FILTER = 'EMAIL_FAILURE'
+
+const alertFilterOptions = computed((): { label: string; value: any; disabled?: boolean; testId?: string }[] => [
+  { label: t('label.filterAlertsHeader'), value: undefined, disabled: true },
+  {
+    label: t('label.filterEmailFailures'),
+    value: EMAIL_FAILURE_ALERT_FILTER,
+    testId: 'filter-email-failure-option'
+  }
+])
+
+const selectedAlertFilters = computed<string[]>({
+  get: () => {
+    const selected: string[] = []
+    if (exStore.tableFilters.hasEmailFailure) {
+      selected.push(EMAIL_FAILURE_ALERT_FILTER)
+    }
+    return selected
+  },
+  set: (values: string[]) => {
+    exStore.tableFilters.hasEmailFailure = values.includes(EMAIL_FAILURE_ALERT_FILTER)
+  }
+})
 
 // Update query parameter when tab changes to persist state
 const updateTabQuery = (isApp: boolean) => {
@@ -967,6 +1002,18 @@ const tabLinks = computed(() => [
           />
         </template>
 
+        <template v-if="enableTableFilters" #alerts-header="{ column }">
+          <TableHeaderSelect
+            v-model="selectedAlertFilters"
+            :column
+            :sort
+            :default="[]"
+            :options="alertFilterOptions"
+            trigger-test-id="filter-email-failure-toggle"
+            @sort="handleColumnSort(column.key)"
+          />
+        </template>
+
         <template v-if="enableTableFilters" #registrationType-header="{ column }">
           <TableHeaderSelect
             v-model="exStore.tableFilters.registrationType"
@@ -1097,55 +1144,21 @@ const tabLinks = computed(() => [
           <div
             v-if="isSplitDashboardTableEnabled"
           >
-            <div v-if="isApplicationTab" class="flex flex-col gap-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <UTooltip
-                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
-                  :text="t('label.recentDocumentUploadHint')"
-                  :popper="{ placement: 'top', offsetDistance: 8 }"
-                >
-                  <div
-                    class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
-                      text-xs font-semibold text-amber-900"
-                    data-testid="recent-document-indicator"
-                    :aria-label="t('label.recentDocumentUploadHint')"
-                    @click.stop
-                  >
-                    <UIcon
-                      name="i-mdi-attachment"
-                      class="size-4 shrink-0 text-amber-800"
-                      aria-hidden="true"
-                    />
-                    {{ t('label.recentDocumentBadge') }}
-                  </div>
-                </UTooltip>
-                <span>{{ row.applicationNumber }}</span>
-              </div>
+            <div v-if="isApplicationTab" class="flex flex-col items-start gap-1">
+              <span>{{ row.applicationNumber }}</span>
+              <UButton
+                v-if="row.registrationNumber"
+                icon="i-mdi-check-circle"
+                variant="link"
+                :padded="false"
+                :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
+                class="text-sm"
+                @click="goToRegistration(row.registrationId)"
+              >
+                {{ row.registrationNumber }}
+              </UButton>
             </div>
-            <div v-else class="flex flex-col gap-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <UTooltip
-                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
-                  :text="t('label.recentDocumentUploadHint')"
-                  :popper="{ placement: 'top', offsetDistance: 8 }"
-                >
-                  <div
-                    class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
-                      text-xs font-semibold text-amber-900"
-                    data-testid="recent-document-indicator"
-                    :aria-label="t('label.recentDocumentUploadHint')"
-                    @click.stop
-                  >
-                    <UIcon
-                      name="i-mdi-attachment"
-                      class="size-4 shrink-0 text-amber-800"
-                      aria-hidden="true"
-                    />
-                    {{ t('label.recentDocumentBadge') }}
-                  </div>
-                </UTooltip>
-                <span>{{ row.registrationNumber }}</span>
-              </div>
+            <div v-else class="flex flex-col items-start gap-1">
               <UBadge
                 v-if="row.showRenewalBadge"
                 :label="t('label.renewal')"
@@ -1154,43 +1167,19 @@ const tabLinks = computed(() => [
                 class="w-fit text-xs font-bold uppercase"
                 data-testid="renewal-badge"
               />
+              <span>{{ row.registrationNumber }}</span>
             </div>
-            <UButton
-              v-if="row.registrationNumber && isApplicationTab"
-              icon="i-mdi-check-circle"
-              variant="link"
-              :padded="false"
-              :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
-              class="text-sm"
-              @click="goToRegistration(row.registrationId)"
-            >
-              {{ row.registrationNumber }}
-            </UButton>
           </div>
-          <div v-else class="flex flex-col gap-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <UTooltip
-                v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
-                :text="t('label.recentDocumentUploadHint')"
-                :popper="{ placement: 'top', offsetDistance: 8 }"
-              >
-                <div
-                  class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
-                    text-xs font-semibold text-amber-900"
-                  data-testid="recent-document-indicator"
-                  :aria-label="t('label.recentDocumentUploadHint')"
-                  @click.stop
-                >
-                  <UIcon
-                    name="i-mdi-attachment"
-                    class="size-4 shrink-0 text-amber-800"
-                    aria-hidden="true"
-                  />
-                  {{ t('label.recentDocumentBadge') }}
-                </div>
-              </UTooltip>
-              <span>{{ row.applicationNumber }}</span>
-            </div>
+          <div v-else class="flex flex-col items-start gap-1">
+            <UBadge
+              v-if="row.applicationType === 'renewal'"
+              :label="t('label.renewal')"
+              color="primary"
+              variant="solid"
+              class="w-fit text-xs font-bold uppercase"
+              data-testid="renewal-badge"
+            />
+            <span>{{ row.applicationNumber }}</span>
             <UButton
               v-if="row.registrationNumber"
               icon="i-mdi-check-circle"
@@ -1202,15 +1191,55 @@ const tabLinks = computed(() => [
             >
               {{ row.registrationNumber }}
             </UButton>
-            <UBadge
-              v-if="row.applicationType === 'renewal'"
-              :label="t('label.renewal')"
-              color="primary"
-              variant="solid"
-              class="w-fit text-xs font-bold uppercase"
-              data-testid="renewal-badge"
-            />
           </div>
+        </template>
+
+        <template #alerts-data="{ row }">
+          <div
+            v-if="(isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload) || row.hasEmailDeliveryFailure"
+            class="flex flex-wrap items-center gap-1.5"
+          >
+            <UTooltip
+              v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
+              :text="t('label.recentDocumentUploadHint')"
+              :popper="{ placement: 'top', offsetDistance: 8 }"
+            >
+              <div
+                class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
+                  text-xs font-semibold text-amber-900"
+                data-testid="recent-document-indicator"
+                :aria-label="t('label.recentDocumentUploadHint')"
+                @click.stop
+              >
+                <UIcon
+                  name="i-mdi-attachment"
+                  class="size-4 shrink-0 text-amber-800"
+                  aria-hidden="true"
+                />
+                {{ t('label.recentDocumentBadge') }}
+              </div>
+            </UTooltip>
+            <UTooltip
+              v-if="row.hasEmailDeliveryFailure"
+              :text="t('label.emailFailureHint')"
+              :popper="{ placement: 'top', offsetDistance: 8 }"
+            >
+              <span
+                class="inline-flex shrink-0 items-center gap-1 rounded bg-red-100 px-2 py-0.5
+                  text-xs font-semibold text-red-900"
+                data-testid="email-failure-badge"
+                :aria-label="t('label.emailFailureHint')"
+              >
+                <UIcon
+                  name="i-mdi-email-alert-outline"
+                  class="size-4 shrink-0 text-red-800"
+                  aria-hidden="true"
+                />
+                {{ t('label.emailFailureBadge') }}
+              </span>
+            </UTooltip>
+          </div>
+          <span v-else>-</span>
         </template>
 
         <template #propertyAddress-data="{ row }">

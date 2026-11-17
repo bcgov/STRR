@@ -190,4 +190,17 @@ describe('Registration Detail Page logic', () => {
       expect(result).toBeNull()
     })
   })
+
+  describe('email delivery failure banner detection', () => {
+    it('returns true when registration or header has email delivery failure flag', () => {
+      expect(hasRecordEmailDeliveryFailure({ hasEmailDeliveryFailure: true })).toBe(true)
+      expect(hasRecordEmailDeliveryFailure({ has_email_delivery_failure: true })).toBe(true)
+      expect(hasRecordEmailDeliveryFailure({ header: { hasEmailDeliveryFailure: true } })).toBe(true)
+    })
+
+    it('returns false when no email delivery failure exists', () => {
+      expect(hasRecordEmailDeliveryFailure({ hasEmailDeliveryFailure: false, header: {} })).toBe(false)
+      expect(hasRecordEmailDeliveryFailure(null)).toBe(false)
+    })
+  })
 })

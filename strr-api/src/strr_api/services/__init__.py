@@ -37,6 +37,7 @@ from .user_service import UserService  # isort: skip
 from .account_service import AccountService
 from .application_service import ApplicationService
 from .auth_service import AuthService
+from .delivery_status_adapter import DeliveryStatusAdapter
 from .document_service import DocumentService
 from .events_service import EventsService
 from .gcp_storage_service import GCPStorageService

@@ -124,4 +124,16 @@ describe('Application Detail Page logic', () => {
       expect(expectedMiddleware).toContain('dashboard-redirect')
     })
   })
+
+  describe('email delivery failure banner detection', () => {
+    it('returns true when application or header has email delivery failure flag', () => {
+      expect(hasRecordEmailDeliveryFailure({ hasEmailDeliveryFailure: true })).toBe(true)
+      expect(hasRecordEmailDeliveryFailure({ header: { hasEmailDeliveryFailure: true } })).toBe(true)
+    })
+
+    it('returns false when no email delivery failure exists', () => {
+      expect(hasRecordEmailDeliveryFailure({ header: { hasEmailDeliveryFailure: false } })).toBe(false)
+      expect(hasRecordEmailDeliveryFailure(undefined)).toBe(false)
+    })
+  })
 })

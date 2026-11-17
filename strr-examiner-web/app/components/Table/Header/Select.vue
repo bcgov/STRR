@@ -9,11 +9,13 @@ const props = defineProps<{
     value: any
     disabled?: boolean
     childStatuses?: any[]
+    testId?: string
   }>
   sort?: TableSort
   searchable?: boolean
   default?: Array<any>
   disable?: boolean
+  triggerTestId?: string
 }>()
 
 defineEmits<{
@@ -149,6 +151,7 @@ onMounted(() => {
                 wrapper: 'shrink-0 flex-grow-0 justify-end'
               }
             }"
+            :data-testid="props.triggerTestId"
           >
             <span class="truncate">{{ displayLabel }}</span>
             <template #trailing>
@@ -179,6 +182,7 @@ onMounted(() => {
             v-else
             class="flex cursor-pointer items-center gap-1 p-1"
             :class="{ 'pl-5': isChildStatus(option.value) }"
+            :data-testid="option.testId"
           >
             <UCheckbox
               :model-value="selected"

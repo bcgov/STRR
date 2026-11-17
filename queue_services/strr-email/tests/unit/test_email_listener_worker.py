@@ -181,11 +181,13 @@ def test_worker_registration_not_found(app, mocker, ce_factory):
         ("U1", "HOST_RENEWAL_REMINDER", "UNKNOWN", 3),
     ],
 )
-def test_worker_registration_branch_returns_empty_ok(
+def test_worker_unhandled_registration_branch_returns_400(
     app, mocker, ce_factory, reg_num, email_type, reg_type, reg_id
 ):
-    ce = ce_factory(registrationNumber=reg_num, emailType=email_type)
-    reg = MagicMock(registration_type=reg_type, id=reg_id)
+    ce = ce_factory(
+        registrationNumber=reg_num, emailType=email_type, interactionUuid="uuid-unhandled"
+    )
+    reg = MagicMock(registration_type=reg_type, id=reg_id, registration_number=reg_num)
     mocker.patch.object(gcp_queue, "get_simple_cloud_event", return_value=ce)
     mocker.patch("strr_email.resources.email_listener.Path.read_text", return_value="# x\n")
     mocker.patch(
@@ -195,8 +197,54 @@ def test_worker_registration_branch_returns_empty_ok(
         "strr_email.resources.email_listener.RegistrationService.find_by_registration_number",
         return_value=reg,
     )
+    mock_fail = mocker.patch("strr_email.resources.email_listener._fail_orphaned_interaction")
     with app.test_request_context("/", method="POST", data=b"{}"):
-        assert worker() == ({}, HTTPStatus.OK)
+        resp = worker()
+        assert resp[1] == HTTPStatus.BAD_REQUEST
+    mock_fail.assert_called_once()
+
+
+def test_worker_host_registration_cancelled_dispatch_success(app, mocker, ce_factory):
+    ce = ce_factory(
+        registrationNumber="H1",
+        emailType="HOST_REGISTRATION_CANCELLED",
+        customContent="Registration cancelled due to non-compliance",
+    )
+    reg = _host_reg()
+    dispatch = mocker.patch(
+        "strr_email.resources.email_listener.InteractionService.dispatch",
+        return_value=MagicMock(interaction_uuid="uuid-cancelled"),
+    )
+    _patch_read_pipeline(mocker, ce, reg, _HOST_TPL)
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        resp = worker()
+    assert resp[1] == HTTPStatus.OK and resp[0].get_json().get("interaction") == "uuid-cancelled"
+    dispatch.assert_called_once()
+    payload = dispatch.call_args.kwargs["payload"]
+    assert "Short-Term Rental Registration Cancelled" in payload.email["content"]["subject"]
+
+
+def test_worker_generic_registration_cancelled_dispatch_success(app, mocker, ce_factory):
+    ce = ce_factory(
+        registrationNumber="H1",
+        emailType="REGISTRATION_CANCELLED",
+        customContent="Registration cancelled",
+    )
+    reg = _host_reg()
+    dispatch = mocker.patch(
+        "strr_email.resources.email_listener.InteractionService.dispatch",
+        return_value=MagicMock(interaction_uuid="uuid-generic-cancelled"),
+    )
+    _patch_read_pipeline(mocker, ce, reg, _HOST_TPL)
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        resp = worker()
+    assert (
+        resp[1] == HTTPStatus.OK
+        and resp[0].get_json().get("interaction") == "uuid-generic-cancelled"
+    )
+    dispatch.assert_called_once()
+    payload = dispatch.call_args.kwargs["payload"]
+    assert "Short-Term Rental Registration Cancelled" in payload.email["content"]["subject"]
 
 
 def test_worker_renewal_dispatch_success(app, mocker, ce_factory):
@@ -396,7 +444,7 @@ def test_worker_strata_registration_noc_dispatch_success(app, mocker, ce_factory
     payload = dispatch.call_args.kwargs["payload"]
     assert "Short-Term Rental Notice of Consideration" in payload.email["content"]["subject"]
     assert "strata-rep@example.com" in payload.email["recipients"]
-    assert app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"] in payload.email["recipients"]
+    assert app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"].lower() in payload.email["recipients"]
 
 
 @pytest.mark.parametrize(
@@ -452,7 +500,7 @@ def test_worker_strata_application_noc_dispatch_success(app, mocker, ce_factory,
     assert "rep1@hotel.com" in payload.email["recipients"]
     assert "rep2@hotel.com" in payload.email["recipients"]
     assert "completing@hotel.com" in payload.email["recipients"]
-    assert app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"] in payload.email["recipients"]
+    assert app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"].lower() in payload.email["recipients"]
 
 
 def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):
@@ -607,7 +655,7 @@ def test_worker_application_dispatches_combined_recipients(app, mocker, ce_facto
     dispatch.assert_called_once()
     email_info = dispatch.call_args.kwargs["payload"]
     assert email_info.email["recipients"] == (
-        f"{app.config['EMAIL_HOUSING_RECIPIENT_EMAIL']},host@example.com,bas@ba$.com"
+        f"{app.config['EMAIL_HOUSING_RECIPIENT_EMAIL'].lower()},host@example.com,bas@ba$.com"
     )
 
 

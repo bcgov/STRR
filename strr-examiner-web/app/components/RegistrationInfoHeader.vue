@@ -71,7 +71,10 @@ const registrationCountdown = computed(() => {
 
 </script>
 <template>
-  <div class="border-b bg-white py-6">
+  <div
+    class="border-b bg-white py-6"
+    data-testid="registration-header"
+  >
     <div class="app-inner-container">
       <div class="mb-2">
         <div class="relative mb-4 flex justify-between text-2xl leading-none">
@@ -106,6 +109,7 @@ const registrationCountdown = computed(() => {
               icon="i-mdi-history"
               size="sm"
               class="gap-1"
+              data-testid="toggle-history-btn"
               @click="checkAndPerformAction(() => toggleFilingHistory())"
             />
           </div>

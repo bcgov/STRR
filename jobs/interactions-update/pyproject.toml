@@ -1,6 +1,6 @@
 [project]
 name = "interactions-update"
-version = "0.2.1"
+version = "0.2.2"
 description = "updates the status of interactions from downstream services (currently only email)"
 authors = [
     {name = "Thor", email = "thor@daxiom.com"}

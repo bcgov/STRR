@@ -39,6 +39,7 @@ const createMockStore = (initialFilters = {}) => {
     lastModified: { start: null, end: null },
     localGov: '',
     adjudicator: '',
+    hasEmailFailure: false,
     ...initialFilters
   })
 
@@ -74,7 +75,8 @@ const createMockStore = (initialFilters = {}) => {
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
         localGov: '',
-        adjudicator: ''
+        adjudicator: '',
+        hasEmailFailure: false
       })
     }),
     assignApplication: vi.fn()
@@ -898,6 +900,21 @@ describe('Examiner Dashboard Page', () => {
       expect(hasValue(statusOptions, ApplicationStatus.PAID)).toBe(true)
       expect(hasValue(statusOptions, 'OPEN')).toBe(false)
       expect(hasValue(statusOptions, 'NOT_SUBMITTED')).toBe(false)
+    })
+
+    it('includes alerts column and toggles hasEmailFailure when delivery failures option is selected', async () => {
+      const alertsCol = wrapper.vm.columns.find((col: any) => col.key === 'alerts')
+      expect(alertsCol).toBeDefined()
+      expect(alertsCol.label).toBe('Alerts')
+      expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
+
+      wrapper.vm.selectedAlertFilters = ['EMAIL_FAILURE']
+      await nextTick()
+      expect(mockStore.tableFilters.hasEmailFailure).toBe(true)
+
+      wrapper.vm.selectedAlertFilters = []
+      await nextTick()
+      expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
     })
   })
 })

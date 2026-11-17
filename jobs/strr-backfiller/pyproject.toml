@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-backfiller"
-version = "1.0.2"
+version = "1.0.3"
 description = ""
 authors = []
 packages = [{include = "backfiller", from = "src"}]
@@ -57,7 +57,7 @@ minversion = "2.0"
 testpaths = [
    "tests",
 ]
-addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term"
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term -m \"not integration\""
 python_files = [
    "test*.py"
 ]

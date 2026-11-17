@@ -55,6 +55,7 @@ class ApplicationSearch:
     applications_only: bool = False
     account_id: int | None = None
     local_gov: str | None = None
+    has_email_failure: bool | None = None
 
 
 @dataclass
@@ -78,3 +79,4 @@ class RegistrationSearch:
     is_set_aside: bool | None = None
     local_gov: str | None = None
     review_renew: bool | None = None
+    has_email_failure: bool | None = None

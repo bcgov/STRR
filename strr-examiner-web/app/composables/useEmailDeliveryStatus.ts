@@ -25,23 +25,38 @@ const getEmailEventRecipients = (event: FilingHistoryEvent): EmailRecipientStatu
   return Array.isArray(structured.recipientStatuses) ? structured.recipientStatuses : []
 }
 
+const FAILURE_TYPE_TOKENS = new Set([
+  'PERMANENT',
+  'TEMPORARY',
+  'TECHNICAL',
+  'PERMANENT_FAILURE',
+  'TEMPORARY_FAILURE',
+  'TECHNICAL_FAILURE',
+  'PERMANENT_BOUNCE',
+  'MAILBOX_FULL',
+  'GATEWAY_ERROR',
+  'SUPPRESSION_LIST'
+])
+
+export const hasRecordEmailDeliveryFailure = (record: any): boolean => {
+  return Boolean(
+    record?.header?.hasEmailDeliveryFailure ||
+    record?.header?.has_email_delivery_failure ||
+    record?.hasEmailDeliveryFailure ||
+    record?.has_email_delivery_failure
+  )
+}
+
 const isDeliveryFailure = (recipient: EmailRecipientStatus): boolean => {
   const status = (recipient.status || '').toUpperCase()
   const providerStatus = (recipient.provider_status || '').toUpperCase()
   const failureType = (recipient.failure_type || '').toUpperCase()
 
   return (
-    status === 'FAILED' ||
-    providerStatus === 'PERMANENT_FAILURE' ||
-    providerStatus === 'TEMPORARY_FAILURE' ||
-    providerStatus === 'TECHNICAL_FAILURE' ||
+    FAILURE_RECIPIENT_STATUSES.has(status) ||
+    FAILURE_RECIPIENT_STATUSES.has(providerStatus) ||
     providerStatus === 'VIRUS_SCAN_FAILED' ||
-    failureType === 'PERMANENT' ||
-    failureType === 'TEMPORARY' ||
-    failureType === 'TECHNICAL' ||
-    failureType === 'PERMANENT_FAILURE' ||
-    failureType === 'TEMPORARY_FAILURE' ||
-    failureType === 'TECHNICAL_FAILURE'
+    FAILURE_TYPE_TOKENS.has(failureType)
   )
 }
 
