@@ -24,7 +24,7 @@ function handleReset () {
       :sort
       @sort="$emit('sort')"
     />
-    <div class="flex h-[58px] items-center gap-1.5 p-2 font-normal">
+    <div class="h-[58px] p-2 font-normal">
       <template v-if="disable">
         <UButton
           variant="select_menu_trigger"
@@ -41,7 +41,6 @@ function handleReset () {
         :placeholder="column.label"
         :aria-label="column.label"
         size="sm"
-        class="min-w-0 flex-1"
         :ui="{ icon: { trailing: { pointer: '' } } }"
       >
         <template #trailing>
@@ -56,7 +55,6 @@ function handleReset () {
           />
         </template>
       </UInput>
-      <slot name="append" />
     </div>
   </div>
 </template>

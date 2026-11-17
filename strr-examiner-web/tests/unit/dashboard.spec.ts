@@ -902,19 +902,19 @@ describe('Examiner Dashboard Page', () => {
       expect(hasValue(statusOptions, 'NOT_SUBMITTED')).toBe(false)
     })
 
-    it('toggles hasEmailFailure filter when delivery failures alert option is selected and cleared', async () => {
-      expect(wrapper.vm.alertFilterDisplayLabel).toBe('Alerts')
+    it('includes alerts column and toggles hasEmailFailure when delivery failures option is selected', async () => {
+      const alertsCol = wrapper.vm.columns.find((col: any) => col.key === 'alerts')
+      expect(alertsCol).toBeDefined()
+      expect(alertsCol.label).toBe('Alerts')
       expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
 
       wrapper.vm.selectedAlertFilters = ['EMAIL_FAILURE']
       await nextTick()
       expect(mockStore.tableFilters.hasEmailFailure).toBe(true)
-      expect(wrapper.vm.alertFilterDisplayLabel).toBe('Delivery Failures')
 
-      wrapper.vm.clearAlertFilters()
+      wrapper.vm.selectedAlertFilters = []
       await nextTick()
       expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
-      expect(wrapper.vm.alertFilterDisplayLabel).toBe('Alerts')
     })
   })
 })
