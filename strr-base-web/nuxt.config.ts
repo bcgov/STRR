@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'url'
+import { defineNuxtConfig } from 'nuxt/config'
 // import { dirname, join } from 'path'
 
 // const currentDir = dirname(fileURLToPath(import.meta.url))
@@ -16,6 +17,12 @@ export default defineNuxtConfig({
 
   future: {
     compatibilityVersion: 4
+  },
+
+  vite: {
+    resolve: {
+      dedupe: ['pinia'] // to resolve nuxt-core-connect-account-store
+    }
   },
 
   nitro: {

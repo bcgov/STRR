@@ -2,7 +2,7 @@
   "name": "strr-base-web",
   "private": true,
   "type": "module",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "engines": {
     "node": ">=24"
   },
@@ -41,7 +41,6 @@
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^20.0.11",
-    "nuxt": "4.5.2",
     "playwright-core": "^1.57.0",
     "sass": "^1.77.6",
     "typescript": "^5.9.3",
@@ -49,10 +48,11 @@
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
-    "@vuepic/vue-datepicker": "^10.0.0",
     "@gtm-support/vue-gtm": "3.2.0",
+    "@vuepic/vue-datepicker": "^10.0.0",
     "country-codes-list": "^2.0.0",
     "luxon": "^3.5.0",
+    "nuxt": "4.5.2",
     "nuxt-gtag": "^3.0.3",
     "vue-country-flag-next": "^2.3.2"
   },
