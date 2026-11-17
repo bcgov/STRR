@@ -138,7 +138,7 @@ jsonPayload.message=~"event_id=<cloud_event_id>"
 ```text
 resource.type="cloud_run_job"
 resource.labels.job_name="strr-auto-approval-prod"
-textPayload=~" - ERROR in "
+textPayload:"ERROR in "
 ```
 
 **Auto-approval verbose:**
@@ -174,6 +174,55 @@ severity>="INFO"
 ```
 
 **Note:** Exact **`job_name`** labels in GCP must match your Cloud Run Job resource names. Adjust filters accordingly.
+
+## Auto-approval application failures
+
+**Alert:** `STRR PROD - An application failed auto-approval` (Cloud Monitoring, `bcrbk9-prod`). It fires on any `ERROR in ` log line from `strr-auto-approval-prod`, emails the STRR prod alert channels at most once an hour, and includes the execution name and, when logged, the application ID.
+
+**Why it is log-based:** when an application fails, the job catches the error and the execution still reports **succeeded**. Job-failure metrics do not see it.
+
+**Schedule:** `*/30 6-18 * * 1-5` (America/Vancouver). An application that stays `PAID` is picked up again on every run, so the alert repeats until it is resolved.
+
+### Triage
+
+1. **Open the execution's logs.** Use the execution name from the alert:
+
+   ```text
+   resource.type="cloud_run_job"
+   resource.labels.job_name="strr-auto-approval-prod"
+   labels."run.googleapis.com/execution_name"="<execution>"
+   ```
+
+2. **Find the application.** If the alert has no application ID, take the last `Auto processing application <id>` line before the first `ERROR in ` line. Note the exception (for example `PendingRollbackError`, `StringDataRightTruncation`).
+3. **Check the application's state:**
+
+   ```sql
+   SELECT a.id, a.application_number, a.status, a.type, a.registration_type,
+          a.registration_id, a.application_date
+   FROM application a
+   WHERE a.id = <id>;
+
+   SELECT aar.creation_date, aar.record->>'suggestedAction' AS suggested_action
+   FROM auto_approval_records aar
+   WHERE aar.application_id = <id>
+   ORDER BY aar.creation_date DESC;
+   ```
+
+4. **Classify the failure:**
+   - **`FULL_REVIEW`:** the fallback worked. The application is in the examiner queue. No re-run is needed; record the root cause.
+   - **Still `PAID`:** the fallback also failed. The job retries this application every run, and a DB session error can abort the rest of the batch. Treat this as urgent.
+   - **Other status:** a later run or an examiner already handled it. Confirm and close.
+5. **Fix the root cause** (data or schema issue, downstream dependency) before re-running. Get a team lead's approval before changing an application's status directly in the database.
+6. **Re-run if needed.** Wait for the next scheduled run or start one:
+
+   ```bash
+   gcloud run jobs execute strr-auto-approval-prod \
+     --project bcrbk9-prod --region northamerica-northeast1
+   ```
+
+   Then confirm the new execution has no `ERROR in ` lines and the application has left `PAID`.
+
+**Example:** from 2026-10-29 to 2026-10-30, application 88315 failed with `PendingRollbackError` on 39 runs in a row. Each run then aborted with `Unexpected error: This Session's transaction has been rolled back`, and nothing alerted.
 
 ## SQL: queue / job investigation
 
