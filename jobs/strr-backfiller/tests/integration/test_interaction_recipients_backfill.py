@@ -1,18 +1,13 @@
 """Integration tests for interaction recipients backfill (Postgres + migrations)."""
 
 import pytest
-
-try:
-    from strr_api.enums.enum import (
-        ChannelType,
-        DeliveryStatus,
-        FailureType,
-        InteractionStatus,
-    )
-    from strr_api.models import CustomerInteraction, InteractionRecipient
-except ImportError:
-    ChannelType = DeliveryStatus = FailureType = InteractionStatus = None
-    CustomerInteraction = InteractionRecipient = None
+from strr_api.enums.enum import (
+    ChannelType,
+    DeliveryStatus,
+    FailureType,
+    InteractionStatus,
+)
+from strr_api.models import CustomerInteraction, InteractionRecipient
 
 from backfiller.job import backfill_interaction_recipients
 
