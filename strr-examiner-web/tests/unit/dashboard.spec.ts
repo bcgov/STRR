@@ -903,20 +903,18 @@ describe('Examiner Dashboard Page', () => {
     })
 
     it('toggles hasEmailFailure filter when delivery failures alert option is selected and cleared', async () => {
-      const toggleBtn = wrapper.findTestId('filter-email-failure-toggle')
-      expect(toggleBtn.exists()).toBe(true)
-      expect(toggleBtn.text()).toContain('Alerts')
+      expect(wrapper.vm.alertFilterDisplayLabel).toBe('Alerts')
       expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
 
       wrapper.vm.selectedAlertFilters = ['EMAIL_FAILURE']
       await nextTick()
       expect(mockStore.tableFilters.hasEmailFailure).toBe(true)
-      expect(toggleBtn.text()).toContain('Delivery Failures')
+      expect(wrapper.vm.alertFilterDisplayLabel).toBe('Delivery Failures')
 
       wrapper.vm.clearAlertFilters()
       await nextTick()
       expect(mockStore.tableFilters.hasEmailFailure).toBe(false)
-      expect(toggleBtn.text()).toContain('Alerts')
+      expect(wrapper.vm.alertFilterDisplayLabel).toBe('Alerts')
     })
   })
 })
