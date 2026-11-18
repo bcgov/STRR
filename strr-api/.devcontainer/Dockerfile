@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.11-bookworm
+FROM mcr.microsoft.com/devcontainers/python:3.12-bookworm
 
 # 1. FIX: Remove the broken Yarn repository list so apt-get update doesn't fail
 RUN rm -f /etc/apt/sources.list.d/yarn.list
