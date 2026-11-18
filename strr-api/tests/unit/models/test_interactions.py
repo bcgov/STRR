@@ -6,9 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import DatabaseError, IntegrityError
 from sqlalchemy.orm import Session
 
-from strr_api.enums.enum import ChannelType, InteractionStatus, RegistrationStatus
+from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus, RegistrationStatus
 from strr_api.models import Application, Registration, User
-from strr_api.models.interactions import CustomerInteraction
+from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 
 
 @pytest.fixture
@@ -203,3 +203,130 @@ def test_unique_interaction_uuid(session, interaction_parents):
 
     with pytest.raises(IntegrityError):
         session.commit()
+
+
+def test_registration_email_failure_filter_correlates_application_registration(
+    session: Session, interaction_parents, random_string, random_integer
+):
+    """Filtering registrations by email failure must correlate application.registration_id per registration."""
+    clean_reg = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=random_string(10),
+        sbc_account_id=random_integer(),
+        status=RegistrationStatus.ACTIVE,
+        user_id=interaction_parents["user_id"],
+        start_date=datetime.now(timezone.utc),
+        expiry_date=(datetime.now(timezone.utc) + timedelta(days=365)).date(),
+    )
+    session.add(clean_reg)
+    session.flush()
+
+    failed_interaction = generate_interaction_data(
+        application_id=interaction_parents["app_id"],
+        user_id=interaction_parents["user_id"],
+    )
+    session.add(failed_interaction)
+    session.flush()
+
+    session.add(
+        InteractionRecipient(
+            interaction_id=failed_interaction.id,
+            email_address="failed@example.com",
+            status=DeliveryStatus.PERMANENT_FAILURE,
+        )
+    )
+    session.commit()
+
+    base_query = Registration.query.filter(Registration.id.in_([interaction_parents["reg_id"], clean_reg.id]))
+    failed_ids = [reg.id for reg in Registration.apply_email_failure_filter(base_query, True).all()]
+    clean_ids = [reg.id for reg in Registration.apply_email_failure_filter(base_query, False).all()]
+
+    assert failed_ids == [interaction_parents["reg_id"]]
+    assert clean_ids == [clean_reg.id]
+
+
+def test_registration_email_failure_filter_covers_direct_non_failure_and_orphan_app(
+    session: Session, interaction_parents, random_string, random_integer
+):
+    """Verify direct failures, non-failure statuses, orphan applications, and batch flag population."""
+    direct_reg = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=random_string(10),
+        sbc_account_id=random_integer(),
+        status=RegistrationStatus.ACTIVE,
+        user_id=interaction_parents["user_id"],
+        start_date=datetime.now(timezone.utc),
+        expiry_date=(datetime.now(timezone.utc) + timedelta(days=365)).date(),
+    )
+    delivered_reg = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=random_string(10),
+        sbc_account_id=random_integer(),
+        status=RegistrationStatus.ACTIVE,
+        user_id=interaction_parents["user_id"],
+        start_date=datetime.now(timezone.utc),
+        expiry_date=(datetime.now(timezone.utc) + timedelta(days=365)).date(),
+    )
+    orphan_app = Application(
+        application_json={},
+        application_number=random_string(10),
+        type="",
+        registration_type=Registration.RegistrationType.HOST,
+        registration_id=None,
+    )
+    session.add_all([direct_reg, delivered_reg, orphan_app])
+    session.flush()
+
+    direct_interaction = generate_interaction_data(
+        registration_id=direct_reg.id,
+        user_id=interaction_parents["user_id"],
+    )
+    delivered_interaction = generate_interaction_data(
+        registration_id=delivered_reg.id,
+        user_id=interaction_parents["user_id"],
+    )
+    orphan_interaction = generate_interaction_data(
+        application_id=orphan_app.id,
+        user_id=interaction_parents["user_id"],
+    )
+    session.add_all([direct_interaction, delivered_interaction, orphan_interaction])
+    session.flush()
+
+    session.add_all(
+        [
+            InteractionRecipient(
+                interaction_id=direct_interaction.id,
+                email_address="tempfail@example.com",
+                status=DeliveryStatus.TEMPORARY_FAILURE,
+            ),
+            InteractionRecipient(
+                interaction_id=delivered_interaction.id,
+                email_address="ok@example.com",
+                status=DeliveryStatus.DELIVERED,
+            ),
+            InteractionRecipient(
+                interaction_id=orphan_interaction.id,
+                email_address="orphan@example.com",
+                status=DeliveryStatus.BLOCKED,
+            ),
+        ]
+    )
+    session.commit()
+
+    reg_ids = [interaction_parents["reg_id"], direct_reg.id, delivered_reg.id]
+    base_query = Registration.query.filter(Registration.id.in_(reg_ids))
+
+    failed_ids = {reg.id for reg in Registration.apply_email_failure_filter(base_query, True).all()}
+    clean_ids = {reg.id for reg in Registration.apply_email_failure_filter(base_query, False).all()}
+
+    assert failed_ids == {direct_reg.id}
+    assert clean_ids == {interaction_parents["reg_id"], delivered_reg.id}
+
+    regs = base_query.all()
+    CustomerInteraction.populate_registration_email_failure_flags(regs, application_model=Application)
+    flags_by_id = {reg.id: reg.has_email_delivery_failure for reg in regs}
+    assert flags_by_id == {
+        direct_reg.id: True,
+        interaction_parents["reg_id"]: False,
+        delivered_reg.id: False,
+    }

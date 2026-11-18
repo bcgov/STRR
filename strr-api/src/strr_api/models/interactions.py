@@ -220,25 +220,31 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
     @classmethod
     def registration_email_failure_exists_expr(cls, registration_id_expr, application_model=None):
         """Return a SQLAlchemy EXISTS expression checking if a registration has any failed email recipient."""
-        if application_model is not None:
-            owner_condition = or_(
-                cls.registration_id == registration_id_expr,
-                cls.application_id.in_(
-                    select(application_model.id).where(application_model.registration_id == registration_id_expr)
-                ),
-            )
-        else:
-            owner_condition = cls.registration_id == registration_id_expr
-
-        return exists(
+        direct_exists = exists(
             select(1)
             .select_from(InteractionRecipient)
             .join(cls, cls.id == InteractionRecipient.interaction_id)
             .where(
-                owner_condition,
+                cls.registration_id == registration_id_expr,
                 InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
             )
         )
+        if application_model is None:
+            return direct_exists
+
+        # Use a separate EXISTS with an INNER JOIN on application_model so Postgres can hash/index-probe
+        # each branch independently instead of falling back to an O(N*M) OR nested-loop join filter.
+        app_exists = exists(
+            select(1)
+            .select_from(InteractionRecipient)
+            .join(cls, cls.id == InteractionRecipient.interaction_id)
+            .join(application_model, application_model.id == cls.application_id)
+            .where(
+                application_model.registration_id == registration_id_expr,
+                InteractionRecipient.status.in_(FAILURE_DELIVERY_STATUSES),
+            )
+        )
+        return or_(direct_exists, app_exists)
 
     @classmethod
     def has_application_email_delivery_failure(cls, application_id: int) -> bool:
