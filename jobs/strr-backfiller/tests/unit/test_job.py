@@ -133,10 +133,12 @@ def test_create_app_and_shellcontext(mocker):
 
 
 def test_process_single_registration_skips_when_enrich_unchanged(mocker):
-    registration = MagicMock(id=1, registration_type="HOST", registration_json={"a": 1})
+    registration = MagicMock(
+        id=1, registration_type="HOST", registration_json={"registrationType": "HOST", "a": 1}
+    )
     mocker.patch(
         "backfiller.job.RegistrationService._enrich_registration_json",
-        return_value={"a": 1},
+        return_value={"registrationType": "HOST", "a": 1},
     )
     stats = _stats()
     _process_single_registration(registration, MagicMock(), stats)
@@ -150,10 +152,12 @@ def test_process_single_registration_skips_when_enrich_unchanged(mocker):
 
 
 def test_process_single_registration_updates_when_enrich_changes(mocker):
-    registration = MagicMock(id=2, registration_type="HOST", registration_json={"a": 1})
+    registration = MagicMock(
+        id=2, registration_type="HOST", registration_json={"registrationType": "HOST", "a": 1}
+    )
     mocker.patch(
         "backfiller.job.RegistrationService._enrich_registration_json",
-        return_value={"a": 1, "jurisdiction": "BC"},
+        return_value={"registrationType": "HOST", "a": 1, "jurisdiction": "BC"},
     )
     stats = _stats()
     _process_single_registration(registration, MagicMock(), stats)
@@ -167,6 +171,27 @@ def test_process_single_registration_skips_when_reconstruct_fails(mocker):
     stats = _stats()
     _process_single_registration(registration, MagicMock(), stats)
     assert stats["total_skipped"] == 1
+
+
+def test_process_single_registration_reconstructs_partial_json(mocker):
+    registration = MagicMock(
+        id=5,
+        registration_type="HOST",
+        registration_json={"primaryContact": {"emailAddress": "new@example.com"}},
+    )
+    mocker.patch(
+        "backfiller.job._get_json_from_application",
+        return_value={"registrationType": "HOST", "primaryContact": {"emailAddress": "old@example.com"}},
+    )
+    mocker.patch(
+        "backfiller.job.RegistrationService._enrich_registration_json",
+        side_effect=lambda payload, reg: dict(payload),
+    )
+    stats = _stats()
+    _process_single_registration(registration, MagicMock(), stats)
+    assert stats["total_updated"] == 1
+    assert registration.registration_json["registrationType"] == "HOST"
+    registration.save.assert_called_once()
 
 
 def test_process_single_registration_logs_error_on_exception(mocker):

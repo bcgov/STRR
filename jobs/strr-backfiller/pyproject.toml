@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-backfiller"
-version = "1.0.3"
+version = "1.0.4"
 description = ""
 authors = []
 packages = [{include = "backfiller", from = "src"}]
