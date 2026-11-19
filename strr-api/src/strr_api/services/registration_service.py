@@ -1446,9 +1446,7 @@ class RegistrationService:
             if n in reg_map:
                 reg = reg_map[n]
                 items.append(
-                    RegistrationSerializer.serialize_for_query(
-                        reg, include_pii=include_pii, latest_app=latest_app_map.get(reg.id)
-                    )
+                    RegistrationSerializer.serialize_for_query(reg, include_pii=include_pii, latest_apps=latest_app_map)
                 )
             else:
                 errors.append({"registrationNumber": n, "code": "NOT_FOUND"})
@@ -1510,7 +1508,7 @@ class RegistrationService:
             latest_app_map = cls._fetch_latest_applications_by_reg_ids(models)
             items = [
                 RegistrationSerializer.serialize_for_query(
-                    m_map[r_id], include_pii=include_pii, latest_app=latest_app_map.get(r_id)
+                    m_map[r_id], include_pii=include_pii, latest_apps=latest_app_map
                 )
                 for r_id in reg_ids
                 if r_id in m_map
