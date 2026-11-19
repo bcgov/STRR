@@ -25,9 +25,9 @@ def oversized_upload_bytes() -> bytes:
 def assert_rejected_by_upload_size_cap(rv: TestResponse) -> None:
     """Assert a 413 from limit_document_upload_size, not from validate_document_upload's file-size check."""
     assert_status(rv, HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
-    message = (rv.get_json() or {}).get("message") or ""
-    # Werkzeug's RequestEntityTooLarge description, via the app's HTTPException handler.
-    assert "exceeds the capacity limit" in message
+    # Werkzeug's RequestEntityTooLarge description. The app registers no HTTPException handler, so this
+    # arrives as Flask's default HTML error page rather than JSON; match the text, not a JSON field.
+    assert "exceeds the capacity limit" in rv.get_data(as_text=True)
 
 
 PUBLIC_ROUTES = frozenset(
