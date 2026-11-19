@@ -207,19 +207,12 @@ def _get_json_from_application(registration, app):
     return original_json
 
 
-def _sync_normalized_fields_to_json(
-    enriched_json: dict, registration: Registration
-) -> dict:
-    """Sync normalized DB fields (unitAddress, jurisdiction, contact emails) into registration_json."""
-    rental = getattr(registration, "rental_property", None)
-    if not isinstance(rental, RentalProperty):
-        return enriched_json
-
-    synced = deepcopy(enriched_json)
+def _sync_address_and_jurisdiction(synced: dict, rental: RentalProperty) -> None:
+    """Sync unitAddress and jurisdiction from RentalProperty into registration_json."""
     if rental.address:
-        unit_addr = RegistrationSerializer._serialize_unit_address(
+        unit_addr = RegistrationSerializer._serialize_unit_address(  # pylint: disable=protected-access
             rental
-        )  # pylint: disable=protected-access
+        )
         existing_addr = (
             synced.get("unitAddress")
             if isinstance(synced.get("unitAddress"), dict)
@@ -232,27 +225,46 @@ def _sync_normalized_fields_to_json(
         if isinstance(synced.get("unitDetails"), dict):
             synced["unitDetails"]["jurisdiction"] = rental.jurisdiction
 
+
+def _sync_contact_emails(synced: dict, rental: RentalProperty) -> None:
+    """Sync primary and secondary host contact emails into registration_json."""
     for prop_contact in rental.contacts or []:
-        if prop_contact.contact and prop_contact.contact.email:
-            section = (
-                "primaryContact" if prop_contact.is_primary else "secondaryContact"
-            )
-            if not isinstance(synced.get(section), dict):
-                synced[section] = {}
-            synced[section]["emailAddress"] = prop_contact.contact.email
+        if not (prop_contact.contact and prop_contact.contact.email):
+            continue
+        section = "primaryContact" if prop_contact.is_primary else "secondaryContact"
+        if not isinstance(synced.get(section), dict):
+            synced[section] = {}
+        synced[section]["emailAddress"] = prop_contact.contact.email
 
+
+def _sync_property_manager_email(synced: dict, rental: RentalProperty) -> None:
+    """Sync property manager primary contact email into registration_json."""
     pm = rental.property_manager
-    if pm and pm.primary_contact and pm.primary_contact.email:
-        pm_dict = synced.setdefault("propertyManager", {})
-        if not isinstance(pm_dict, dict):
-            pm_dict = synced["propertyManager"] = {}
-        if pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
-            pm_dict.setdefault("business", {}).setdefault("primaryContact", {})[
-                "emailAddress"
-            ] = pm.primary_contact.email
-        else:
-            pm_dict.setdefault("contact", {})["emailAddress"] = pm.primary_contact.email
+    if not (pm and pm.primary_contact and pm.primary_contact.email):
+        return
+    pm_dict = synced.setdefault("propertyManager", {})
+    if not isinstance(pm_dict, dict):
+        pm_dict = synced["propertyManager"] = {}
+    if pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
+        pm_dict.setdefault("business", {}).setdefault("primaryContact", {})[
+            "emailAddress"
+        ] = pm.primary_contact.email
+    else:
+        pm_dict.setdefault("contact", {})["emailAddress"] = pm.primary_contact.email
 
+
+def _sync_normalized_fields_to_json(
+    enriched_json: dict, registration: Registration
+) -> dict:
+    """Sync normalized DB fields (unitAddress, jurisdiction, contact emails) into registration_json."""
+    rental = getattr(registration, "rental_property", None)
+    if not isinstance(rental, RentalProperty):
+        return enriched_json
+
+    synced = deepcopy(enriched_json)
+    _sync_address_and_jurisdiction(synced, rental)
+    _sync_contact_emails(synced, rental)
+    _sync_property_manager_email(synced, rental)
     return synced
 
 
