@@ -206,7 +206,19 @@ def _get_json_from_application(registration, app):
     return original_json
 
 
-def _sync_normalized_fields_to_json(enriched_json: dict, registration: Registration) -> dict:
+def _set_nested_value(root: dict, keys: tuple[str, ...], value) -> None:
+    """Set a nested dictionary value, creating intermediate dicts when missing or non-dict."""
+    curr = root
+    for key in keys[:-1]:
+        if not isinstance(curr.get(key), dict):
+            curr[key] = {}
+        curr = curr[key]
+    curr[keys[-1]] = value
+
+
+def _sync_normalized_fields_to_json(
+    enriched_json: dict, registration: Registration
+) -> dict:
     """Sync normalized DB fields (unitAddress, jurisdiction, contact emails) into registration_json."""
     rental = getattr(registration, "rental_property", None)
     if not isinstance(rental, RentalProperty):
@@ -215,9 +227,11 @@ def _sync_normalized_fields_to_json(enriched_json: dict, registration: Registrat
     synced = deepcopy(enriched_json)
     if rental.address:
         addr = rental.address
-        unit_addr = synced.get("unitAddress")
-        if not isinstance(unit_addr, dict):
-            unit_addr = {}
+        unit_addr = (
+            synced.get("unitAddress")
+            if isinstance(synced.get("unitAddress"), dict)
+            else {}
+        )
         unit_addr.update(
             {
                 "streetNumber": addr.street_number,
@@ -238,42 +252,29 @@ def _sync_normalized_fields_to_json(enriched_json: dict, registration: Registrat
             synced["unitDetails"]["jurisdiction"] = rental.jurisdiction
 
     for prop_contact in rental.contacts or []:
-        if not prop_contact.contact or not prop_contact.contact.email:
-            continue
-        section_key = "primaryContact" if prop_contact.is_primary else "secondaryContact"
-        section = synced.get(section_key)
-        if not isinstance(section, dict):
-            section = {}
-        section["emailAddress"] = prop_contact.contact.email
-        synced[section_key] = section
-
-    if rental.property_manager and rental.property_manager.primary_contact:
-        pm_email = rental.property_manager.primary_contact.email
-        if pm_email:
-            pm_section = synced.get("propertyManager")
-            if not isinstance(pm_section, dict):
-                pm_section = {}
-            is_biz = (
-                rental.property_manager.property_manager_type
-                == PropertyManager.PropertyManagerType.BUSINESS
+        if prop_contact.contact and prop_contact.contact.email:
+            section = (
+                "primaryContact" if prop_contact.is_primary else "secondaryContact"
             )
-            if is_biz:
-                biz = pm_section.get("business")
-                if not isinstance(biz, dict):
-                    biz = {}
-                pc = biz.get("primaryContact")
-                if not isinstance(pc, dict):
-                    pc = {}
-                pc["emailAddress"] = pm_email
-                biz["primaryContact"] = pc
-                pm_section["business"] = biz
-            else:
-                contact = pm_section.get("contact")
-                if not isinstance(contact, dict):
-                    contact = {}
-                contact["emailAddress"] = pm_email
-                pm_section["contact"] = contact
-            synced["propertyManager"] = pm_section
+            _set_nested_value(
+                synced, (section, "emailAddress"), prop_contact.contact.email
+            )
+
+    pm = rental.property_manager
+    if pm and pm.primary_contact and pm.primary_contact.email:
+        is_biz = (
+            pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS
+        )
+        pm_path = (
+            ("propertyManager", "business", "primaryContact", "emailAddress")
+            if is_biz
+            else (
+                "propertyManager",
+                "contact",
+                "emailAddress",
+            )
+        )
+        _set_nested_value(synced, pm_path, pm.primary_contact.email)
 
     return synced
 
@@ -285,7 +286,9 @@ def _process_single_registration(registration, app, stats):
 
         existing_json = registration.registration_json
         base_json = existing_json
-        is_partial = isinstance(existing_json, dict) and not existing_json.get("registrationType")
+        is_partial = isinstance(existing_json, dict) and not existing_json.get(
+            "registrationType"
+        )
         if base_json is None or is_partial:
             reconstructed = _get_json_from_application(registration, app)
             if reconstructed is not None:
