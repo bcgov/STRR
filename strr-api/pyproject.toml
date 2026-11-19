@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-api"
-version = "0.3.41"
+version = "0.3.42"
 description = ""
 authors = ["thorwolpert <thor@wolpert.ca>"]
 license = "BSD 3-Clause"
@@ -61,7 +61,6 @@ strr-test-utils = { path = "../tests/python-test-utils", develop = true }
 
 [tool.bandit]
 exclude_dirs = [".venv","tests"]
-skips = ["B104"]
 
 [tool.black]
 target-version =  ["py310", "py311", "py312"]
