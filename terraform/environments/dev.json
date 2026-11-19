@@ -1,0 +1,20 @@
+{
+  "project_id": "bcrbk9-dev",
+  "project_number": "382361722867",
+  "log_bucket": "bcrbk9-dev-strr-access-logs",
+  "api": {
+    "bucket": "strr_registration_documents_dev"
+  },
+  "email": {
+    "subscription": "strr-emailer-sub-dev",
+    "push_endpoint": "https://strr-email-dev-i2rbretwta-nn.a.run.app",
+    "ack_deadline_seconds": 10,
+    "expiration_ttl": "",
+    "dlq_subscription": "strr-emailer-dlq-sub-dev"
+  },
+  "validation": {
+    "response_subscription": "strr-bulk-validation-response-dev-sub",
+    "push_endpoint": "https://batch-permit-listener-dev-382361722867.northamerica-northeast1.run.app/bulk-validation-response",
+    "eventarc_trigger": "bulk-permit-validation-trigger"
+  }
+}

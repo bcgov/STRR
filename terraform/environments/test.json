@@ -1,0 +1,20 @@
+{
+  "project_id": "bcrbk9-test",
+  "project_number": "166050292631",
+  "log_bucket": "bcrbk9-test-strr-access-logs",
+  "api": {
+    "bucket": "strr_registration_documents_test"
+  },
+  "email": {
+    "subscription": "strr-emailer-test",
+    "push_endpoint": "https://strr-email-test-5g4775umoq-nn.a.run.app",
+    "ack_deadline_seconds": 600,
+    "expiration_ttl": "",
+    "dlq_subscription": null
+  },
+  "validation": {
+    "response_subscription": null,
+    "push_endpoint": null,
+    "eventarc_trigger": null
+  }
+}
