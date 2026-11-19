@@ -43,7 +43,7 @@ CREATE_REGISTRATION_BUSINESS_AS_COHOST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/business_and_business_as_hosts.json"
 )
 
-MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
+MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.pdf")
 
 
 def _load_json(request_path):
@@ -89,7 +89,7 @@ def test_application_document_upload_event_is_visible_to_applicant(session, clie
     ):
         with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
             data = {
-                "file": (df, "supporting-doc.txt"),
+                "file": (df, "supporting-doc.pdf"),
                 "documentType": "OTHERS",
                 "uploadStep": "application_supporting_document",
             }
@@ -650,7 +650,7 @@ def test_put_application_documents_includes_added_on(session, client, jwt):
         ]
         assert len(matching_events) == 1
         assert matching_events[0].details.startswith("Document uploaded: ")
-        assert matching_events[0].details.endswith("document_upload.txt")
+        assert matching_events[0].details.endswith("document_upload.pdf")
         assert matching_events[0].user_id == 1
         assert doc_uploaded.get("uploadDate") is not None
 

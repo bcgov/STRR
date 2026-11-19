@@ -11,6 +11,7 @@ from strr_api.enums.enum import ChannelType, ErrorMessage, InteractionStatus, Re
 from strr_api.models import CustomerInteraction, Events
 from strr_api.models.rental import Document
 from tests.integration.helpers import (
+    PDF_BYTES,
     assert_json_keys,
     assert_status,
     assert_unauthenticated_returns_401_for_protected_prefix,
@@ -273,7 +274,7 @@ def test_post_registration_document_rejected_without_noc(client, headers_public_
     rv = client.post(
         f"/registrations/{rid}/documents",
         headers=headers_public_user(),
-        data={"file": (BytesIO(b"hello"), "note.txt")},
+        data={"file": (BytesIO(PDF_BYTES), "note.pdf")},
         content_type="multipart/form-data",
     )
     assert_status(rv, HTTPStatus.BAD_REQUEST)
@@ -303,13 +304,39 @@ def test_post_registration_document_ok_when_noc_pending_patched_upload(
         rv = client.post(
             f"/registrations/{rid}/documents",
             headers=headers_public_user(),
-            data={"file": (BytesIO(b"hello-noc"), "noc-doc.txt"), "documentType": "OTHERS"},
+            data={"file": (BytesIO(PDF_BYTES), "noc-doc.pdf"), "documentType": "OTHERS"},
             content_type="multipart/form-data",
         )
     assert_status(rv, HTTPStatus.CREATED)
     body = rv.get_json()
     keys = {d.get("fileKey") for d in (body.get("documents") or [])}
     assert "host-noc-upload-key-01" in keys
+
+
+def test_post_registration_document_contents_mismatch_bad_request(
+    client,
+    session,
+    headers_public_user,
+    serializable_host_registration,
+):
+    """A PDF uploaded as a JPEG is rejected with 400 and never reaches storage."""
+    from strr_api.models.rental import Registration as RegistrationModel
+
+    rid = serializable_host_registration["registration_id"]
+    reg = session.get(RegistrationModel, rid)
+    assert reg is not None
+    reg.noc_status = RegistrationNocStatus.NOC_PENDING
+    session.flush()
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = client.post(
+            f"/registrations/{rid}/documents",
+            headers=headers_public_user(),
+            data={"file": (BytesIO(PDF_BYTES), "photo.jpg"), "documentType": "OTHERS"},
+            content_type="multipart/form-data",
+        )
+    assert_status(rv, HTTPStatus.BAD_REQUEST)
+    assert "do not match" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
 
 
 def test_post_registration_document_bl_upload_ok_without_noc_when_affected_municipality(
@@ -328,7 +355,7 @@ def test_post_registration_document_bl_upload_ok_without_noc_when_affected_munic
             f"/registrations/{rid}/documents",
             headers=headers_public_user(),
             data={
-                "file": (BytesIO(b"bl-doc"), "bl.pdf"),
+                "file": (BytesIO(PDF_BYTES), "bl.pdf"),
                 "documentType": bl_type,
                 "isUploadedFromAffectedMunicipality": "true",
             },
@@ -352,7 +379,7 @@ def test_post_registration_document_bl_type_still_requires_noc_without_municipal
         f"/registrations/{rid}/documents",
         headers=headers_public_user(),
         data={
-            "file": (BytesIO(b"bl-doc"), "bl.pdf"),
+            "file": (BytesIO(PDF_BYTES), "bl.pdf"),
             "documentType": bl_type,
         },
         content_type="multipart/form-data",

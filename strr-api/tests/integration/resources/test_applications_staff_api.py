@@ -11,7 +11,7 @@ from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus
 from strr_api.models.application import Application as AppModel
 from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from tests.integration.application_seed import generate_application_number, seed_listable_application
-from tests.integration.helpers import assert_json_keys, assert_status, load_mock_json
+from tests.integration.helpers import PDF_BYTES, assert_json_keys, assert_status, load_mock_json
 from tests.shared_test_constants import MOCK_PAYMENT_COMPLETED_RESPONSE
 
 
@@ -174,15 +174,15 @@ def test_post_application_document_ok_patched_upload(client, session, headers_pu
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={
             "fileKey": "app-doc-key-01",
-            "fileName": "doc.txt",
-            "fileType": "text/plain",
+            "fileName": "doc.pdf",
+            "fileType": "application/pdf",
         },
     ):
         rv = client.post(
             f"/applications/{num}/documents",
             headers=headers_public_user(),
             data={
-                "file": (BytesIO(b"hello"), "hello.txt"),
+                "file": (BytesIO(PDF_BYTES), "hello.pdf"),
                 "documentType": "OTHERS",
             },
             content_type="multipart/form-data",
@@ -201,15 +201,15 @@ def test_put_application_document_ok_patched_upload(client, session, headers_pub
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={
             "fileKey": "app-doc-put-01",
-            "fileName": "put.txt",
-            "fileType": "text/plain",
+            "fileName": "put.pdf",
+            "fileType": "application/pdf",
         },
     ):
         rv = client.put(
             f"/applications/{num}/documents",
             headers=headers_public_user(),
             data={
-                "file": (BytesIO(b"put-body"), "put.txt"),
+                "file": (BytesIO(PDF_BYTES), "put.pdf"),
                 "documentType": "OTHERS",
             },
             content_type="multipart/form-data",
@@ -217,6 +217,27 @@ def test_put_application_document_ok_patched_upload(client, session, headers_pub
     assert_status(rv, HTTPStatus.OK)
     keys = {d.get("fileKey") for d in rv.get_json().get("registration", {}).get("documents", [])}
     assert "app-doc-put-01" in keys
+
+
+@pytest.mark.parametrize("method", ["post", "put"])
+def test_application_document_unsupported_type_bad_request(
+    client, session, headers_public_user, serializable_application, method
+):
+    """Both application document endpoints validate uploads: a text file is rejected and never reaches storage."""
+    num = serializable_application["application_number"]
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = getattr(client, method)(
+            f"/applications/{num}/documents",
+            headers=headers_public_user(),
+            data={
+                "file": (BytesIO(b"hello"), "hello.txt"),
+                "documentType": "OTHERS",
+            },
+            content_type="multipart/form-data",
+        )
+    assert_status(rv, HTTPStatus.BAD_REQUEST)
+    assert "is not supported" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
 
 
 @patch("strr_api.services.application_service.ApplicationService.enrich_document_added_on_from_gcp", lambda d: d)

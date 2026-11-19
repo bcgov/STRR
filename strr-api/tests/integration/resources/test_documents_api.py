@@ -5,7 +5,7 @@ from io import BytesIO
 from unittest.mock import patch
 
 from strr_api.exceptions import ExternalServiceException
-from tests.integration.helpers import assert_status, assert_unauthenticated_returns_401_for_protected_prefix
+from tests.integration.helpers import PDF_BYTES, assert_status, assert_unauthenticated_returns_401_for_protected_prefix
 
 
 def test_documents_routes_require_auth_without_bearer(client, app):
@@ -22,15 +22,43 @@ def test_post_documents_validation_no_file_bad_request(client, headers_public_us
     assert_status(rv, HTTPStatus.BAD_REQUEST)
 
 
+def test_post_documents_contents_mismatch_bad_request(client, headers_public_user):
+    """A PDF uploaded as a JPEG is rejected with 400 and never reaches storage."""
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = client.post(
+            "/documents",
+            headers=headers_public_user(account_id="12345"),
+            data={"file": (BytesIO(PDF_BYTES), "photo.jpg"), "documentType": "BC_DRIVERS_LICENSE"},
+            content_type="multipart/form-data",
+        )
+    assert_status(rv, HTTPStatus.BAD_REQUEST)
+    assert "do not match" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
+
+
+def test_post_documents_unsupported_type_bad_request(client, headers_public_user):
+    """Types outside the PDF/JPEG allowlist are rejected with 400."""
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = client.post(
+            "/documents",
+            headers=headers_public_user(account_id="12345"),
+            data={"file": (BytesIO(b"hello"), "note.txt"), "documentType": "BC_DRIVERS_LICENSE"},
+            content_type="multipart/form-data",
+        )
+    assert_status(rv, HTTPStatus.BAD_REQUEST)
+    assert "is not supported" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
+
+
 def test_post_documents_ok_patched_upload(client, headers_public_user):
     with patch(
         "strr_api.services.document_service.DocumentService.upload_document",
-        return_value={"fileKey": "global-doc-1", "fileName": "a.txt", "fileType": "text/plain"},
+        return_value={"fileKey": "global-doc-1", "fileName": "a.pdf", "fileType": "application/pdf"},
     ) as mock_upload:
         rv = client.post(
             "/documents",
             headers=headers_public_user(account_id="12345"),
-            data={"file": (BytesIO(b"x"), "a.txt"), "documentType": "BC_DRIVERS_LICENSE"},
+            data={"file": (BytesIO(PDF_BYTES), "a.pdf"), "documentType": "BC_DRIVERS_LICENSE"},
             content_type="multipart/form-data",
         )
     assert_status(rv, HTTPStatus.CREATED)

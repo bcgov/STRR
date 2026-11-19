@@ -39,7 +39,7 @@ import requests
 from flask import Flask
 from flask_jwt_oidc import JwtManager
 
-from strr_api.enums.enum import PropertyType, RegistrationType
+from strr_api.enums.enum import ContentType, PropertyType, RegistrationType
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events, RentalProperty
 from strr_api.services.events_service import EventsService
@@ -250,7 +250,7 @@ class PayService:
         token = user_jwt.get_token_auth_header()
         url = f"{self.svc_url}/payment-requests/{application.invoice_id}/receipts"
         headers = {
-            "Accept": "application/pdf",
+            "Accept": ContentType.PDF.value,
             "Authorization": f"Bearer {token}",
             "Account-Id": str(application.payment_account),
         }
@@ -270,5 +270,5 @@ class PayService:
         return self.app.response_class(
             response=response.content,
             status=response.status_code,
-            mimetype="application/pdf",
+            mimetype=ContentType.PDF.value,
         )

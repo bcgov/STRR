@@ -790,7 +790,7 @@ class Document(Versioned, BaseModel):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     file_name = db.Column(db.String, nullable=False)
-    file_type = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
+    file_type = db.Column(db.String, nullable=False)  # e.g., 'application/pdf', 'image/jpeg', etc.
     path = db.Column(db.String, nullable=False)
     document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS, index=True)
     added_on = db.Column(db.Date, nullable=True)

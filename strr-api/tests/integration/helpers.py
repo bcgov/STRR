@@ -9,6 +9,9 @@ from typing import Any
 
 from werkzeug.test import TestResponse
 
+# Minimal valid PDF, for upload tests (the API checks uploaded files' leading bytes).
+PDF_BYTES = (Path(__file__).resolve().parent.parent / "mocks" / "file" / "document_upload.pdf").read_bytes()
+
 PUBLIC_ROUTES = frozenset(
     {
         ("GET", "/ops/healthz"),

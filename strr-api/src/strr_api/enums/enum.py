@@ -31,6 +31,7 @@ class ContentType(Enum):
     JSON = "application/json"
     FORM_URL_ENCODED = "application/x-www-form-urlencoded"
     PDF = "application/pdf"
+    JPEG = "image/jpeg"
 
 
 class ChannelType(BaseEnum):

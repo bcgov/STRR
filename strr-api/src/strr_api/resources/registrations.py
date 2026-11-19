@@ -445,9 +445,9 @@ def upload_registration_document(registration_id):
         logging.error("Traceback: %s", traceback.format_exc())
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except ValidationException as validation_exception:
-        logger.error("ValidationException in upload_registration_document: %s", repr(validation_exception))
-        logging.error("Traceback: %s", traceback.format_exc())
-        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.warning("ValidationException in upload_registration_document: %s", repr(validation_exception))
+        logger.warning("Traceback: %s", traceback.format_exc())
+        return exception_response(validation_exception)
     except ExternalServiceException as service_exception:
         logger.error("ExternalServiceException in upload_registration_document: %s", repr(service_exception))
         logging.error("Traceback: %s", traceback.format_exc())
@@ -900,7 +900,7 @@ def update_registration(registration_id):
 #             BytesIO(certificate.certificate),
 #             as_attachment=True,
 #             download_name="Host Registration Certificate.pdf",
-#             mimetype="application/pdf",
+#             mimetype=ContentType.PDF.value,
 #         )
 #     except AuthException as auth_exception:
 #         return exception_response(auth_exception)
