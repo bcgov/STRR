@@ -6,7 +6,7 @@ on:
       - "strr-api/src/strr_api/common/cloud_sql.py"
       - "strr-api/pyproject.toml"
       - "strr-api/poetry.lock"
-      - ".github/workflows/strr-nod-expiry-ci.yaml"
+      - ".github/workflows/strr-noc-expiry-ci.yaml"
       - "jobs/noc_expiry/**"
       - "tests/python-test-utils/**"
       - "src/strr_api/models/**"

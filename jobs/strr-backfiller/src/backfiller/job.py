@@ -15,14 +15,16 @@
 
 import logging
 import os
+from copy import deepcopy
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.enums.enum import StrataHotelCategory
 from strr_api.models import db
 from strr_api.models.application import Application
-from strr_api.models.rental import Registration, RentalProperty
+from strr_api.models.rental import PropertyManager, Registration, RentalProperty
 from strr_api.models.strata_hotels import StrataHotel
+from strr_api.responses.RegistrationSerializer import RegistrationSerializer
 from strr_api.services import ApprovalService, RegistrationService
 
 from backfiller.config import CONFIGURATION
@@ -205,23 +207,91 @@ def _get_json_from_application(registration, app):
     return original_json
 
 
+def _sync_address_and_jurisdiction(synced: dict, rental: RentalProperty) -> None:
+    """Sync unitAddress and jurisdiction from RentalProperty into registration_json."""
+    if rental.address:
+        unit_addr = RegistrationSerializer._serialize_unit_address(  # pylint: disable=protected-access
+            rental
+        )
+        existing_addr = (
+            synced.get("unitAddress")
+            if isinstance(synced.get("unitAddress"), dict)
+            else {}
+        )
+        synced["unitAddress"] = {**existing_addr, **unit_addr}
+
+    if rental.jurisdiction:
+        synced["jurisdiction"] = rental.jurisdiction
+        if isinstance(synced.get("unitDetails"), dict):
+            synced["unitDetails"]["jurisdiction"] = rental.jurisdiction
+
+
+def _sync_contact_emails(synced: dict, rental: RentalProperty) -> None:
+    """Sync primary and secondary host contact emails into registration_json."""
+    for prop_contact in rental.contacts or []:
+        if not (prop_contact.contact and prop_contact.contact.email):
+            continue
+        section = "primaryContact" if prop_contact.is_primary else "secondaryContact"
+        if not isinstance(synced.get(section), dict):
+            synced[section] = {}
+        synced[section]["emailAddress"] = prop_contact.contact.email
+
+
+def _sync_property_manager_email(synced: dict, rental: RentalProperty) -> None:
+    """Sync property manager primary contact email into registration_json."""
+    pm = rental.property_manager
+    if not (pm and pm.primary_contact and pm.primary_contact.email):
+        return
+    pm_dict = synced.setdefault("propertyManager", {})
+    if not isinstance(pm_dict, dict):
+        pm_dict = synced["propertyManager"] = {}
+    if pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
+        pm_dict.setdefault("business", {}).setdefault("primaryContact", {})[
+            "emailAddress"
+        ] = pm.primary_contact.email
+    else:
+        pm_dict.setdefault("contact", {})["emailAddress"] = pm.primary_contact.email
+
+
+def _sync_normalized_fields_to_json(
+    enriched_json: dict, registration: Registration
+) -> dict:
+    """Sync normalized DB fields (unitAddress, jurisdiction, contact emails) into registration_json."""
+    rental = getattr(registration, "rental_property", None)
+    if not isinstance(rental, RentalProperty):
+        return enriched_json
+
+    synced = deepcopy(enriched_json)
+    _sync_address_and_jurisdiction(synced, rental)
+    _sync_contact_emails(synced, rental)
+    _sync_property_manager_email(synced, rental)
+    return synced
+
+
 def _process_single_registration(registration, app, stats):
     """Process a single registration for backfill."""
     try:
         stats["total_processed"] += 1
 
-        original_json = registration.registration_json
-        if original_json is None:
-            original_json = _get_json_from_application(registration, app)
-            if original_json is None:
+        existing_json = registration.registration_json
+        base_json = existing_json
+        is_partial = isinstance(existing_json, dict) and not existing_json.get(
+            "registrationType"
+        )
+        if base_json is None or is_partial:
+            reconstructed = _get_json_from_application(registration, app)
+            if reconstructed is not None:
+                base_json = reconstructed
+            elif base_json is None:
                 stats["total_skipped"] += 1
                 return
 
         enriched_json = RegistrationService._enrich_registration_json(  # pylint: disable=protected-access
-            original_json, registration
+            base_json, registration
         )
+        enriched_json = _sync_normalized_fields_to_json(enriched_json, registration)
 
-        if enriched_json != original_json:
+        if enriched_json != existing_json:
             registration.registration_json = enriched_json
             registration.save()
             stats["total_updated"] += 1
