@@ -217,8 +217,14 @@ def _sync_normalized_fields_to_json(
 
     synced = deepcopy(enriched_json)
     if rental.address:
-        unit_addr = RegistrationSerializer._serialize_unit_address(rental)  # pylint: disable=protected-access
-        existing_addr = synced.get("unitAddress") if isinstance(synced.get("unitAddress"), dict) else {}
+        unit_addr = RegistrationSerializer._serialize_unit_address(
+            rental
+        )  # pylint: disable=protected-access
+        existing_addr = (
+            synced.get("unitAddress")
+            if isinstance(synced.get("unitAddress"), dict)
+            else {}
+        )
         synced["unitAddress"] = {**existing_addr, **unit_addr}
 
     if rental.jurisdiction:
@@ -228,7 +234,9 @@ def _sync_normalized_fields_to_json(
 
     for prop_contact in rental.contacts or []:
         if prop_contact.contact and prop_contact.contact.email:
-            section = "primaryContact" if prop_contact.is_primary else "secondaryContact"
+            section = (
+                "primaryContact" if prop_contact.is_primary else "secondaryContact"
+            )
             if not isinstance(synced.get(section), dict):
                 synced[section] = {}
             synced[section]["emailAddress"] = prop_contact.contact.email
@@ -239,9 +247,9 @@ def _sync_normalized_fields_to_json(
         if not isinstance(pm_dict, dict):
             pm_dict = synced["propertyManager"] = {}
         if pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
-            pm_dict.setdefault("business", {}).setdefault("primaryContact", {})["emailAddress"] = (
-                pm.primary_contact.email
-            )
+            pm_dict.setdefault("business", {}).setdefault("primaryContact", {})[
+                "emailAddress"
+            ] = pm.primary_contact.email
         else:
             pm_dict.setdefault("contact", {})["emailAddress"] = pm.primary_contact.email
 

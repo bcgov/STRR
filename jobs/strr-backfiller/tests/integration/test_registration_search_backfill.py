@@ -3,7 +3,13 @@
 from datetime import timedelta
 
 import pytest
-from strr_api.models import Address, Contact, PropertyContact, PropertyManager, Registration
+from strr_api.models import (
+    Address,
+    Contact,
+    PropertyContact,
+    PropertyManager,
+    Registration,
+)
 
 from backfiller.job import backfill_registration_search
 from tests.fixtures.registration_factories import (
@@ -217,14 +223,18 @@ def test_backfill_reconstructs_partial_json_and_syncs_all_contact_emails(
                 "secondaryContact": {"emailAddress": "old-secondary@example.com"},
                 "propertyManager": {
                     "propertyManagerType": "BUSINESS",
-                    "business": {"primaryContact": {"emailAddress": "old-pm@example.com"}},
+                    "business": {
+                        "primaryContact": {"emailAddress": "old-pm@example.com"}
+                    },
                 },
             }
         },
         decision_date=utc_now(),
     )
     c_primary = Contact(firstname="Pri", lastname="Host", email="primary@example.com")
-    c_secondary = Contact(firstname="Sec", lastname="Host", email="secondary@example.com")
+    c_secondary = Contact(
+        firstname="Sec", lastname="Host", email="secondary@example.com"
+    )
     c_pm = Contact(firstname="Biz", lastname="PM", email="pm-biz@example.com")
     session.add_all([c_primary, c_secondary, c_pm])
     session.flush()
@@ -244,11 +254,17 @@ def test_backfill_reconstructs_partial_json_and_syncs_all_contact_emails(
     assert refreshed.registration_json["registrationType"] == "HOST"
     assert refreshed.registration_json["jurisdiction"] == "New City"
     assert refreshed.registration_json["unitDetails"]["jurisdiction"] == "New City"
-    assert refreshed.registration_json["primaryContact"]["emailAddress"] == "primary@example.com"
-    assert refreshed.registration_json["secondaryContact"]["emailAddress"] == "secondary@example.com"
-    assert refreshed.registration_json["propertyManager"]["business"]["primaryContact"]["emailAddress"] == (
-        "pm-biz@example.com"
+    assert (
+        refreshed.registration_json["primaryContact"]["emailAddress"]
+        == "primary@example.com"
     )
+    assert (
+        refreshed.registration_json["secondaryContact"]["emailAddress"]
+        == "secondary@example.com"
+    )
+    assert refreshed.registration_json["propertyManager"]["business"]["primaryContact"][
+        "emailAddress"
+    ] == ("pm-biz@example.com")
 
     # Second run is idempotent (no further changes)
     snapshot_before = dict(refreshed.registration_json)
@@ -282,7 +298,10 @@ def test_backfill_syncs_individual_property_manager_email(
 
     backfill_registration_search(app, batch_size=10)
     refreshed = Registration.query.get(reg.id)
-    assert refreshed.registration_json["propertyManager"]["contact"]["emailAddress"] == "pm-ind@example.com"
+    assert (
+        refreshed.registration_json["propertyManager"]["contact"]["emailAddress"]
+        == "pm-ind@example.com"
+    )
 
 
 def test_backfill_processes_multiple_batches(
@@ -333,7 +352,9 @@ def test_backfill_syncs_stale_address_and_contact_email(
     session.add_all([addr, contact])
     session.flush()
     reg.rental_property.address_id = addr.id
-    reg.rental_property.contacts = [PropertyContact(contact_id=contact.id, is_primary=True)]
+    reg.rental_property.contacts = [
+        PropertyContact(contact_id=contact.id, is_primary=True)
+    ]
     session.flush()
 
     backfill_registration_search(app, batch_size=10)
@@ -341,7 +362,10 @@ def test_backfill_syncs_stale_address_and_contact_email(
     assert refreshed.registration_json["jurisdiction"] == "New City"
     assert refreshed.registration_json["unitAddress"]["streetName"] == "Fresh Blvd"
     assert refreshed.registration_json["unitAddress"]["postalCode"] == "V8W 2Y2"
-    assert refreshed.registration_json["primaryContact"]["emailAddress"] == "fresh@example.com"
+    assert (
+        refreshed.registration_json["primaryContact"]["emailAddress"]
+        == "fresh@example.com"
+    )
 
 
 def test_backfill_reconstructs_platform_when_null(

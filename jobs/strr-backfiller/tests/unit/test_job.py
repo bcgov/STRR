@@ -134,7 +134,9 @@ def test_create_app_and_shellcontext(mocker):
 
 def test_process_single_registration_skips_when_enrich_unchanged(mocker):
     registration = MagicMock(
-        id=1, registration_type="HOST", registration_json={"registrationType": "HOST", "a": 1}
+        id=1,
+        registration_type="HOST",
+        registration_json={"registrationType": "HOST", "a": 1},
     )
     mocker.patch(
         "backfiller.job.RegistrationService._enrich_registration_json",
@@ -153,7 +155,9 @@ def test_process_single_registration_skips_when_enrich_unchanged(mocker):
 
 def test_process_single_registration_updates_when_enrich_changes(mocker):
     registration = MagicMock(
-        id=2, registration_type="HOST", registration_json={"registrationType": "HOST", "a": 1}
+        id=2,
+        registration_type="HOST",
+        registration_json={"registrationType": "HOST", "a": 1},
     )
     mocker.patch(
         "backfiller.job.RegistrationService._enrich_registration_json",
@@ -181,7 +185,10 @@ def test_process_single_registration_reconstructs_partial_json(mocker):
     )
     mocker.patch(
         "backfiller.job._get_json_from_application",
-        return_value={"registrationType": "HOST", "primaryContact": {"emailAddress": "old@example.com"}},
+        return_value={
+            "registrationType": "HOST",
+            "primaryContact": {"emailAddress": "old@example.com"},
+        },
     )
     mocker.patch(
         "backfiller.job.RegistrationService._enrich_registration_json",
