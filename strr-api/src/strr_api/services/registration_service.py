@@ -955,6 +955,7 @@ class RegistrationService:
                         registration.id,
                         exception.message,
                     )
+            RegistrationService._sync_unit_address_to_registration_json(registration, address_obj)
             registration.save()
             event_details = previous_address_details
             if jurisdiction_update_warning:
@@ -970,6 +971,39 @@ class RegistrationService:
                 visible_to_applicant=True,
             )
         return registration
+
+    @staticmethod
+    def _sync_unit_address_to_registration_json(registration: Registration, address_obj: Address) -> None:
+        """Keep registration_json (and thus registration_tsv) in sync after unit address/jurisdiction updates."""
+        if not isinstance(registration.registration_json, dict):
+            return
+
+        reg_json = deepcopy(registration.registration_json)
+        unit_addr = reg_json.get("unitAddress")
+        if not isinstance(unit_addr, dict):
+            unit_addr = {}
+        unit_addr.update(
+            {
+                "streetNumber": address_obj.street_number,
+                "streetName": address_obj.street_address,
+                "addressLineTwo": address_obj.street_address_additional,
+                "unitNumber": address_obj.unit_number,
+                "city": address_obj.city,
+                "province": address_obj.province,
+                "postalCode": address_obj.postal_code,
+                "locationDescription": address_obj.location_description,
+            }
+        )
+        reg_json["unitAddress"] = unit_addr
+
+        jurisdiction = registration.rental_property.jurisdiction
+        if jurisdiction:
+            reg_json["jurisdiction"] = jurisdiction
+            if isinstance(reg_json.get("unitDetails"), dict):
+                reg_json["unitDetails"]["jurisdiction"] = jurisdiction
+
+        registration.registration_json = reg_json
+        flag_modified(registration, "registration_json")
 
     PRIMARY_CONTACT_EMAIL_PATH = "primaryContact.emailAddress"
     SECONDARY_CONTACT_EMAIL_PATH = "secondaryContact.emailAddress"
@@ -1401,14 +1435,21 @@ class RegistrationService:
         page_nums = valid_nums[offset : offset + limit]
 
         reg_map = {}
+        latest_app_map = {}
         if page_nums:
             regs = cls._build_eager_loaded_query().filter(Registration.registration_number.in_(page_nums)).all()
             reg_map = {r.registration_number: r for r in regs}
+            latest_app_map = cls._fetch_latest_applications_by_reg_ids(regs)
 
         items: list[dict[str, Any]] = []
         for n in page_nums:
             if n in reg_map:
-                items.append(RegistrationSerializer.serialize_for_query(reg_map[n], include_pii=include_pii))
+                reg = reg_map[n]
+                items.append(
+                    RegistrationSerializer.serialize_for_query(
+                        reg, include_pii=include_pii, latest_app=latest_app_map.get(reg.id)
+                    )
+                )
             else:
                 errors.append({"registrationNumber": n, "code": "NOT_FOUND"})
 
@@ -1466,8 +1507,11 @@ class RegistrationService:
         if reg_ids:
             models = cls._build_eager_loaded_query().filter(Registration.id.in_(reg_ids)).all()
             m_map = {m.id: m for m in models}
+            latest_app_map = cls._fetch_latest_applications_by_reg_ids(models)
             items = [
-                RegistrationSerializer.serialize_for_query(m_map[r_id], include_pii=include_pii)
+                RegistrationSerializer.serialize_for_query(
+                    m_map[r_id], include_pii=include_pii, latest_app=latest_app_map.get(r_id)
+                )
                 for r_id in reg_ids
                 if r_id in m_map
             ]
@@ -1481,6 +1525,26 @@ class RegistrationService:
             next_cursor = cls.generate_cursor({"changed": iso, "registrationId": last_id}, scope_hash)
 
         return {"items": items, "nextCursor": next_cursor}
+
+    @classmethod
+    def _fetch_latest_applications_by_reg_ids(cls, registrations: list[Registration]) -> dict[int, Any]:
+        """Batch-fetch the latest application per HOST registration using ix_application_registration_id_date."""
+        host_reg_ids = [
+            r.id
+            for r in registrations
+            if getattr(r.registration_type, "value", r.registration_type) == RegistrationType.HOST.value
+        ]
+        if not host_reg_ids:
+            return {}
+        from strr_api.models.application import Application  # pylint: disable=import-outside-toplevel
+
+        apps = (
+            Application.query.filter(Application.registration_id.in_(host_reg_ids))
+            .distinct(Application.registration_id)
+            .order_by(Application.registration_id, Application.application_date.desc())
+            .all()
+        )
+        return {app.registration_id: app for app in apps}
 
     @classmethod
     def _build_cdc_changes_subquery(cls):

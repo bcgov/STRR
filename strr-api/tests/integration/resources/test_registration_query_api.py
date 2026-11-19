@@ -43,11 +43,13 @@ import pytest
 from strr_api.enums.enum import OAuthScope, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
+    Application,
     Contact,
     Platform,
     PlatformBrand,
     PlatformRegistration,
     PlatformRepresentative,
+    PropertyManager,
     Registration,
     StrataHotel,
     StrataHotelBuilding,
@@ -647,3 +649,36 @@ def test_query_routes_and_methods_interchangeable(
     assert_status(rv, HTTPStatus.OK)
     data = assert_json_keys(rv, "items")
     assert data["items"][0]["registrationNumber"] == seeded["registration_number"]
+
+
+def test_query_api_independent_of_registration_json(client, session, auth_header_export_pii, integration_account_id):
+    """Verify /registrations:query reads primaryContact.emailAddress from Contact and initiatedByPropertyManager from registration_json."""
+    seeded = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number="H777666555",
+    )
+    reg = session.get(Registration, seeded["registration_id"])
+    pm_contact = Contact(firstname="Pat", lastname="Manager", email="pm@example.test")
+    session.add(pm_contact)
+    session.flush()
+
+    reg.rental_property.property_manager = PropertyManager(
+        property_manager_type=PropertyManager.PropertyManagerType.INDIVIDUAL,
+        primary_contact_id=pm_contact.id,
+    )
+    reg.registration_json = {
+        "primaryContact": {"emailAddress": "stale-override@example.test"},
+        "propertyManager": {"initiatedByPropertyManager": True},
+    }
+    session.commit()
+
+    rv = client.post(
+        "/registrations:query",
+        json={"registrationNumbers": ["H777666555"]},
+        headers=auth_header_export_pii,
+    )
+    assert_status(rv, HTTPStatus.OK)
+    item = rv.get_json()["items"][0]
+    assert item["primaryContact"]["emailAddress"] == "host@example.test"
+    assert item["propertyManager"]["initiatedByPropertyManager"] is True
