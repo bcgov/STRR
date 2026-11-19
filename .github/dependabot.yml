@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "bcgov/bcregistry-sre*"
+    groups:
+      bcregistry-sre:
+        patterns:
+          - "bcgov/bcregistry-sre*"
