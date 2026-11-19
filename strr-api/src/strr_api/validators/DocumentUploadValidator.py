@@ -1,7 +1,10 @@
 """Validator for document upload requests."""
 
 import io
+from functools import wraps
 from http import HTTPStatus
+
+from flask import request
 
 from strr_api.enums.enum import ContentType
 from strr_api.exceptions import ValidationException
@@ -11,12 +14,32 @@ ALLOWED_CONTENT_TYPES = (ContentType.PDF, ContentType.JPEG)
 
 # Keep in sync with the `maxFileSize` default on the web apps' upload components.
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+# Headroom on top of the file for the multipart framing and the other form fields.
+MAX_REQUEST_OVERHEAD = 1024 * 1024  # 1 MB
 
 PDF_SIGNATURE = b"%PDF-"
 JPEG_SIGNATURE = b"\xff\xd8\xff"
 
 # PDF readers accept the %PDF- header anywhere in the first 1024 bytes, so search that far.
 HEADER_READ_LENGTH = 1024
+
+
+def limit_document_upload_size(view):
+    """Cap the request body size on a document upload endpoint.
+
+    Werkzeug rejects a larger body with 413 Request Entity Too Large when the form is parsed,
+    without reading the whole body. validate_document_upload still enforces MAX_FILE_SIZE on the
+    file itself; this only stops oversized requests from being read in full first. Applied per
+    endpoint rather than through the app-wide MAX_CONTENT_LENGTH so other endpoints (e.g. bulk
+    permit validation) are unaffected. Place it below @jwt.requires_auth so auth is checked first.
+    """
+
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        request.max_content_length = MAX_FILE_SIZE + MAX_REQUEST_OVERHEAD
+        return view(*args, **kwargs)
+
+    return wrapper
 
 
 def detect_content_type(header: bytes) -> ContentType | None:

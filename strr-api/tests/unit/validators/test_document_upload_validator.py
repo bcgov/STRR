@@ -11,7 +11,9 @@ from strr_api.exceptions import ValidationException
 from strr_api.validators.DocumentUploadValidator import (
     HEADER_READ_LENGTH,
     MAX_FILE_SIZE,
+    MAX_REQUEST_OVERHEAD,
     detect_content_type,
+    limit_document_upload_size,
     validate_document_upload,
 )
 
@@ -131,6 +133,7 @@ def upload_client():
     app = Flask(__name__)
 
     @app.post("/upload")
+    @limit_document_upload_size
     def upload():
         return {"size": len(request.files["file"].read())}, 201
 
@@ -139,3 +142,22 @@ def upload_client():
         return {"size": len(request.get_data())}, 200
 
     return app.test_client()
+
+
+def test_limit_document_upload_size_allows_max_size_file(upload_client):
+    rv = upload_client.post("/upload", data={"file": (BytesIO(b"\x00" * MAX_FILE_SIZE), "a.pdf")})
+    assert rv.status_code == 201
+    assert rv.get_json()["size"] == MAX_FILE_SIZE
+
+
+def test_limit_document_upload_size_rejects_oversized_body(upload_client):
+    oversized = MAX_FILE_SIZE + MAX_REQUEST_OVERHEAD + 1
+    rv = upload_client.post("/upload", data={"file": (BytesIO(b"\x00" * oversized), "a.pdf")})
+    assert rv.status_code == 413
+
+
+def test_limit_document_upload_size_does_not_affect_other_routes(upload_client):
+    oversized = MAX_FILE_SIZE + MAX_REQUEST_OVERHEAD + 1
+    rv = upload_client.post("/other", data=b"\x00" * oversized, content_type="application/octet-stream")
+    assert rv.status_code == 200
+    assert rv.get_json()["size"] == oversized

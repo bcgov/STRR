@@ -84,7 +84,7 @@ from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ASSIGNABLE,
 )
 from strr_api.utils.user_context import UserContext
-from strr_api.validators.DocumentUploadValidator import validate_document_upload
+from strr_api.validators.DocumentUploadValidator import limit_document_upload_size, validate_document_upload
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -344,6 +344,7 @@ def get_registration_file_by_id(registration_id, file_key):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
+@limit_document_upload_size
 def upload_registration_document(registration_id):
     """
     Upload a document for a registration.

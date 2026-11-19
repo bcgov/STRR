@@ -81,7 +81,7 @@ from strr_api.services.application_service import (
     APPLICATION_UNPAID_STATES,
 )
 from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
-from strr_api.validators.DocumentUploadValidator import validate_document_upload
+from strr_api.validators.DocumentUploadValidator import limit_document_upload_size, validate_document_upload
 from strr_api.validators.RegistrationRequestValidator import validate_request
 
 logger = logging.getLogger("api")
@@ -934,6 +934,7 @@ def update_unit_address(application_number):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
+@limit_document_upload_size
 def upload_registration_supporting_document(application_number):
     """
     Upload a supporting document for a STRR application.
@@ -1008,6 +1009,7 @@ def upload_registration_supporting_document(application_number):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
+@limit_document_upload_size
 def update_registration_supporting_document(application_number):
     """
     Upload a supporting document for a STRR application.
