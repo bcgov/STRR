@@ -11,7 +11,14 @@ from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus
 from strr_api.models.application import Application as AppModel
 from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from tests.integration.application_seed import generate_application_number, seed_listable_application
-from tests.integration.helpers import PDF_BYTES, assert_json_keys, assert_status, load_mock_json
+from tests.integration.helpers import (
+    PDF_BYTES,
+    assert_json_keys,
+    assert_rejected_by_upload_size_cap,
+    assert_status,
+    load_mock_json,
+    oversized_upload_bytes,
+)
 from tests.shared_test_constants import MOCK_PAYMENT_COMPLETED_RESPONSE
 
 
@@ -237,6 +244,26 @@ def test_application_document_unsupported_type_bad_request(
         )
     assert_status(rv, HTTPStatus.BAD_REQUEST)
     assert "is not supported" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
+
+
+@pytest.mark.parametrize("method", ["post", "put"])
+def test_application_document_oversized_request_rejected(
+    client, session, headers_public_user, serializable_application, method
+):
+    """Both application document endpoints cap the request size before the file is validated or stored."""
+    num = serializable_application["application_number"]
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = getattr(client, method)(
+            f"/applications/{num}/documents",
+            headers=headers_public_user(),
+            data={
+                "file": (BytesIO(oversized_upload_bytes()), "big.pdf"),
+                "documentType": "OTHERS",
+            },
+            content_type="multipart/form-data",
+        )
+    assert_rejected_by_upload_size_cap(rv)
     mock_upload.assert_not_called()
 
 

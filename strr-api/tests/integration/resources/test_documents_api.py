@@ -5,7 +5,13 @@ from io import BytesIO
 from unittest.mock import patch
 
 from strr_api.exceptions import ExternalServiceException
-from tests.integration.helpers import PDF_BYTES, assert_status, assert_unauthenticated_returns_401_for_protected_prefix
+from tests.integration.helpers import (
+    PDF_BYTES,
+    assert_rejected_by_upload_size_cap,
+    assert_status,
+    assert_unauthenticated_returns_401_for_protected_prefix,
+    oversized_upload_bytes,
+)
 
 
 def test_documents_routes_require_auth_without_bearer(client, app):
@@ -47,6 +53,19 @@ def test_post_documents_unsupported_type_bad_request(client, headers_public_user
         )
     assert_status(rv, HTTPStatus.BAD_REQUEST)
     assert "is not supported" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
+
+
+def test_post_documents_oversized_request_rejected(client, headers_public_user):
+    """The request size is capped before the file is validated or stored."""
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = client.post(
+            "/documents",
+            headers=headers_public_user(account_id="12345"),
+            data={"file": (BytesIO(oversized_upload_bytes()), "big.pdf"), "documentType": "BC_DRIVERS_LICENSE"},
+            content_type="multipart/form-data",
+        )
+    assert_rejected_by_upload_size_cap(rv)
     mock_upload.assert_not_called()
 
 

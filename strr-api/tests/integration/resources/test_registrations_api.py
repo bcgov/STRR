@@ -13,8 +13,10 @@ from strr_api.models.rental import Document
 from tests.integration.helpers import (
     PDF_BYTES,
     assert_json_keys,
+    assert_rejected_by_upload_size_cap,
     assert_status,
     assert_unauthenticated_returns_401_for_protected_prefix,
+    oversized_upload_bytes,
 )
 from tests.integration.registration_seed import (
     seed_applicant_visible_registration_event,
@@ -336,6 +338,31 @@ def test_post_registration_document_contents_mismatch_bad_request(
         )
     assert_status(rv, HTTPStatus.BAD_REQUEST)
     assert "do not match" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
+
+
+def test_post_registration_document_oversized_request_rejected(
+    client,
+    session,
+    headers_public_user,
+    serializable_host_registration,
+):
+    """The request size is capped before the file is validated or stored."""
+    from strr_api.models.rental import Registration as RegistrationModel
+
+    rid = serializable_host_registration["registration_id"]
+    reg = session.get(RegistrationModel, rid)
+    assert reg is not None
+    reg.noc_status = RegistrationNocStatus.NOC_PENDING
+    session.flush()
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = client.post(
+            f"/registrations/{rid}/documents",
+            headers=headers_public_user(),
+            data={"file": (BytesIO(oversized_upload_bytes()), "big.pdf"), "documentType": "OTHERS"},
+            content_type="multipart/form-data",
+        )
+    assert_rejected_by_upload_size_cap(rv)
     mock_upload.assert_not_called()
 
 
