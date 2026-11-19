@@ -31,6 +31,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+
+# pylint: disable=too-many-lines
+
 import json
 import logging
 from dataclasses import dataclass
@@ -327,13 +330,16 @@ class InteractionService:
         }
 
     @overload
-    def dispatch(*, application_id: int) -> None: ...
+    @staticmethod
+    def dispatch(*, application_id: int) -> CustomerInteraction: ...
 
     @overload
-    def dispatch(*, registration_id: int) -> None: ...
+    @staticmethod
+    def dispatch(*, registration_id: int) -> CustomerInteraction: ...
 
     @overload
-    def dispatch(*, customer_id: int) -> None: ...
+    @staticmethod
+    def dispatch(*, customer_id: int) -> CustomerInteraction: ...
 
     @staticmethod
     @validate_mutex("application_id", "registration_id", "customer_id", min_count=1, max_count=1)
@@ -403,6 +409,7 @@ class InteractionService:
         registration_id: int | None = None,
         customer_id: int | None = None,
     ) -> str:
+        """Record an interaction as queued without sending it, and return its UUID."""
         return InteractionService._save_interaction(
             channel_type=channel_type,
             payload=payload,

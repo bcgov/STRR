@@ -35,6 +35,8 @@ class ContentType(Enum):
 
 
 class ChannelType(BaseEnum):
+    """Channels through which a customer interaction is delivered."""
+
     EMAIL = auto()
     SMS = auto()
     PHONE = auto()
@@ -42,6 +44,8 @@ class ChannelType(BaseEnum):
 
 
 class InteractionStatus(BaseEnum):
+    """Lifecycle status of a customer interaction."""
+
     QUEUED = auto()
     SENT = auto()
     DELIVERED = auto()
