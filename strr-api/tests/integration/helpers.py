@@ -13,6 +13,8 @@ from strr_api.validators.DocumentUploadValidator import MAX_FILE_SIZE, MAX_REQUE
 
 # Minimal valid PDF, for upload tests (the API checks uploaded files' leading bytes).
 PDF_BYTES = (Path(__file__).resolve().parent.parent / "mocks" / "file" / "document_upload.pdf").read_bytes()
+# JPEG signature (SOI + APP0/JFIF marker) plus padding: enough for the API's leading-bytes check.
+JPEG_BYTES = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01" + b"\x00" * 32
 
 
 def oversized_upload_bytes() -> bytes:

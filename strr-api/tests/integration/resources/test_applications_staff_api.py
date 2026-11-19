@@ -12,6 +12,7 @@ from strr_api.models.application import Application as AppModel
 from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from tests.integration.application_seed import generate_application_number, seed_listable_application
 from tests.integration.helpers import (
+    JPEG_BYTES,
     PDF_BYTES,
     assert_json_keys,
     assert_rejected_by_upload_size_cap,
@@ -175,21 +176,31 @@ def test_get_related_registrations_ok(client, session, headers_strr_examiner, se
     assert isinstance(rv.get_json(), list)
 
 
-def test_post_application_document_ok_patched_upload(client, session, headers_public_user, serializable_application):
+@pytest.mark.parametrize(
+    "content, filename, content_type",
+    [
+        (PDF_BYTES, "hello.pdf", "application/pdf"),
+        (JPEG_BYTES, "hello.jpg", "image/jpeg"),
+    ],
+    ids=["pdf", "jpeg"],
+)
+def test_post_application_document_ok_patched_upload(
+    client, session, headers_public_user, serializable_application, content, filename, content_type
+):
     num = serializable_application["application_number"]
     with patch(
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={
             "fileKey": "app-doc-key-01",
-            "fileName": "doc.pdf",
-            "fileType": "application/pdf",
+            "fileName": filename,
+            "fileType": content_type,
         },
-    ):
+    ) as mock_upload:
         rv = client.post(
             f"/applications/{num}/documents",
             headers=headers_public_user(),
             data={
-                "file": (BytesIO(PDF_BYTES), "hello.pdf"),
+                "file": (BytesIO(content), filename),
                 "documentType": "OTHERS",
             },
             content_type="multipart/form-data",
@@ -197,6 +208,10 @@ def test_post_application_document_ok_patched_upload(client, session, headers_pu
     assert_status(rv, HTTPStatus.CREATED)
     body = rv.get_json()
     assert body.get("fileKey") == "app-doc-key-01"
+    upload_filename, upload_content_type, upload_bytes = mock_upload.call_args.args
+    assert upload_filename == filename
+    assert upload_content_type == content_type
+    assert upload_bytes == content
 
 
 def test_put_application_document_ok_patched_upload(client, session, headers_public_user, serializable_application):
