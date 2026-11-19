@@ -24,6 +24,7 @@ from strr_api.models import db
 from strr_api.models.application import Application
 from strr_api.models.rental import PropertyManager, Registration, RentalProperty
 from strr_api.models.strata_hotels import StrataHotel
+from strr_api.responses.RegistrationSerializer import RegistrationSerializer
 from strr_api.services import ApprovalService, RegistrationService
 
 from backfiller.config import CONFIGURATION
@@ -206,16 +207,6 @@ def _get_json_from_application(registration, app):
     return original_json
 
 
-def _set_nested_value(root: dict, keys: tuple[str, ...], value) -> None:
-    """Set a nested dictionary value, creating intermediate dicts when missing or non-dict."""
-    curr = root
-    for key in keys[:-1]:
-        if not isinstance(curr.get(key), dict):
-            curr[key] = {}
-        curr = curr[key]
-    curr[keys[-1]] = value
-
-
 def _sync_normalized_fields_to_json(
     enriched_json: dict, registration: Registration
 ) -> dict:
@@ -226,25 +217,9 @@ def _sync_normalized_fields_to_json(
 
     synced = deepcopy(enriched_json)
     if rental.address:
-        addr = rental.address
-        unit_addr = (
-            synced.get("unitAddress")
-            if isinstance(synced.get("unitAddress"), dict)
-            else {}
-        )
-        unit_addr.update(
-            {
-                "streetNumber": addr.street_number,
-                "streetName": addr.street_address,
-                "addressLineTwo": addr.street_address_additional,
-                "unitNumber": addr.unit_number,
-                "city": addr.city,
-                "province": addr.province,
-                "postalCode": addr.postal_code,
-                "locationDescription": addr.location_description,
-            }
-        )
-        synced["unitAddress"] = unit_addr
+        unit_addr = RegistrationSerializer._serialize_unit_address(rental)  # pylint: disable=protected-access
+        existing_addr = synced.get("unitAddress") if isinstance(synced.get("unitAddress"), dict) else {}
+        synced["unitAddress"] = {**existing_addr, **unit_addr}
 
     if rental.jurisdiction:
         synced["jurisdiction"] = rental.jurisdiction
@@ -253,28 +228,22 @@ def _sync_normalized_fields_to_json(
 
     for prop_contact in rental.contacts or []:
         if prop_contact.contact and prop_contact.contact.email:
-            section = (
-                "primaryContact" if prop_contact.is_primary else "secondaryContact"
-            )
-            _set_nested_value(
-                synced, (section, "emailAddress"), prop_contact.contact.email
-            )
+            section = "primaryContact" if prop_contact.is_primary else "secondaryContact"
+            if not isinstance(synced.get(section), dict):
+                synced[section] = {}
+            synced[section]["emailAddress"] = prop_contact.contact.email
 
     pm = rental.property_manager
     if pm and pm.primary_contact and pm.primary_contact.email:
-        is_biz = (
-            pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS
-        )
-        pm_path = (
-            ("propertyManager", "business", "primaryContact", "emailAddress")
-            if is_biz
-            else (
-                "propertyManager",
-                "contact",
-                "emailAddress",
+        pm_dict = synced.setdefault("propertyManager", {})
+        if not isinstance(pm_dict, dict):
+            pm_dict = synced["propertyManager"] = {}
+        if pm.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
+            pm_dict.setdefault("business", {}).setdefault("primaryContact", {})["emailAddress"] = (
+                pm.primary_contact.email
             )
-        )
-        _set_nested_value(synced, pm_path, pm.primary_contact.email)
+        else:
+            pm_dict.setdefault("contact", {})["emailAddress"] = pm.primary_contact.email
 
     return synced
 
