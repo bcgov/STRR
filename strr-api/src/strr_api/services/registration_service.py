@@ -955,7 +955,7 @@ class RegistrationService:
                         registration.id,
                         exception.message,
                     )
-            RegistrationService._sync_unit_address_to_registration_json(registration, address_obj)
+            RegistrationService._sync_unit_address_to_registration_json(registration)
             registration.save()
             event_details = previous_address_details
             if jurisdiction_update_warning:
@@ -973,28 +973,17 @@ class RegistrationService:
         return registration
 
     @staticmethod
-    def _sync_unit_address_to_registration_json(registration: Registration, address_obj: Address) -> None:
+    def _sync_unit_address_to_registration_json(registration: Registration) -> None:
         """Keep registration_json (and thus registration_tsv) in sync after unit address/jurisdiction updates."""
-        if not isinstance(registration.registration_json, dict):
+        if not isinstance(registration.registration_json, dict) or not registration.rental_property:
             return
 
         reg_json = deepcopy(registration.registration_json)
-        unit_addr = reg_json.get("unitAddress")
-        if not isinstance(unit_addr, dict):
-            unit_addr = {}
-        unit_addr.update(
-            {
-                "streetNumber": address_obj.street_number,
-                "streetName": address_obj.street_address,
-                "addressLineTwo": address_obj.street_address_additional,
-                "unitNumber": address_obj.unit_number,
-                "city": address_obj.city,
-                "province": address_obj.province,
-                "postalCode": address_obj.postal_code,
-                "locationDescription": address_obj.location_description,
-            }
+        unit_addr = RegistrationSerializer._serialize_unit_address(  # pylint: disable=protected-access
+            registration.rental_property
         )
-        reg_json["unitAddress"] = unit_addr
+        existing_addr = reg_json.get("unitAddress") if isinstance(reg_json.get("unitAddress"), dict) else {}
+        reg_json["unitAddress"] = {**existing_addr, **unit_addr}
 
         jurisdiction = registration.rental_property.jurisdiction
         if jurisdiction:
