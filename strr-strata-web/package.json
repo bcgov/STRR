@@ -2,7 +2,7 @@
   "name": "strr-strata-web",
   "private": true,
   "type": "module",
-  "version": "1.2.12",
+  "version": "1.2.13",
   "engines": {
     "node": ">=24"
   },
@@ -25,10 +25,10 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
-    "@faker-js/faker": "^10.1.0",
-    "@nuxt/devtools": "3.4.1",
-    "@nuxt/image": "^2.0.0",
-    "@nuxt/test-utils": "4.1.0",
+    "@faker-js/faker": "^10.6.0",
+    "@nuxt/devtools": "4.2.0",
+    "@nuxt/image": "^2.2.1",
+    "@nuxt/test-utils": "4.4.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "@nuxtjs/eslint-module": "^4.1.0",
     "@pinia/testing": "^1.0.3",
@@ -36,21 +36,21 @@
     "@testing-library/vue": "^8.1.0",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.48.1",
-    "@vitest/coverage-v8": "4.1.11",
-    "@vue/test-utils": "^2.4.6",
+    "@vitest/coverage-v8": "4.1.12",
+    "@vue/test-utils": "^2.6.0",
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
-    "happy-dom": "^20.0.11",
+    "happy-dom": "^21.0.4",
     "otpauth": "^9.3.6",
     "playwright-core": "^1.49.1",
     "sass": "^1.97.0",
     "typescript": "^5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
-    "nuxt": "4.5.2",
+    "nuxt": "4.6.4",
     "vue-country-flag-next": "^2.3.2",
     "vue-router": "^4.6.4"
   },
