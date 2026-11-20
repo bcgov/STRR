@@ -22,7 +22,7 @@ flask-cors = "^6.0.0"
 pg8000 = "^1.31.2"
 protobuf = "^5.29.0"
 isort = "^5.13.2"
-pylint = "^3.0.3"
+pylint = "^4.0.9"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "f9efef8145aba99ec598c08341d3723ab4c569b0", subdirectory = "strr-api"}
