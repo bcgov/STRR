@@ -6,8 +6,8 @@
 Short-Term Rental Registry (STRR)
 
 # INTIAL SETUP
-- global install python 3.11
-- global install poetry using `pip3.11 install poetry`
+- global install python 3.12
+- global install poetry using `pip3.12 install poetry`
 - create `strr` postgres db
 - run:
 ```
@@ -15,7 +15,7 @@ python -m venv .venv
 source .venv/bin/activate
 poetry config virtualenvs.in-project true
 poetry install
-pip3.11 install psycopg2-binary
+pip3.12 install psycopg2-binary
 ```
 - use `make` to build docker images
 
