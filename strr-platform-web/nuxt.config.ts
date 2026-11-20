@@ -24,7 +24,7 @@ export default defineNuxtConfig({
   extends: [
     useLocalBaseWeb
       ? '../strr-base-web'
-      : ['github:bcgov/STRR/strr-base-web#main', { install: true }]
+      : ['github:bcgov/STRR/strr-base-web#main', { install: { ignoreWorkspace: false } }]
   ],
 
   imports: {
