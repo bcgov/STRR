@@ -31,7 +31,7 @@ on:
 
 jobs:
   batch-permit-job-cd:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@e6d847a51e7d15134761f29ae284a8acb0e369e0 # main
     with:
       target: ${{ inputs.target }}
       app_name: "batch-permit-job"
