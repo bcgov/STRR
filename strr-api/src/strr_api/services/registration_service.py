@@ -1424,19 +1424,14 @@ class RegistrationService:
         page_nums = valid_nums[offset : offset + limit]
 
         reg_map = {}
-        latest_app_map = {}
         if page_nums:
             regs = cls._build_eager_loaded_query().filter(Registration.registration_number.in_(page_nums)).all()
             reg_map = {r.registration_number: r for r in regs}
-            latest_app_map = cls._fetch_latest_applications_by_reg_ids(regs)
 
         items: list[dict[str, Any]] = []
         for n in page_nums:
             if n in reg_map:
-                reg = reg_map[n]
-                items.append(
-                    RegistrationSerializer.serialize_for_query(reg, include_pii=include_pii, latest_apps=latest_app_map)
-                )
+                items.append(RegistrationSerializer.serialize_for_query(reg_map[n], include_pii=include_pii))
             else:
                 errors.append({"registrationNumber": n, "code": "NOT_FOUND"})
 
@@ -1494,11 +1489,8 @@ class RegistrationService:
         if reg_ids:
             models = cls._build_eager_loaded_query().filter(Registration.id.in_(reg_ids)).all()
             m_map = {m.id: m for m in models}
-            latest_app_map = cls._fetch_latest_applications_by_reg_ids(models)
             items = [
-                RegistrationSerializer.serialize_for_query(
-                    m_map[r_id], include_pii=include_pii, latest_apps=latest_app_map
-                )
+                RegistrationSerializer.serialize_for_query(m_map[r_id], include_pii=include_pii)
                 for r_id in reg_ids
                 if r_id in m_map
             ]
@@ -1512,26 +1504,6 @@ class RegistrationService:
             next_cursor = cls.generate_cursor({"changed": iso, "registrationId": last_id}, scope_hash)
 
         return {"items": items, "nextCursor": next_cursor}
-
-    @classmethod
-    def _fetch_latest_applications_by_reg_ids(cls, registrations: list[Registration]) -> dict[int, Any]:
-        """Batch-fetch the latest application per HOST registration using ix_application_registration_id_date."""
-        host_reg_ids = [
-            r.id
-            for r in registrations
-            if getattr(r.registration_type, "value", r.registration_type) == RegistrationType.HOST.value
-        ]
-        if not host_reg_ids:
-            return {}
-        from strr_api.models.application import Application  # pylint: disable=import-outside-toplevel
-
-        apps = (
-            Application.query.filter(Application.registration_id.in_(host_reg_ids))
-            .distinct(Application.registration_id)
-            .order_by(Application.registration_id, Application.application_date.desc())
-            .all()
-        )
-        return {app.registration_id: app for app in apps}
 
     @classmethod
     def _build_cdc_changes_subquery(cls):

@@ -404,33 +404,19 @@ class RegistrationSerializer:
         return str_req.get("organizationNm") if str_req else None
 
     @classmethod
-    def _get_latest_application(cls, registration: Registration) -> Optional[Application]:
-        """Return the most recent application for a registration using the composite index."""
-        return (
+    def get_str_requirements_from_application(cls, registration: Registration) -> Optional[dict]:
+        """Returns the strRequirements from the most recent application."""
+        latest_application = (
             Application.query.filter_by(registration_id=registration.id)
             .order_by(Application.application_date.desc())
             .first()
         )
-
-    @staticmethod
-    def _extract_str_requirements(application: Optional[Application]) -> Optional[dict]:
-        """Extract strRequirements from an Application instance."""
-        if not application or not application.application_json:
+        if not latest_application or not latest_application.application_json:
             return None
-        return application.application_json.get("registration", {}).get("strRequirements", {})
+        return latest_application.application_json.get("registration", {}).get("strRequirements", {})
 
     @classmethod
-    def get_str_requirements_from_application(cls, registration: Registration) -> Optional[dict]:
-        """Returns the strRequirements from the most recent application."""
-        return cls._extract_str_requirements(cls._get_latest_application(registration))
-
-    @classmethod
-    def serialize_for_query(
-        cls,
-        registration: Registration,
-        include_pii: bool = False,
-        latest_apps: Optional[dict[int, Application]] = None,
-    ) -> dict[str, Any]:
+    def serialize_for_query(cls, registration: Registration, include_pii: bool = False) -> dict[str, Any]:
         """Serialize a registration into an OpenAPI-compliant query snapshot."""
         reg_type = cls._enum_val(registration.registration_type)
         snapshot: dict[str, Any] = {
@@ -445,7 +431,7 @@ class RegistrationSerializer:
         }
 
         if reg_type == RegistrationType.HOST.value:
-            cls._populate_query_host(snapshot, registration, include_pii, latest_apps=latest_apps)
+            cls._populate_query_host(snapshot, registration, include_pii)
         elif reg_type == RegistrationType.PLATFORM.value:
             if registration.platform_registration and registration.platform_registration.platform:
                 cls.populate_platform_registration_details(snapshot, registration)
@@ -459,13 +445,7 @@ class RegistrationSerializer:
         return snapshot
 
     @classmethod
-    def _populate_query_host(
-        cls,
-        snapshot: dict[str, Any],
-        reg: Registration,
-        include_pii: bool,
-        latest_apps: Optional[dict[int, Application]] = None,
-    ):
+    def _populate_query_host(cls, snapshot: dict[str, Any], reg: Registration, include_pii: bool):
         rental = reg.rental_property
         if not rental:
             return
@@ -480,8 +460,10 @@ class RegistrationSerializer:
         snapshot["secondaryContact"] = cls._serialize_query_host_contact(secondary_c, is_primary=False)
         snapshot["unitAddress"] = cls._serialize_unit_address(rental)
 
-        latest_app = latest_apps.get(reg.id) if latest_apps is not None else cls._get_latest_application(reg)
-        str_req = cls._extract_str_requirements(latest_app)
+        reg_json = reg.registration_json or {}
+        str_req = reg_json.get("strRequirements") if isinstance(reg_json, dict) else None
+        if not isinstance(str_req, dict) or not str_req:
+            str_req = None
         app_jurisdiction = str_req.get("organizationNm") if str_req else None
 
         snapshot["unitDetails"] = {
