@@ -9,17 +9,17 @@
 {% endif %}
 
 {% if unit_number %}
-**Short-Term Rental Address:**
-**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
-**Street Number:**&nbsp; {{street_number}}
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Short-Term Rental Address:**<br>
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}<br>
+**Street Number:**&nbsp; {{street_number}}<br>
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}<br>
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}<br>
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% else %}
-**Short-Term Rental Address:**
-**Street Number:**&nbsp; {{street_number}}
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Short-Term Rental Address:**<br>
+**Street Number:**&nbsp; {{street_number}}<br>
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}<br>
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}<br>
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
 
@@ -49,5 +49,5 @@ To learn more about next step options, visit our [website](https://www2.gov.bc.c
 
 ---
 
-**Short-Term Rental Branch**
+**Short-Term Rental Branch**<br>
 Ministry of Housing and Municipal Affairs

@@ -4,23 +4,23 @@
 
 1. Follow the platform instructions to update your listing with your registration information below.
    {% if unit_number %}
-   ^**Registration Number:**
+   **Registration Number:**
    {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 
-   ^**Short-Term Rental Address:**
-   **Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
-   **Street Number:**&nbsp; {{street_number}}
-   **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-   **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+   **Short-Term Rental Address:**<br>
+   **Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}<br>
+   **Street Number:**&nbsp; {{street_number}}<br>
+   **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}<br>
+   **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}<br>
    **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
    {% else %}
-   ^**Registration Number:**
+   **Registration Number:**
    {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 
-   ^**Short-Term Rental Address:**
-   **Street Number:**&nbsp; {{street_number}}
-   **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-   **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+   **Short-Term Rental Address:**<br>
+   **Street Number:**&nbsp; {{street_number}}<br>
+   **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}<br>
+   **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}<br>
    **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
    {% endif %}
 
