@@ -320,6 +320,42 @@ def test_update_registration_empty_registration_json(session):
     assert change["newValue"] == "new@example.com"
 
 
+def test_update_host_unit_address_syncs_registration_json(session, host_registration):
+    """Test updating host unit address also syncs registration_json and registration_tsv."""
+    registration = host_registration["registration"]
+    user = host_registration["user"]
+    registration.registration_json = {
+        **registration.registration_json,
+        "unitAddress": {"streetNumber": "123", "streetName": "Old St", "city": "Victoria"},
+        "unitDetails": {"jurisdiction": "City of Victoria"},
+        "jurisdiction": "City of Victoria",
+    }
+    session.flush()
+
+    updated = RegistrationService.update_host_unit_address(
+        registration,
+        {
+            "streetNumber": "999",
+            "streetName": "New Oak Ave",
+            "city": "Kelowna",
+            "province": "BC",
+            "postalCode": "V1Y 1A1",
+            "jurisdiction": "City of Kelowna",
+        },
+        user,
+    )
+    session.flush()
+
+    assert updated.registration_json["unitAddress"]["streetNumber"] == "999"
+    assert updated.registration_json["unitAddress"]["streetName"] == "New Oak Ave"
+    assert updated.registration_json["unitAddress"]["city"] == "Kelowna"
+    assert updated.registration_json["jurisdiction"] == "City of Kelowna"
+    assert updated.registration_json["unitDetails"]["jurisdiction"] == "City of Kelowna"
+    # Verify full-text search vector (generated from registration_json) matches the new address
+    matched = Registration.query.filter(Registration.registration_tsv.match("Oak")).all()
+    assert any(r.id == registration.id for r in matched)
+
+
 def test_create_host_registration_with_cohost_address(session):
     """Test creating host registration with co-host (secondaryContact) having a unique mailing address."""
     payload = {

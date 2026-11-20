@@ -43,6 +43,7 @@ import pytest
 from strr_api.enums.enum import OAuthScope, PropertyType, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
+    Application,
     Contact,
     Platform,
     PlatformBrand,
@@ -315,6 +316,38 @@ def test_host_serializer_pii_handling(host_registration):
     assert pm["contact"]["firstName"] == "Robert"
     assert pm["contact"]["lastName"] == "Smith"
     assert pm["mailingAddress"]["city"] == "Victoria"
+
+
+def test_query_serializer_independent_of_registration_json(session, host_registration):
+    """Verify RegistrationQuery primaryContact.emailAddress uses Contact.email, ignoring registration_json."""
+    host_registration.registration_json = {
+        "primaryContact": {"emailAddress": "stale-json@example.com"},
+        "propertyManager": {"initiatedByPropertyManager": True},
+    }
+    db.session.commit()
+
+    snapshot = RegistrationSerializer.serialize_for_query(host_registration, include_pii=True)
+    assert snapshot["primaryContact"]["emailAddress"] == "jane.doe@example.com"
+    assert snapshot["propertyManager"]["initiatedByPropertyManager"] is True
+
+
+@pytest.mark.parametrize(
+    "reg_number, reg_json, expected",
+    [
+        ("H111111111", {"propertyManager": {"initiatedByPropertyManager": False}}, False),
+        ("H111111112", {"propertyManager": {"initiatedByPropertyManager": True}}, True),
+        ("PM111111113", None, True),
+        ("H111111114", None, None),
+    ],
+)
+def test_query_initiated_by_property_manager_sources(session, host_registration, reg_number, reg_json, expected):
+    """Verify initiatedByPropertyManager resolves from registration_json or PM prefix fallback."""
+    host_registration.registration_number = reg_number
+    host_registration.registration_json = reg_json
+    db.session.commit()
+
+    snapshot = RegistrationSerializer.serialize_for_query(host_registration, include_pii=False)
+    assert snapshot["propertyManager"]["initiatedByPropertyManager"] is expected
 
 
 def test_strata_hotel_serializer_unit_listings_normalization(strata_hotel_registration):
