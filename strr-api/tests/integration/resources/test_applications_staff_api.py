@@ -11,7 +11,15 @@ from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus
 from strr_api.models.application import Application as AppModel
 from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from tests.integration.application_seed import generate_application_number, seed_listable_application
-from tests.integration.helpers import assert_json_keys, assert_status, load_mock_json
+from tests.integration.helpers import (
+    JPEG_BYTES,
+    PDF_BYTES,
+    assert_json_keys,
+    assert_rejected_by_upload_size_cap,
+    assert_status,
+    load_mock_json,
+    oversized_upload_bytes,
+)
 from tests.shared_test_constants import MOCK_PAYMENT_COMPLETED_RESPONSE
 
 
@@ -168,21 +176,31 @@ def test_get_related_registrations_ok(client, session, headers_strr_examiner, se
     assert isinstance(rv.get_json(), list)
 
 
-def test_post_application_document_ok_patched_upload(client, session, headers_public_user, serializable_application):
+@pytest.mark.parametrize(
+    "content, filename, content_type",
+    [
+        (PDF_BYTES, "hello.pdf", "application/pdf"),
+        (JPEG_BYTES, "hello.jpg", "image/jpeg"),
+    ],
+    ids=["pdf", "jpeg"],
+)
+def test_post_application_document_ok_patched_upload(
+    client, session, headers_public_user, serializable_application, content, filename, content_type
+):
     num = serializable_application["application_number"]
     with patch(
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={
             "fileKey": "app-doc-key-01",
-            "fileName": "doc.txt",
-            "fileType": "text/plain",
+            "fileName": filename,
+            "fileType": content_type,
         },
-    ):
+    ) as mock_upload:
         rv = client.post(
             f"/applications/{num}/documents",
             headers=headers_public_user(),
             data={
-                "file": (BytesIO(b"hello"), "hello.txt"),
+                "file": (BytesIO(content), filename),
                 "documentType": "OTHERS",
             },
             content_type="multipart/form-data",
@@ -190,6 +208,10 @@ def test_post_application_document_ok_patched_upload(client, session, headers_pu
     assert_status(rv, HTTPStatus.CREATED)
     body = rv.get_json()
     assert body.get("fileKey") == "app-doc-key-01"
+    upload_filename, upload_content_type, upload_bytes = mock_upload.call_args.args
+    assert upload_filename == filename
+    assert upload_content_type == content_type
+    assert upload_bytes == content
 
 
 def test_put_application_document_ok_patched_upload(client, session, headers_public_user, serializable_application):
@@ -201,15 +223,15 @@ def test_put_application_document_ok_patched_upload(client, session, headers_pub
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={
             "fileKey": "app-doc-put-01",
-            "fileName": "put.txt",
-            "fileType": "text/plain",
+            "fileName": "put.pdf",
+            "fileType": "application/pdf",
         },
     ):
         rv = client.put(
             f"/applications/{num}/documents",
             headers=headers_public_user(),
             data={
-                "file": (BytesIO(b"put-body"), "put.txt"),
+                "file": (BytesIO(PDF_BYTES), "put.pdf"),
                 "documentType": "OTHERS",
             },
             content_type="multipart/form-data",
@@ -217,6 +239,47 @@ def test_put_application_document_ok_patched_upload(client, session, headers_pub
     assert_status(rv, HTTPStatus.OK)
     keys = {d.get("fileKey") for d in rv.get_json().get("registration", {}).get("documents", [])}
     assert "app-doc-put-01" in keys
+
+
+@pytest.mark.parametrize("method", ["post", "put"])
+def test_application_document_unsupported_type_bad_request(
+    client, session, headers_public_user, serializable_application, method
+):
+    """Both application document endpoints validate uploads: a text file is rejected and never reaches storage."""
+    num = serializable_application["application_number"]
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = getattr(client, method)(
+            f"/applications/{num}/documents",
+            headers=headers_public_user(),
+            data={
+                "file": (BytesIO(b"hello"), "hello.txt"),
+                "documentType": "OTHERS",
+            },
+            content_type="multipart/form-data",
+        )
+    assert_status(rv, HTTPStatus.BAD_REQUEST)
+    assert "is not supported" in (rv.get_json().get("message") or "")
+    mock_upload.assert_not_called()
+
+
+@pytest.mark.parametrize("method", ["post", "put"])
+def test_application_document_oversized_request_rejected(
+    client, session, headers_public_user, serializable_application, method
+):
+    """Both application document endpoints cap the request size before the file is validated or stored."""
+    num = serializable_application["application_number"]
+    with patch("strr_api.services.document_service.DocumentService.upload_document") as mock_upload:
+        rv = getattr(client, method)(
+            f"/applications/{num}/documents",
+            headers=headers_public_user(),
+            data={
+                "file": (BytesIO(oversized_upload_bytes()), "big.pdf"),
+                "documentType": "OTHERS",
+            },
+            content_type="multipart/form-data",
+        )
+    assert_rejected_by_upload_size_cap(rv)
+    mock_upload.assert_not_called()
 
 
 @patch("strr_api.services.application_service.ApplicationService.enrich_document_added_on_from_gcp", lambda d: d)

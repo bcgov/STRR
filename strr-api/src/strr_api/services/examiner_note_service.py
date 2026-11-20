@@ -198,6 +198,7 @@ class ExaminerNoteService:
     def build_application_list_response(
         cls, application: Application, notes: list[ExaminerNote], truncated: bool
     ) -> dict[str, Any]:
+        """Build the API response listing an application's notes, keyed by application number."""
         return {
             "applicationNumber": application.application_number,
             "truncated": truncated,
@@ -208,6 +209,7 @@ class ExaminerNoteService:
     def build_registration_list_response(
         cls, registration: Registration, notes: list[ExaminerNote], truncated: bool
     ) -> dict[str, Any]:
+        """Build the API response listing a registration's notes, keyed by registration ID."""
         return {
             "registrationId": registration.id,
             "truncated": truncated,

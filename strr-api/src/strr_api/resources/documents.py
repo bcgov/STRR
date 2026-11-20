@@ -46,7 +46,7 @@ from werkzeug.utils import secure_filename
 from strr_api.common.auth import jwt
 from strr_api.exceptions import AuthException, ExternalServiceException, ValidationException, exception_response
 from strr_api.services import DocumentService
-from strr_api.validators.DocumentUploadValidator import validate_document_upload
+from strr_api.validators.DocumentUploadValidator import limit_document_upload_size, validate_document_upload
 
 logger = logging.getLogger("api")
 bp = Blueprint("documents", __name__)
@@ -56,6 +56,7 @@ bp = Blueprint("documents", __name__)
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
+@limit_document_upload_size
 def upload_supporting_document():
     """
     Upload a supporting STRR document.

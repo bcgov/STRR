@@ -221,7 +221,7 @@ class Registration(Versioned, BaseModel):
         if filter_criteria.noc_statuses:
             sub_status_conditions.append(Registration.noc_status.in_(filter_criteria.noc_statuses))
         if filter_criteria.is_set_aside is True:
-            sub_status_conditions.append(Registration.is_set_aside == True)  # noqa: E712
+            sub_status_conditions.append(Registration.is_set_aside == db.true())
         if filter_criteria.review_renew is True:
             sub_status_conditions.append(cls._review_renew_condition())
         return sub_status_conditions
@@ -265,7 +265,7 @@ class Registration(Versioned, BaseModel):
             db.exists().where(
                 db.and_(
                     RentalProperty.registration_id == Registration.id,
-                    RentalProperty.strr_exempt == True,  # noqa: E712
+                    RentalProperty.strr_exempt == db.true(),
                 )
             ),
             db.exists().where(
@@ -790,7 +790,7 @@ class Document(Versioned, BaseModel):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     file_name = db.Column(db.String, nullable=False)
-    file_type = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
+    file_type = db.Column(db.String, nullable=False)  # e.g., 'application/pdf', 'image/jpeg', etc.
     path = db.Column(db.String, nullable=False)
     document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS, index=True)
     added_on = db.Column(db.Date, nullable=True)

@@ -9,6 +9,27 @@ from typing import Any
 
 from werkzeug.test import TestResponse
 
+from strr_api.validators.DocumentUploadValidator import MAX_FILE_SIZE, MAX_REQUEST_OVERHEAD
+
+# Minimal valid PDF, for upload tests (the API checks uploaded files' leading bytes).
+PDF_BYTES = (Path(__file__).resolve().parent.parent / "mocks" / "file" / "document_upload.pdf").read_bytes()
+# JPEG signature (SOI + APP0/JFIF marker) plus padding: enough for the API's leading-bytes check.
+JPEG_BYTES = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01" + b"\x00" * 32
+
+
+def oversized_upload_bytes() -> bytes:
+    """A PDF too large for limit_document_upload_size's request cap, so the body alone exceeds it."""
+    return PDF_BYTES + b"\x00" * (MAX_FILE_SIZE + MAX_REQUEST_OVERHEAD + 1 - len(PDF_BYTES))
+
+
+def assert_rejected_by_upload_size_cap(rv: TestResponse) -> None:
+    """Assert a 413 from limit_document_upload_size, not from validate_document_upload's file-size check."""
+    assert_status(rv, HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+    # Werkzeug's RequestEntityTooLarge description. The app registers no HTTPException handler, so this
+    # arrives as Flask's default HTML error page rather than JSON; match the text, not a JSON field.
+    assert "exceeds the capacity limit" in rv.get_data(as_text=True)
+
+
 PUBLIC_ROUTES = frozenset(
     {
         ("GET", "/ops/healthz"),

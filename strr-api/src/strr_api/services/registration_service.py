@@ -824,7 +824,7 @@ class RegistrationService:
 
         reviewer_id = reviewer.id if reviewer else None
         if status == RegistrationStatus.ACTIVE.value:
-            RegistrationService._update_conditions_of_registration(registration, json_input, reviewer_id)
+            RegistrationService.update_conditions_of_registration(registration, json_input, reviewer_id)
 
         if event_name:
             EventsService.save_event(
@@ -838,7 +838,8 @@ class RegistrationService:
         return registration
 
     @staticmethod
-    def _update_conditions_of_registration(registration: Registration, json_input: dict, reviewer_id=None) -> None:
+    def update_conditions_of_registration(registration: Registration, json_input: dict, reviewer_id=None) -> None:
+        """Create, update or delete a registration's conditions of approval from `json_input`, and record an event."""
         registration_conditions = registration.conditionsOfApproval
         if conditions_of_approval := json_input.get("conditionsOfApproval"):
             pre_defined_conditions = conditions_of_approval.get("predefinedConditions")

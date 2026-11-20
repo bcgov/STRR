@@ -299,7 +299,7 @@ class ApplicationService:
             and conditions_of_approval is not None
             and registration
         ):
-            RegistrationService._update_conditions_of_registration(
+            RegistrationService.update_conditions_of_registration(
                 registration,
                 {"conditionsOfApproval": conditions_of_approval} if conditions_of_approval else {},
                 reviewer.id,

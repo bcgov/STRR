@@ -17,7 +17,7 @@ from dateutil.parser import isoparse
 from strr_api.enums.enum import ChannelType, DeliveryStatus, InteractionStatus, RegistrationStatus
 from strr_api.models.interactions import CustomerInteraction, InteractionRecipient
 from strr_api.services.registration_service import RegistrationService
-from tests.integration.helpers import assert_json_keys, assert_status
+from tests.integration.helpers import PDF_BYTES, assert_json_keys, assert_status
 from tests.integration.registration_seed import seed_registration_document, seed_serializable_host_registration
 from tests.shared_test_constants import ACCOUNT_ID
 
@@ -369,7 +369,7 @@ def test_post_registration_document_ok_staff_with_upload_patch(
         rv = client.post(
             f"/registrations/{rid}/documents",
             headers=headers_strr_examiner(),
-            data={"file": (BytesIO(b"staff"), "staff.txt"), "documentType": "OTHERS"},
+            data={"file": (BytesIO(PDF_BYTES), "staff.pdf"), "documentType": "OTHERS"},
             content_type="multipart/form-data",
         )
     assert_status(rv, HTTPStatus.CREATED)

@@ -19,4 +19,5 @@
       "source.organizeImports": "explicit"
     }
   },
-  "isort.check": true,
+  "isort.check": true
+}
