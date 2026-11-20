@@ -2,7 +2,7 @@
   "name": "strr-examiner-web",
   "private": true,
   "type": "module",
-  "version": "0.2.71",
+  "version": "0.2.72",
   "engines": {
     "node": ">=24"
   },
@@ -27,9 +27,9 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
-    "@nuxt/devtools": "3.4.1",
-    "@nuxt/image": "^2.0.0",
-    "@nuxt/test-utils": "4.1.0",
+    "@nuxt/devtools": "4.2.0",
+    "@nuxt/image": "^2.2.1",
+    "@nuxt/test-utils": "4.4.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "@nuxtjs/eslint-module": "^4.1.0",
     "@pinia/testing": "^1.0.3",
@@ -38,22 +38,22 @@
     "@types/lodash": "^4.17.21",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.50.1",
-    "@vitest/coverage-v8": "4.1.11",
-    "@vue/test-utils": "^2.4.6",
+    "@vitest/coverage-v8": "4.1.12",
+    "@vue/test-utils": "^2.6.0",
     "eslint": "^8.57.0",
     "eslint-plugin-tailwindcss": "^3.17.4",
-    "happy-dom": "^20.0.11",
+    "happy-dom": "^21.0.4",
     "otplib": "^12.0.1",
     "playwright-core": "^1.57.0",
     "sass": "^1.77.6",
     "typescript": "^5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
-    "nuxt": "4.5.2",
-    "uuid": "^11.1.0",
+    "nuxt": "4.6.4",
+    "uuid": "^11.1.1",
     "v-calendar": "^3.1.2"
   },
   "packageManager": "pnpm@11.9.0"

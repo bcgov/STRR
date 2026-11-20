@@ -1,8 +1,11 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { baseEnI18n } from '../mocks/i18n'
 import { ConnectFeeInfoAmount } from '#components'
 import { FeeInfo } from '#imports'
+
+// setup.ts mocks vue-i18n, need the real one here for base layer text
+vi.unmock('vue-i18n')
 
 const $t = baseEnI18n.global.t
 
