@@ -640,3 +640,31 @@ def test_targeted_lookup_deduplication_and_pagination(client, jwt, host_registra
     assert len(page2["items"]) == 1
     assert page2["items"][0]["registrationNumber"] == "ST200000001"
     assert page2["nextCursor"] is None  # Reached end of 2 unique numbers!
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/v1/registrations:query",
+        "/v1/registrations/:query",
+        "/v1/registrations/query",
+    ],
+)
+@pytest.mark.parametrize("method", ["POST", "QUERY"])
+def test_v1_registration_query_routes(client, jwt, host_registration, path, method):
+    """Versioned /v1/ registration query routes work for both POST and QUERY methods."""
+    headers = create_header(
+        jwt,
+        roles=[],
+        username="oauth-client",
+        additional_claims={"scope": READ_SCOPE},
+    )
+    rv = client.open(
+        path,
+        method=method,
+        json={"registrationNumbers": ["H123456789"]},
+        headers=headers,
+    )
+    assert rv.status_code == HTTPStatus.OK
+    assert len(rv.json["items"]) == 1
+    assert rv.json["items"][0]["registrationNumber"] == "H123456789"

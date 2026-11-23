@@ -682,3 +682,43 @@ def test_query_api_independent_of_registration_json(client, session, auth_header
     item = rv.get_json()["items"][0]
     assert item["primaryContact"]["emailAddress"] == "host@example.test"
     assert item["propertyManager"]["initiatedByPropertyManager"] is True
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/v1/registrations:query",
+        "/v1/registrations/:query",
+        "/v1/registrations/query",
+    ],
+)
+def test_v1_query_unauthenticated_returns_401(client, path):
+    """Calling versioned /v1/ query endpoints without Authorization returns 401."""
+    rv = client.post(path, json={})
+    assert_status(rv, HTTPStatus.UNAUTHORIZED)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/v1/registrations:query",
+        "/v1/registrations/:query",
+        "/v1/registrations/query",
+    ],
+)
+def test_v1_query_targeted_lookup_ok(client, session, auth_header_read_only, integration_account_id, path):
+    """Versioned /v1/ registration query routes support targeted registration lookup."""
+    seeded = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number="H888777666",
+    )
+    rv = client.post(
+        path,
+        json={"registrationNumbers": [seeded["registration_number"]]},
+        headers=auth_header_read_only,
+    )
+    assert_status(rv, HTTPStatus.OK)
+    data = assert_json_keys(rv, "items")
+    assert len(data["items"]) == 1
+    assert data["items"][0]["registrationNumber"] == seeded["registration_number"]
