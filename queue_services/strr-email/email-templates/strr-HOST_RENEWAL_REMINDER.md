@@ -4,7 +4,8 @@
 
 ## {{rental_nickname}} {% endif %}
 
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}\
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
+
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
 {% if unit_number %}
@@ -53,7 +54,7 @@ For information about renewals and registration requirements:
 - Follow our [step-by-step guide to renew your registration](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/renew-short-term-rental-registration/renewal-guide)
 - Review the [Terms and Conditions of Short-Term Rental Offer Registration](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/registry-toc-hosts)
 - Contact the Service BC Contact Centre at [1-833-828-2240](tel:+18338282240)
-- Email: [STRregistry@sbc.gov.bc.ca](mailto:STRbranch@gov.bc.ca) (include your registration number in the subject line)
+- Email: [STRregistry@sbc.gov.bc.ca](mailto:STRregistry@sbc.gov.bc.ca) (include your registration number in the subject line)
 
 **Short-Term Rental Branch**\
 Ministry of Housing and Municipal Affairs
