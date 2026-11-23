@@ -9,19 +9,19 @@
 {% endif %}
 
 {% if unit_number %}
-**Short-Term Rental Address:**
-**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
-**Street Number:**&nbsp; {{street_number}}
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
-**Province:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{province}}
+**Short-Term Rental Address:**\
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}\
+**Street Number:**&nbsp; {{street_number}}\
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}\
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
+**Province:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{province}}\
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% else %}
-**Short-Term Rental Address:**
-**Street Number:**&nbsp; {{street_number}}
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
-**Province:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{province}}
+**Short-Term Rental Address:**\
+**Street Number:**&nbsp; {{street_number}}\
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}\
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
+**Province:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{province}}\
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
 
@@ -57,5 +57,5 @@ To learn more about next step options, visit our [website](https://www2.gov.bc.c
 
 ---
 
-**Short-Term Rental Branch**
+**Short-Term Rental Branch**\
 Ministry of Housing and Municipal Affairs

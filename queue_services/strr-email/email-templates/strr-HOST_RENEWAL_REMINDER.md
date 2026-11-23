@@ -4,20 +4,20 @@
 
 ## {{rental_nickname}} {% endif %}
 
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}  
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}\
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
 {% if unit_number %}
-**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}  
-**Street Number:**&nbsp; {{street_number}}  
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}  
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}\
+**Street Number:**&nbsp; {{street_number}}\
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}\
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% else %}
-**Street Number:**&nbsp; {{street_number}}  
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}  
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
-**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}  
+**Street Number:**&nbsp; {{street_number}}\
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}\
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
+**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
 
 ## Your registration is expiring soon
@@ -55,5 +55,5 @@ For information about renewals and registration requirements:
 - Contact the Service BC Contact Centre at [1-833-828-2240](tel:+18338282240)
 - Email: [STRregistry@sbc.gov.bc.ca](mailto:STRbranch@gov.bc.ca) (include your registration number in the subject line)
 
-**Short-Term Rental Branch**  
+**Short-Term Rental Branch**\
 Ministry of Housing and Municipal Affairs
