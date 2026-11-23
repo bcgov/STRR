@@ -3,8 +3,8 @@
 **Registration Number:**
 {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 
-**Strata Hotel Address:**&nbsp;{{street_address}}<br>
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}<br>
+**Strata Hotel Address:**&nbsp;{{street_address}}\
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
 Your short-term rental registration has been **cancelled effective immediately**.
@@ -33,5 +33,5 @@ To learn more about next step options, visit our [website](https://www2.gov.bc.c
 
 ---
 
-**Short-Term Rental Branch**<br>
+**Short-Term Rental Branch**\
 Ministry of Housing and Municipal Affairs
