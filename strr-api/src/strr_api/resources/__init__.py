@@ -129,6 +129,18 @@ def register_endpoints(app: Flask):
         methods=("POST", "QUERY"),
     )
 
+    for rule, endpoint in (
+        ("/v1/registrations:query", "v1_registrations_query_no_slash"),
+        ("/v1/registrations/:query", "v1_registrations_query_colon"),
+        ("/v1/registrations/query", "v1_registrations_query"),
+    ):
+        app.add_url_rule(
+            rule,
+            endpoint=endpoint,
+            view_func=query_registrations,
+            methods=("POST", "QUERY"),
+        )
+
     app.register_blueprint(meta_endpoint)
 
     app.config["SWAGGER"] = {
