@@ -1,8 +1,8 @@
 diff --git a/dist/node/chunks/node.js b/dist/node/chunks/node.js
-index 6aae7eea37a45fd8ddde7b86a4a59dac09c0ee46..50846c3eabe33bd62779affc1f79f95a5f3b3158 100644
+index a47acb481201378367b65c6fe8705656188068b0..a4eb64727952ce037ef508bb10c21359f574ea36 100644
 --- a/dist/node/chunks/node.js
 +++ b/dist/node/chunks/node.js
-@@ -4127,7 +4127,8 @@ function oxcPlugin(config) {
+@@ -7705,7 +7705,8 @@ function oxcPlugin(config) {
  	const getModifiedOxcTransformOptions = (oxcTransformOptions, id, code, environment) => {
  		const result = {
  			...oxcTransformOptions,
@@ -12,7 +12,7 @@ index 6aae7eea37a45fd8ddde7b86a4a59dac09c0ee46..50846c3eabe33bd62779affc1f79f95a
  		};
  		const jsxOptions = result.jsx;
  		const [filepath] = id.split("?");
-@@ -4143,21 +4144,6 @@ function oxcPlugin(config) {
+@@ -7721,22 +7722,6 @@ function oxcPlugin(config) {
  	return {
  		name: "vite:oxc",
  		applyToEnvironment(environment) {
@@ -22,6 +22,7 @@ index 6aae7eea37a45fd8ddde7b86a4a59dac09c0ee46..50846c3eabe33bd62779affc1f79f95a
 -				transformOptions.sourcemap = environment.config.mode !== "build" || !!environment.config.build.sourcemap;
 -				return viteTransformPlugin({
 -					root: environment.config.root,
+-					tsconfig: environment.config.tsconfig,
 -					include,
 -					exclude,
 -					jsxRefreshInclude,
