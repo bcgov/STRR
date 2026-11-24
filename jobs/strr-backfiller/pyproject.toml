@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-backfiller"
-version = "1.0.5"
+version = "1.0.6"
 description = ""
 authors = []
 packages = [{include = "backfiller", from = "src"}]
@@ -20,7 +20,7 @@ gunicorn = "^22.0.0"
 pg8000 = "^1.31.2"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "f9efef8145aba99ec598c08341d3723ab4c569b0", subdirectory = "strr-api"}
+strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "3991b14bd467148c691e858ac2a92ef623e7a5b3", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 
 [tool.poetry.group.test.dependencies]
