@@ -197,6 +197,29 @@ def test_update_registrations_skips_when_noc_end_after_cutoff(mocker, job_app):
     registration.save.assert_not_called()
 
 
+def test_update_registrations_skips_when_no_nocs(mocker, job_app, caplog):
+    registration = MagicMock()
+    registration.id = 302
+    registration.nocs = []
+    registration.noc_status = RegistrationNocStatus.NOC_PENDING
+    registration.save = MagicMock()
+
+    filter_result = MagicMock()
+    filter_result.all.return_value = [registration]
+    query_mock = MagicMock()
+    query_mock.filter.return_value = filter_result
+
+    with job_app.app_context():
+        with patch("noc_expiry.job.Registration.query", query_mock):
+            with caplog.at_level(logging.WARNING):
+                update_noc_status_for_expired_registrations(job_app)
+
+    assert registration.noc_status == RegistrationNocStatus.NOC_PENDING
+    registration.save.assert_not_called()
+    assert "no notice of consideration found" in caplog.text
+    assert "Unexpected error" not in caplog.text
+
+
 def test_run_invokes_both_updaters(mocker):
     mock_app = MagicMock()
     cm = MagicMock()
