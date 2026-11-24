@@ -87,6 +87,11 @@ def update_noc_status_for_expired_registrations(app):
     for registration in registrations:
         try:
             app.logger.info(f"Processing registration # {str(registration.id)}")
+            if not registration.nocs:
+                app.logger.warning(
+                    f"Skipping registration {str(registration.id)}: NOC pending but no notice of consideration found"
+                )
+                continue
             noc = max(registration.nocs, key=lambda noc: noc.start_date)
             cut_off_datetime = DateUtil.as_legislation_timezone(datetime.utcnow())
             if noc.end_date < cut_off_datetime:
