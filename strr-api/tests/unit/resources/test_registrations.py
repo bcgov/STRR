@@ -3082,3 +3082,265 @@ def test_search_registrations_review_renew_excludes_registration_with_decider(
         assert rv.status_code == HTTPStatus.OK
         registrations = rv.json
         assert len(registrations.get("registrations")) == 0
+
+
+def _create_approved_host_registration(client, jwt):
+    """Helper to create and approve a host registration via API."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.post("/applications", json=json_data, headers=headers)
+    assert HTTPStatus.OK == rv.status_code
+    application_number = rv.json.get("header").get("applicationNumber")
+
+    application = Application.find_by_application_number(application_number=application_number)
+    application.payment_status = PaymentStatus.COMPLETED.value
+    application.status = Application.Status.FULL_REVIEW
+    application.save()
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    rv = client.put(
+        f"/applications/{application_number}/status",
+        json={"status": Application.Status.FULL_REVIEW_APPROVED},
+        headers=staff_headers,
+    )
+    assert HTTPStatus.OK == rv.status_code
+    registration_number = rv.json.get("header").get("registrationNumber")
+    registration = Registration.query.filter_by(registration_number=registration_number).one()
+    return application, registration, staff_headers
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_review_renew_with_assignee_and_empty_filters(mock_create_invoice, session, client, jwt):
+    """Test reviewRenew=true combined with assignee filter and whitespace filter sanitization."""
+    from nanoid import generate
+
+    application, registration, staff_headers = _create_approved_host_registration(client, jwt)
+    registration_number = registration.registration_number
+
+    examiner_user = User.query.filter_by(id=registration.reviewer_id).one_or_none()
+    if not examiner_user:
+        examiner_user = User(
+            username="examiner_446",
+            firstname="Test",
+            lastname="Examiner",
+            iss="test",
+            sub="examiner_446",
+            idp_userid="examiner_446",
+            login_source="IDIR",
+        )
+        session.add(examiner_user)
+        session.flush()
+        registration.reviewer_id = examiner_user.id
+    registration.decider_id = None
+    session.add(registration)
+
+    session.refresh(application)
+    renewal_app = Application(
+        application_json=application.application_json,
+        application_number=generate(alphabet="0123456789", size=14),
+        type=ApplicationType.RENEWAL.value,
+        registration_type=application.registration_type,
+        status=Application.Status.PROVISIONALLY_APPROVED.value,
+        registration_id=registration.id,
+        decider_id=None,
+        application_date=application.application_date + timedelta(seconds=1),
+    )
+    session.add(renewal_app)
+    session.commit()
+
+    # Combined reviewRenew=true + assignee filter matches
+    rv = client.get(
+        f"/registrations/search?reviewRenew=true&assignee={examiner_user.username}&recordNumber={registration_number}",
+        headers=staff_headers,
+    )
+    assert rv.status_code == HTTPStatus.OK
+    assert len(rv.json.get("registrations")) == 1
+
+    # Non-matching assignee excludes it
+    rv = client.get(
+        f"/registrations/search?reviewRenew=true&assignee=nonexistent_user_xyz&recordNumber={registration_number}",
+        headers=staff_headers,
+    )
+    assert rv.status_code == HTTPStatus.OK
+    assert len(rv.json.get("registrations")) == 0
+
+    # Whitespace-only assignee and recordNumber are ignored rather than breaking or scanning
+    rv = client.get(
+        "/registrations/search?reviewRenew=true&assignee=%20%20%20&recordNumber=%20%20%20",
+        headers=staff_headers,
+    )
+    assert rv.status_code == HTTPStatus.OK
+    assert any(r["registrationNumber"] == registration_number for r in rv.json.get("registrations"))
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_skips_gcs_and_uses_db_added_on_timestamp(mock_create_invoice, session, client, jwt):
+    """Search does not call GCS and returns ISO datetime from documents.added_on."""
+    from datetime import timezone
+
+    _, registration, staff_headers = _create_approved_host_registration(client, jwt)
+    registration_number = registration.registration_number
+    registration.noc_status = RegistrationNocStatus.NOC_PENDING
+    session.add(registration)
+
+    precise_ts = datetime(2026, 11, 10, 14, 35, 22, tzinfo=timezone.utc)
+    doc = Document(
+        file_name="proof.pdf",
+        file_type="application/pdf",
+        path="gcs-key-446",
+        document_type=Document.DocumentType.OTHERS,
+        added_on=precise_ts,
+        registration_id=registration.id,
+    )
+    session.add(doc)
+    session.commit()
+
+    with patch(
+        "strr_api.services.gcp_storage_service.GCPStorageService.get_batch_registration_document_creation_times"
+    ) as mock_gcs:
+        rv = client.get(f"/registrations/search?recordNumber={registration_number}", headers=staff_headers)
+        assert rv.status_code == HTTPStatus.OK
+        mock_gcs.assert_not_called()
+
+    regs = rv.json.get("registrations")
+    assert len(regs) == 1
+    matching_doc = next(d for d in regs[0]["documents"] if d["fileKey"] == "gcs-key-446")
+    assert matching_doc["addedOn"].startswith("2026-11-10T14:35:22")
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_upload_document_to_registration_persists_datetime_added_on(mock_create_invoice, session, client, jwt):
+    """Uploading a document persists timezone-aware datetime in documents.added_on."""
+    from strr_api.services import RegistrationService
+
+    _, registration, _ = _create_approved_host_registration(client, jwt)
+    user = User.query.first()
+    RegistrationService.upload_document_to_registration(
+        registration=registration,
+        file_name="new-doc.pdf",
+        file_type="application/pdf",
+        file_key="new-doc-key-446",
+        document_type=Document.DocumentType.OTHERS,
+        user=user,
+    )
+    uploaded = Document.query.filter_by(path="new-doc-key-446").one()
+    assert isinstance(uploaded.added_on, datetime)
+    assert uploaded.added_on.tzinfo is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_bounded_query_count(mock_create_invoice, session, client, jwt):
+    """RegistrationService.search_registrations executes < 8 SQL queries regardless of result count."""
+    from datetime import timezone
+
+    from sqlalchemy import event
+
+    from strr_api.models import db
+    from strr_api.models.dataclass import RegistrationSearch
+    from strr_api.services import RegistrationService
+
+    for _ in range(3):
+        _, registration, _ = _create_approved_host_registration(client, jwt)
+        session.add(
+            Document(
+                file_name="doc.pdf",
+                file_type="application/pdf",
+                path=f"key-{registration.id}",
+                document_type=Document.DocumentType.OTHERS,
+                added_on=datetime.now(timezone.utc),
+                registration_id=registration.id,
+            )
+        )
+    session.commit()
+
+    query_count = 0
+
+    def _count_queries(_conn, _cursor, _statement, _parameters, _context, _executemany):
+        nonlocal query_count
+        query_count += 1
+
+    event.listen(db.engine, "before_cursor_execute", _count_queries)
+    try:
+        result = RegistrationService.search_registrations(RegistrationSearch(page=1, limit=50))
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count_queries)
+
+    assert len(result["registrations"]) >= 3
+    assert query_count <= 12, f"Expected <= 12 O(1) SQL queries, got {query_count}"
+
+    # Adding more registrations must not increase query count (no N+1)
+    for _ in range(3):
+        _, registration, _ = _create_approved_host_registration(client, jwt)
+        session.add(
+            Document(
+                file_name="doc2.pdf",
+                file_type="application/pdf",
+                path=f"key-extra-{registration.id}",
+                document_type=Document.DocumentType.OTHERS,
+                added_on=datetime.now(timezone.utc),
+                registration_id=registration.id,
+            )
+        )
+    session.commit()
+
+    query_count_more = 0
+
+    def _count_more(_conn, _cursor, _statement, _parameters, _context, _executemany):
+        nonlocal query_count_more
+        query_count_more += 1
+
+    event.listen(db.engine, "before_cursor_execute", _count_more)
+    try:
+        result_more = RegistrationService.search_registrations(RegistrationSearch(page=1, limit=50))
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count_more)
+
+    assert len(result_more["registrations"]) >= 6
+    assert query_count_more == query_count, f"Expected O(1) queries ({query_count}), got {query_count_more}"
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_list_applications_bounded_query_count(mock_create_invoice, session, client, jwt):
+    """Application.find_by_account + ApplicationSerializer.to_dict executes O(1) <= 8 SQL queries."""
+    from sqlalchemy import event
+
+    from strr_api.models import db
+    from strr_api.models.application import ApplicationSerializer
+    from strr_api.models.dataclass import ApplicationSearch
+
+    for _ in range(3):
+        _create_approved_host_registration(client, jwt)
+
+    query_count = [0]
+
+    def _count(_conn, _cursor, _statement, _parameters, _context, _executemany):
+        query_count[0] += 1
+
+    event.listen(db.engine, "before_cursor_execute", _count)
+    try:
+        paginated = Application.find_by_account(None, ApplicationSearch(page=1, limit=50), is_examiner=True)
+        serialized = [ApplicationSerializer.to_dict(app) for app in paginated.items]
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count)
+
+    assert len(serialized) >= 3
+    assert query_count[0] <= 8, f"Expected <= 8 O(1) SQL queries, got {query_count[0]}"
+    first_count = query_count[0]
+
+    for _ in range(3):
+        _create_approved_host_registration(client, jwt)
+
+    query_count[0] = 0
+    event.listen(db.engine, "before_cursor_execute", _count)
+    try:
+        paginated_more = Application.find_by_account(None, ApplicationSearch(page=1, limit=50), is_examiner=True)
+        serialized_more = [ApplicationSerializer.to_dict(app) for app in paginated_more.items]
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count)
+
+    assert len(serialized_more) >= 6
+    assert query_count[0] == first_count, f"Expected O(1) queries ({first_count}), got {query_count[0]}"

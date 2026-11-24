@@ -16,6 +16,8 @@ Fork the repo and submitted a PR with accompanying tests.
 * `BACKFILL_INTERACTION_RECIPIENTS_BATCH_SIZE=1000` - Batch size (default: 1000)
 * `BACKFILL_REGISTRATION_SEARCH=true` - Enable registration search backfiller
 * `BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE=100` - Batch size (default: 100)
+* `BACKFILL_DOCUMENT_ADDED_ON=true` - Enable document `added_on` timestamp backfiller from GCS
+* `BACKFILL_DOCUMENT_ADDED_ON_BATCH_SIZE=100` - Batch size (default: 100)
 
 Set to use the local repo for the virtual environment
 ```bash

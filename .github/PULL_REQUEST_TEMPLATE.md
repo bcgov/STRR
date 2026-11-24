@@ -1,9 +1,13 @@
 _Issue:_
 
-- Github: https://github.com/bcgov/strr/issues/
 - JIRA: https://hous-hpb.atlassian.net/browse/REGBACKLOG-<id>
 
 _Description of changes:_
+
+_How this was tested:_
+
+- Unit / integration tests run:
+- Manual / local / DB verification:
 
 ---
 

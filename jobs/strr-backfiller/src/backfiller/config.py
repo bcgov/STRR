@@ -106,6 +106,18 @@ class _Config:  # pylint: disable=too-few-public-methods
     BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE = int(
         os.getenv("BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE") or "100"
     )
+    BACKFILL_DOCUMENT_ADDED_ON = (
+        os.getenv("BACKFILL_DOCUMENT_ADDED_ON", "False").lower() == "true"
+    )
+    BACKFILL_DOCUMENT_ADDED_ON_BATCH_SIZE = int(
+        os.getenv("BACKFILL_DOCUMENT_ADDED_ON_BATCH_SIZE") or "1000"
+    )
+
+    # GCP STORAGE
+    GCP_CS_PROJECT_ID = os.getenv("GCP_CS_PROJECT_ID")
+    GCP_CS_BUCKET_ID = os.getenv("GCP_CS_BUCKET_ID")
+    GCP_AUTH_KEY = os.getenv("GCP_AUTH_KEY")
+    GCP_CS_SA_SCOPE = os.getenv("GCP_CS_SA_SCOPE")
 
     # GEOCODER
     GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")

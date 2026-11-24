@@ -154,9 +154,21 @@ class GCPStorageService:
             bucket = storage_client.bucket(bucket_id)
             blobs = {name: bucket.blob(name) for name in blob_names}
             # send all requests as one HTTP batch when the block exits
-            with storage_client.batch():
+            try:
+                with storage_client.batch():
+                    for blob in blobs.values():
+                        blob.reload()  # fetch metadata without downloading file content
+            except Exception as batch_err:  # pylint: disable=broad-except
+                logger.debug(
+                    "Batch reload encountered error (%s); falling back to per-blob reload",
+                    batch_err,
+                )
+                blobs = {name: bucket.blob(name) for name in blob_names}
                 for blob in blobs.values():
-                    blob.reload()  # fetch metadata without downloading file content
+                    try:
+                        blob.reload()
+                    except Exception as blob_err:  # pylint: disable=broad-except
+                        logger.debug("Could not get creation time for blob %s: %s", blob.name, blob_err)
             result = {}
             for name, blob in blobs.items():
                 if blob.time_created:
@@ -167,6 +179,17 @@ class GCPStorageService:
         except Exception as e:
             logger.debug("Could not batch get creation times for blobs: %s", e)
             return {}
+
+    @classmethod
+    def list_registration_document_creation_times(cls) -> dict:
+        """List creation timestamps for all blobs in the registration documents bucket."""
+        storage_client = cls._create_storage_client()
+        bucket_id = current_app.config.get("GCP_CS_BUCKET_ID")
+        blobs = storage_client.list_blobs(
+            bucket_id,
+            fields="items(name,timeCreated),nextPageToken",
+        )
+        return {blob.name: blob.time_created for blob in blobs if blob.time_created}
 
     @classmethod
     def upload_file(cls, file_type, file_contents, bucket_id, metadata=None):

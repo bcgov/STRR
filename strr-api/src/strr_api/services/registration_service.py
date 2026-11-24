@@ -48,7 +48,8 @@ import random
 import re
 import traceback
 from copy import deepcopy
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
+from time import perf_counter
 from typing import Any, Optional
 
 from dateutil import parser
@@ -642,6 +643,7 @@ class RegistrationService:
         sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
         sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]
         query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
+        query = Registration.apply_serialization_eager_loading(query)
         paginated_result = query.paginate(per_page=limit, page=offset)
         # pylint: disable=import-outside-toplevel
         from strr_api.models.application import Application
@@ -651,24 +653,10 @@ class RegistrationService:
             paginated_result.items, application_model=Application, known_filter=has_email_failure
         )
 
-        search_results = []
-        noc_reg_dicts = []
-        all_file_keys = []
-        for registration in paginated_result.items:
-            reg_dict = RegistrationService.serialize(registration)
-            search_results.append(reg_dict)
-            if registration.noc_status:
-                noc_reg_dicts.append(reg_dict)
-                all_file_keys.extend(doc["fileKey"] for doc in reg_dict.get("documents", []) if doc.get("fileKey"))
-
-        timestamps = GCPStorageService.get_batch_registration_document_creation_times(all_file_keys)
-        for reg_dict in noc_reg_dicts:
-            RegistrationService._apply_document_timestamps(reg_dict, timestamps)
-
         return {
             "page": offset,
             "limit": limit,
-            "registrations": search_results,
+            "registrations": RegistrationService.serialize_many(paginated_result.items),
             "total": paginated_result.total,
         }
 
@@ -768,9 +756,41 @@ class RegistrationService:
         return query.order_by(Certificate.issued_date.desc()).limit(1).one_or_none()
 
     @classmethod
-    def serialize(cls, registration: Registration) -> dict:
+    def serialize(cls, registration: Registration, applications: list | None = None) -> dict:
         """Returns registration JSON."""
-        return RegistrationSerializer.serialize(registration=registration)
+        return RegistrationSerializer.serialize(registration=registration, applications=applications)
+
+    @classmethod
+    def serialize_many(cls, registrations: list[Registration]) -> list[dict]:
+        """Serialize a page of registrations using a single batched applications query (no N+1)."""
+        # pylint: disable=import-outside-toplevel
+        from sqlalchemy.orm import joinedload
+
+        from strr_api.models.application import Application
+
+        if not registrations:
+            return []
+
+        batch_apps_start = perf_counter()
+        apps_by_reg_id: dict[int, list[Application]] = {}
+        prefetched_apps = (
+            Application.query.filter(Application.registration_id.in_([reg.id for reg in registrations]))
+            .options(joinedload(Application.reviewer), joinedload(Application.decider))
+            .all()
+        )
+        for application in prefetched_apps:
+            apps_by_reg_id.setdefault(application.registration_id, []).append(application)
+        batch_apps_ms = (perf_counter() - batch_apps_start) * 1000
+
+        serialize_start = perf_counter()
+        results = [cls.serialize(reg, applications=apps_by_reg_id.get(reg.id, [])) for reg in registrations]
+        logger.info(
+            "RegistrationService.serialize_many batch_apps=%.2fms serialize=%.2fms count=%d",
+            batch_apps_ms,
+            (perf_counter() - serialize_start) * 1000,
+            len(results),
+        )
+        return results
 
     @classmethod
     def enrich_document_added_on_from_gcp(cls, registration_dict: dict) -> None:
@@ -1229,7 +1249,7 @@ class RegistrationService:
         document.path = file_key
         document.document_type = document_type
         document.registration_id = registration.id
-        document.added_on = date.today()
+        document.added_on = datetime.now(timezone.utc)
 
         registration_documents.append(document)
         registration.documents = registration_documents
@@ -1303,31 +1323,25 @@ class RegistrationService:
     @staticmethod
     def search_registrations(filter_criteria: RegistrationSearch) -> dict:
         """List all registrations matching the search criteria."""
-        paginated_result = Registration.search_registrations(filter_criteria)
         # pylint: disable=import-outside-toplevel
         from strr_api.models.application import Application
         from strr_api.models.interactions import CustomerInteraction
+
+        total_start = perf_counter()
+        paginated_result = Registration.search_registrations(filter_criteria)
 
         CustomerInteraction.populate_registration_email_failure_flags(
             paginated_result.items,
             application_model=Application,
             known_filter=filter_criteria.has_email_failure,
         )
-        search_results = []
-        noc_reg_dicts = []
-        all_file_keys = []
-        for item in paginated_result.items:
-            reg_dict = RegistrationService.serialize(item)
-            search_results.append(reg_dict)
-            if item.noc_status:
-                noc_reg_dicts.append(reg_dict)
-                for doc in reg_dict.get("documents", []):
-                    if fk := doc.get("fileKey"):
-                        all_file_keys.append(fk)
-
-        timestamps = GCPStorageService.get_batch_registration_document_creation_times(all_file_keys)
-        for reg_dict in noc_reg_dicts:
-            RegistrationService._apply_document_timestamps(reg_dict, timestamps)
+        search_results = RegistrationService.serialize_many(paginated_result.items)
+        logger.info(
+            "RegistrationService.search_registrations total=%.2fms count=%d total_records=%d",
+            (perf_counter() - total_start) * 1000,
+            len(search_results),
+            paginated_result.total,
+        )
 
         return {
             "page": filter_criteria.page,
