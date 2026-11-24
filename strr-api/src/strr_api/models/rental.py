@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+import time
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from sql_versioning import Versioned
 from sqlalchemy import Boolean, Enum, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import joinedload, relationship, selectinload
 from sqlalchemy_utils.types.ts_vector import TSVectorType
 
 from strr_api.common.enum import BaseEnum, auto
@@ -26,6 +28,8 @@ from .db import db
 # Avoid Circular Import Error
 if TYPE_CHECKING:
     from strr_api.models.dataclass import RegistrationSearch
+
+logger = logging.getLogger("api")
 
 
 class Registration(Versioned, BaseModel):
@@ -142,54 +146,137 @@ class Registration(Versioned, BaseModel):
             postgresql_where=db.text("is_set_aside = true"),
         ),
         db.Index("ix_registrations_decider_id", "decider_id"),
+        db.Index(
+            "ix_registrations_reviewer_id",
+            "reviewer_id",
+            postgresql_where=db.text("reviewer_id IS NOT NULL"),
+        ),
     )
 
     @classmethod
     def search_registrations(cls, filter_criteria: RegistrationSearch):
         """Returns the registrations matching the search criteria."""
+        start_time = time.perf_counter()
         query = cls.query
         query = cls._apply_base_search_filters(query, filter_criteria)
         if filter_criteria.requirements:
             query = cls._filter_by_registration_requirement(filter_criteria.requirements, query)
-        if filter_criteria.local_gov:
+        local_gov = filter_criteria.local_gov.strip() if filter_criteria.local_gov else None
+        if local_gov:
             query = query.join(RentalProperty, Registration.id == RentalProperty.registration_id).filter(
-                RentalProperty.jurisdiction.ilike(f"%{filter_criteria.local_gov}%")
+                RentalProperty.jurisdiction.ilike(f"%{local_gov}%")
             )
-        sub_status_conditions = cls._collect_sub_status_conditions(filter_criteria)
+        query, sub_status_conditions = cls._collect_sub_status_conditions(filter_criteria, query)
         if sub_status_conditions:
             query = query.filter(db.or_(*sub_status_conditions))
+        query = cls.apply_serialization_eager_loading(query)
         sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
         else:
             query = query.order_by(sort_column.desc())
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        sql_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(
+            "Registration.search_registrations sql_query=%.2fms count=%d total=%d",
+            sql_ms,
+            len(paginated_result.items),
+            paginated_result.total,
+        )
         return paginated_result
+
+    @classmethod
+    def apply_serialization_eager_loading(cls, query):
+        """Attach joinedload/selectinload options for RegistrationSerializer to avoid N+1 queries."""
+        # pylint: disable=import-outside-toplevel
+        from strr_api.models.platforms import Platform, PlatformRegistration, PlatformRepresentative
+        from strr_api.models.strata_hotels import (
+            StrataHotel,
+            StrataHotelBuilding,
+            StrataHotelRegistration,
+            StrataHotelRepresentative,
+        )
+        from strr_api.models.user import Contact
+
+        return query.options(
+            joinedload(Registration.reviewer),
+            joinedload(Registration.decider),
+            joinedload(Registration.conditionsOfApproval),
+            joinedload(Registration.rental_property).joinedload(RentalProperty.address),
+            joinedload(Registration.rental_property)
+            .joinedload(RentalProperty.property_manager)
+            .joinedload(PropertyManager.primary_contact)
+            .joinedload(Contact.address),
+            joinedload(Registration.rental_property)
+            .joinedload(RentalProperty.property_manager)
+            .joinedload(PropertyManager.business_mailing_address),
+            joinedload(Registration.rental_property)
+            .selectinload(RentalProperty.contacts)
+            .joinedload(PropertyContact.contact)
+            .joinedload(Contact.address),
+            joinedload(Registration.rental_property).selectinload(RentalProperty.property_listings),
+            joinedload(Registration.platform_registration)
+            .joinedload(PlatformRegistration.platform)
+            .joinedload(Platform.mailingAddress),
+            joinedload(Registration.platform_registration)
+            .joinedload(PlatformRegistration.platform)
+            .joinedload(Platform.registered_office_attorney_mailing_address),
+            joinedload(Registration.platform_registration)
+            .joinedload(PlatformRegistration.platform)
+            .selectinload(Platform.representatives)
+            .joinedload(PlatformRepresentative.contact)
+            .joinedload(Contact.address),
+            joinedload(Registration.platform_registration)
+            .joinedload(PlatformRegistration.platform)
+            .selectinload(Platform.brands),
+            joinedload(Registration.strata_hotel_registration)
+            .joinedload(StrataHotelRegistration.strata_hotel)
+            .joinedload(StrataHotel.mailingAddress),
+            joinedload(Registration.strata_hotel_registration)
+            .joinedload(StrataHotelRegistration.strata_hotel)
+            .joinedload(StrataHotel.registered_office_attorney_mailing_address),
+            joinedload(Registration.strata_hotel_registration)
+            .joinedload(StrataHotelRegistration.strata_hotel)
+            .joinedload(StrataHotel.location),
+            joinedload(Registration.strata_hotel_registration)
+            .joinedload(StrataHotelRegistration.strata_hotel)
+            .selectinload(StrataHotel.representatives)
+            .joinedload(StrataHotelRepresentative.contact)
+            .joinedload(Contact.address),
+            joinedload(Registration.strata_hotel_registration)
+            .joinedload(StrataHotelRegistration.strata_hotel)
+            .selectinload(StrataHotel.buildings)
+            .joinedload(StrataHotelBuilding.address),
+            selectinload(Registration.documents),
+            selectinload(Registration.nocs),
+            selectinload(Registration.snapshots),
+        )
 
     @classmethod
     def _apply_base_search_filters(cls, query, filter_criteria: RegistrationSearch):
         """Apply common registration filters before specialized filters."""
         if filter_criteria.account_id:
             query = query.filter(Registration.sbc_account_id == filter_criteria.account_id)
-        if filter_criteria.search_text:
+        search_text = filter_criteria.search_text.strip() if filter_criteria.search_text else None
+        if search_text:
             query = query.filter(
                 db.or_(
-                    Registration.registration_tsv.match(filter_criteria.search_text),
-                    Registration.registration_number.ilike(f"%{filter_criteria.search_text}%"),
+                    Registration.registration_tsv.match(search_text),
+                    Registration.registration_number.ilike(f"%{search_text}%"),
                 )
             )
         if filter_criteria.statuses:
             query = query.filter(Registration.status.in_(filter_criteria.statuses))
         if filter_criteria.registration_types:
             query = query.filter(Registration.registration_type.in_(filter_criteria.registration_types))
-        if filter_criteria.record_number:
-            query = query.filter(Registration.registration_number.ilike(f"%{filter_criteria.record_number}%"))
-        if filter_criteria.assignee:
+        record_number = filter_criteria.record_number.strip() if filter_criteria.record_number else None
+        if record_number:
+            query = query.filter(Registration.registration_number.ilike(f"%{record_number}%"))
+        assignee = filter_criteria.assignee.strip() if filter_criteria.assignee else None
+        if assignee:
             from strr_api.models import User  # pylint: disable=import-outside-toplevel
 
-            query = query.join(User, Registration.reviewer_id == User.id).filter(
-                User.username.ilike(f"%{filter_criteria.assignee}%")
-            )
+            query = query.join(User, Registration.reviewer_id == User.id).filter(User.username.ilike(f"%{assignee}%"))
         query = cls.apply_email_failure_filter(query, filter_criteria.has_email_failure)
         return query
 
@@ -208,14 +295,53 @@ class Registration(Versioned, BaseModel):
         return query.filter(failure_expr if has_email_failure else ~failure_expr)
 
     @classmethod
-    def _collect_sub_status_conditions(cls, filter_criteria: RegistrationSearch):
-        """Collect OR conditions for registration sub-status filters."""
+    def _collect_sub_status_conditions(cls, filter_criteria: RegistrationSearch, query):
+        """Collect OR conditions for registration sub-status filters using set-based joins."""
+        # pylint: disable=import-outside-toplevel
+        from strr_api.enums.enum import ApplicationType
+        from strr_api.models.application import Application
+
         sub_status_conditions = []
+        needs_latest_app = bool(filter_criteria.approval_methods) or filter_criteria.review_renew is True
+        needs_renewal_regs = filter_criteria.review_renew is True or (
+            bool(filter_criteria.approval_methods) and filter_criteria.examiner_reviewed is False
+        )
+
+        latest_app = None
+        if needs_latest_app:
+            latest_app = (
+                select(
+                    Application.registration_id.label("registration_id"),
+                    Application.status.label("status"),
+                    Application.decider_id.label("decider_id"),
+                )
+                .where(Application.registration_id.isnot(None))
+                .distinct(Application.registration_id)
+                .order_by(Application.registration_id, Application.application_date.desc(), Application.id.desc())
+                .subquery("latest_app")
+            )
+            query = query.outerjoin(latest_app, latest_app.c.registration_id == Registration.id)
+
+        renewal_regs = None
+        if needs_renewal_regs:
+            renewal_regs = (
+                select(Application.registration_id.label("registration_id"))
+                .where(
+                    Application.registration_id.isnot(None),
+                    Application.type == ApplicationType.RENEWAL.value,
+                )
+                .distinct()
+                .subquery("renewal_regs")
+            )
+            query = query.outerjoin(renewal_regs, renewal_regs.c.registration_id == Registration.id)
+
         if filter_criteria.approval_methods:
             sub_status_conditions.append(
                 cls._approval_method_condition(
                     filter_criteria.approval_methods,
                     filter_criteria.examiner_reviewed,
+                    latest_app=latest_app,
+                    renewal_regs=renewal_regs,
                 )
             )
         if filter_criteria.noc_statuses:
@@ -223,8 +349,8 @@ class Registration(Versioned, BaseModel):
         if filter_criteria.is_set_aside is True:
             sub_status_conditions.append(Registration.is_set_aside == db.true())
         if filter_criteria.review_renew is True:
-            sub_status_conditions.append(cls._review_renew_condition())
-        return sub_status_conditions
+            sub_status_conditions.append(cls._review_renew_condition(latest_app=latest_app, renewal_regs=renewal_regs))
+        return query, sub_status_conditions
 
     @classmethod
     def _latest_application_field_subquery(cls, application_model, application_field):
@@ -512,27 +638,46 @@ class Registration(Versioned, BaseModel):
         return query
 
     @classmethod
-    def _approval_method_condition(cls, approval_methods: list[str], examiner_reviewed: bool | None = None):
+    def _approval_method_condition(
+        cls,
+        approval_methods: list[str],
+        examiner_reviewed: bool | None = None,
+        latest_app=None,
+        renewal_regs=None,
+    ):
         """Build SQL condition for filtering by latest application status and review state."""
         from strr_api.models.application import Application
 
-        # For each registration, evaluate only the latest application (same ordering
-        # used by the dashboard payload). This keeps filtering aligned with what users
-        # see in the Sub-Status column.
-        latest_app_status_subq = cls._latest_application_field_subquery(Application, Application.status)
-        approval_status_condition = latest_app_status_subq.in_(approval_methods)
+        latest_app_status = (
+            latest_app.c.status
+            if latest_app is not None
+            else cls._latest_application_field_subquery(Application, Application.status)
+        )
+        approval_status_condition = latest_app_status.in_(approval_methods)
         if examiner_reviewed is None:
-            # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
 
-        latest_app_decider_subq = cls._latest_application_field_subquery(Application, Application.decider_id)
+        latest_app_decider = (
+            latest_app.c.decider_id
+            if latest_app is not None
+            else cls._latest_application_field_subquery(Application, Application.decider_id)
+        )
 
         # Review state can be represented by either:
         # - registration level decision (newer flow)
         # - latest application level decision (legacy flow)
         reviewed_condition = db.or_(
             Registration.decider_id.isnot(None),
-            latest_app_decider_subq.isnot(None),
+            latest_app_decider.isnot(None),
+        )
+        not_reviewed_condition = db.and_(
+            Registration.decider_id.is_(None),
+            latest_app_decider.is_(None),
+        )
+        no_renewal_condition = (
+            renewal_regs.c.registration_id.is_(None)
+            if renewal_regs is not None
+            else db.not_(cls._has_renewal_filed_condition())
         )
 
         # examinerReviewed only applies to provisional workflow statuses.
@@ -546,17 +691,17 @@ class Registration(Versioned, BaseModel):
         filter_conditions = []
         if terminal_approval_methods:
             # AUTO_APPROVED/FULL_REVIEW_APPROVED are approved regardless of decider.
-            filter_conditions.append(latest_app_status_subq.in_(terminal_approval_methods))
+            filter_conditions.append(latest_app_status.in_(terminal_approval_methods))
 
         if provisional_approval_methods:
-            provisional_status_condition = latest_app_status_subq.in_(provisional_approval_methods)
+            provisional_status_condition = latest_app_status.in_(provisional_approval_methods)
             filter_conditions.append(
                 db.and_(provisional_status_condition, reviewed_condition)
                 if examiner_reviewed
                 else db.and_(
                     provisional_status_condition,
-                    db.not_(reviewed_condition),
-                    db.not_(cls._has_renewal_filed_condition()),
+                    not_reviewed_condition,
+                    no_renewal_condition,
                 )
             )
 
@@ -565,7 +710,7 @@ class Registration(Versioned, BaseModel):
         return db.or_(*filter_conditions)
 
     @classmethod
-    def _review_renew_condition(cls):
+    def _review_renew_condition(cls, latest_app=None, renewal_regs=None):
         """Build SQL condition for renewals requiring human review.
 
         A registration matches when all are true:
@@ -579,12 +724,21 @@ class Registration(Versioned, BaseModel):
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
-        latest_app_decider_subq = cls._latest_application_field_subquery(Application, Application.decider_id)
+        latest_app_decider = (
+            latest_app.c.decider_id
+            if latest_app is not None
+            else cls._latest_application_field_subquery(Application, Application.decider_id)
+        )
+        has_renewal = (
+            renewal_regs.c.registration_id.isnot(None)
+            if renewal_regs is not None
+            else cls._has_renewal_filed_condition()
+        )
         return db.and_(
-            cls._has_renewal_filed_condition(),
+            has_renewal,
             Registration.decider_id.is_(None),
-            latest_app_decider_subq.is_(None),
-            cls._approval_method_condition(provisional_statuses),
+            latest_app_decider.is_(None),
+            cls._approval_method_condition(provisional_statuses, latest_app=latest_app, renewal_regs=renewal_regs),
         )
 
     @classmethod
@@ -793,7 +947,7 @@ class Document(Versioned, BaseModel):
     file_type = db.Column(db.String, nullable=False)  # e.g., 'application/pdf', 'image/jpeg', etc.
     path = db.Column(db.String, nullable=False)
     document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS, index=True)
-    added_on = db.Column(db.Date, nullable=True)
+    added_on = db.Column(db.DateTime(timezone=True), nullable=True)
     parsed_data = db.Column("parsed_data", JSONB, nullable=True)
     parsing_error = db.Column("parsing_error", JSONB, nullable=True)
 

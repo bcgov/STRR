@@ -138,6 +138,12 @@ class Application(BaseModel):
             "registration_id",
             application_date.desc(),
         ),
+        db.Index(
+            "ix_application_registration_id_type",
+            "registration_id",
+            "type",
+            postgresql_where=db.text("registration_id IS NOT NULL"),
+        ),
     )
 
     submitter = db.relationship(

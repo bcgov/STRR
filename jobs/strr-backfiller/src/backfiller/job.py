@@ -15,17 +15,25 @@
 
 import logging
 import os
+import time
 from copy import deepcopy
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sqlalchemy import case, extract, func, or_
 from strr_api.enums.enum import StrataHotelCategory
 from strr_api.models import db
 from strr_api.models.application import Application
-from strr_api.models.rental import PropertyManager, Registration, RentalProperty
+from strr_api.models.rental import (
+    Document,
+    PropertyManager,
+    Registration,
+    RentalProperty,
+)
 from strr_api.models.strata_hotels import StrataHotel
 from strr_api.responses.RegistrationSerializer import RegistrationSerializer
 from strr_api.services import ApprovalService, RegistrationService
+from strr_api.services.gcp_storage_service import GCPStorageService
 
 from backfiller.config import CONFIGURATION
 from backfiller.utils.logging import setup_logging
@@ -374,12 +382,160 @@ def backfill_interaction_recipients(app, batch_size=1000):
     app.logger.info(f"Total errors: {stats['total_errors']}")
 
 
+def _process_document_added_on_batch(rows, timestamps, sample_missing_keys):
+    """Apply GCS timestamps for a single keyset batch of documents."""
+    updates = []
+    batch_missing = 0
+    for doc_id, path in rows:
+        if (ts := timestamps.get(path)) is not None:
+            updates.append({"id": doc_id, "added_on": ts})
+        else:
+            batch_missing += 1
+            if len(sample_missing_keys) < 5:
+                sample_missing_keys.append(path)
+
+    if updates:
+        db.session.bulk_update_mappings(Document, updates)
+        db.session.commit()
+    return len(updates), batch_missing
+
+
+def _log_document_added_on_summary(app):
+    """Log post-backfill verification counts for documents.added_on."""
+    summary = db.session.query(
+        func.count(Document.id).label("total_docs"),
+        func.count(case((Document.added_on.is_(None), 1))).label("null_added_on"),
+        func.count(
+            case(
+                (
+                    (Document.added_on.isnot(None))
+                    & (extract("minute", Document.added_on) == 0)
+                    & (extract("second", Document.added_on) == 0),
+                    1,
+                )
+            )
+        ).label("remaining_on_hour"),
+    ).one()
+    precise_count = (
+        summary.total_docs - summary.null_added_on - summary.remaining_on_hour
+    )
+    app.logger.info(
+        "Post-backfill verification: total_docs=%d precise_timestamps=%d "
+        "null_added_on=%d remaining_on_hour=%d",
+        summary.total_docs,
+        precise_count,
+        summary.null_added_on,
+        summary.remaining_on_hour,
+    )
+
+
+def backfill_document_added_on(app, batch_size=1000):
+    """Backfill documents.added_on from GCS blob.time_created using list_blobs + keyset batching."""
+    job_start = time.perf_counter()
+    processed_count = 0
+    updated_count = 0
+    missing_in_gcs_count = 0
+    sample_missing_keys: list[str] = []
+    try:
+        bucket_id = app.config.get("GCP_CS_BUCKET_ID")
+        gcs_start = time.perf_counter()
+        timestamps = GCPStorageService.list_registration_document_creation_times()
+        app.logger.info(
+            "Loaded %d object timestamps from GCS bucket=%s in %.2fs.",
+            len(timestamps),
+            bucket_id,
+            time.perf_counter() - gcs_start,
+        )
+        if not timestamps:
+            app.logger.warning(
+                "No timestamps returned from GCS bucket=%s; skipping DB update.",
+                bucket_id,
+            )
+            return 0
+
+        missing_precision = or_(
+            Document.added_on.is_(None),
+            (
+                (extract("minute", Document.added_on) == 0)
+                & (extract("second", Document.added_on) == 0)
+            ),
+        )
+        last_id = 0
+        batch_num = 0
+        while True:
+            rows = (
+                db.session.query(Document.id, Document.path)
+                .filter(
+                    Document.id > last_id,
+                    Document.path.isnot(None),
+                    missing_precision,
+                )
+                .order_by(Document.id)
+                .limit(batch_size)
+                .all()
+            )
+            if not rows:
+                break
+
+            batch_num += 1
+            last_id = rows[-1][0]
+            processed_count += len(rows)
+            batch_updated, batch_missing = _process_document_added_on_batch(
+                rows, timestamps, sample_missing_keys
+            )
+            updated_count += batch_updated
+            missing_in_gcs_count += batch_missing
+            app.logger.info(
+                "Batch %d (last_id=%d): rows=%d updated=%d missing_in_gcs=%d "
+                "(cumulative processed=%d updated=%d missing=%d).",
+                batch_num,
+                last_id,
+                len(rows),
+                batch_updated,
+                batch_missing,
+                processed_count,
+                updated_count,
+                missing_in_gcs_count,
+            )
+
+        if sample_missing_keys:
+            app.logger.warning(
+                "%d documents had no matching blob in GCS (sample keys: %s).",
+                missing_in_gcs_count,
+                sample_missing_keys,
+            )
+        _log_document_added_on_summary(app)
+    except Exception:  # pylint: disable=broad-except
+        db.session.rollback()
+        app.logger.exception("Fatal error during document added_on backfill")
+
+    app.logger.info("--------------------------------------")
+    app.logger.info(
+        "Document added_on backfill completed in %.2fs: processed=%d updated=%d missing_in_gcs=%d",
+        time.perf_counter() - job_start,
+        processed_count,
+        updated_count,
+        missing_in_gcs_count,
+    )
+    return updated_count
+
+
 def run():
     """Run the backfiller job."""
     try:
         app = create_app()
         with app.app_context():
             app.logger.info("Starting backfiller job....")
+
+            if app.config.get("BACKFILL_DOCUMENT_ADDED_ON", False):
+                batch_size = app.config.get(
+                    "BACKFILL_DOCUMENT_ADDED_ON_BATCH_SIZE", 100
+                )
+                app.logger.info(
+                    "Running document added_on backfiller with batch size %s",
+                    batch_size,
+                )
+                backfill_document_added_on(app, batch_size=batch_size)
 
             if app.config.get("BACKFILL_INTERACTION_RECIPIENTS", False):
                 batch_size = app.config.get(

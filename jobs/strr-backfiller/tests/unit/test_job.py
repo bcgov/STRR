@@ -430,3 +430,90 @@ def test_run_skips_backfill_when_disabled(mocker):
     mock_backfill = mocker.patch("backfiller.job.backfill_registration_search")
     run()
     mock_backfill.assert_not_called()
+
+
+def test_backfill_document_added_on_updates_batches(mocker):
+    from datetime import datetime, timezone
+
+    from backfiller.job import backfill_document_added_on
+
+    app = MagicMock()
+    ts1 = datetime(2025, 6, 1, 14, 22, 10, tzinfo=timezone.utc)
+    ts2 = datetime(2025, 6, 2, 9, 15, 0, tzinfo=timezone.utc)
+
+    mocker.patch(
+        "backfiller.job.GCPStorageService.list_registration_document_creation_times",
+        return_value={"key-1": ts1, "key-2": ts2},
+        create=True,
+    )
+    doc_model = MagicMock()
+    doc_model.id.__gt__ = MagicMock(return_value=MagicMock())
+    doc_model.path.isnot.return_value = MagicMock()
+    doc_model.added_on.is_.return_value = MagicMock()
+    doc_model.added_on.isnot.return_value = MagicMock()
+    mocker.patch("backfiller.job.Document", doc_model)
+    mocker.patch("backfiller.job.case", return_value=MagicMock())
+    mocker.patch("backfiller.job.extract", return_value=MagicMock())
+    mocker.patch("backfiller.job.func", MagicMock())
+    mocker.patch("backfiller.job.or_", return_value=MagicMock())
+
+    mock_db = mocker.patch("backfiller.job.db")
+    mock_query = mock_db.session.query.return_value
+    mock_query.filter.return_value.order_by.return_value.limit.return_value.all.side_effect = [
+        [(1, "key-1"), (2, "key-2")],
+        [(3, "key-missing")],
+        [],
+    ]
+    mock_query.one.return_value = MagicMock(
+        total_docs=3, null_added_on=1, remaining_on_hour=0
+    )
+
+    updated = backfill_document_added_on(app, batch_size=2)
+
+    assert updated == 2
+    mock_db.session.bulk_update_mappings.assert_called_once_with(
+        doc_model,
+        [{"id": 1, "added_on": ts1}, {"id": 2, "added_on": ts2}],
+    )
+    mock_db.session.commit.assert_called_once()
+    app.logger.info.assert_any_call(
+        "Post-backfill verification: total_docs=%d precise_timestamps=%d "
+        "null_added_on=%d remaining_on_hour=%d",
+        3,
+        2,
+        1,
+        0,
+    )
+    app.logger.warning.assert_called_once()
+
+
+def test_backfill_document_added_on_handles_exception(mocker):
+    from backfiller.job import backfill_document_added_on
+
+    app = MagicMock()
+    mocker.patch("backfiller.job.db")
+    mocker.patch(
+        "backfiller.job.GCPStorageService.list_registration_document_creation_times",
+        side_effect=RuntimeError("gcs error"),
+        create=True,
+    )
+
+    updated = backfill_document_added_on(app, batch_size=10)
+
+    assert updated == 0
+    app.logger.exception.assert_called_once()
+
+
+def test_run_executes_document_added_on_backfill_when_config_enabled(mocker):
+    mock_app = MagicMock()
+    mock_app.config.get.side_effect = lambda key, default=None: {
+        "BACKFILL_DOCUMENT_ADDED_ON": True,
+        "BACKFILL_DOCUMENT_ADDED_ON_BATCH_SIZE": 50,
+    }.get(key, default)
+    _mock_run_context(mock_app)
+    mocker.patch("backfiller.job.create_app", return_value=mock_app)
+    mock_backfill = mocker.patch("backfiller.job.backfill_document_added_on")
+
+    run()
+
+    mock_backfill.assert_called_once_with(mock_app, batch_size=50)

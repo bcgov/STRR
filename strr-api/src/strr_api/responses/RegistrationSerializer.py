@@ -54,7 +54,7 @@ class RegistrationSerializer:
     }
 
     @classmethod
-    def serialize(cls, registration: Registration):
+    def serialize(cls, registration: Registration, applications: Optional[list[Application]] = None):
         """Return a Registration object from a database model."""
         has_failure = bool(getattr(registration, "has_email_delivery_failure", False))
         registration_data = {
@@ -99,7 +99,7 @@ class RegistrationSerializer:
                 for snapshot in sorted(registration.snapshots, key=lambda s: s.version, reverse=True)
             ]
 
-        RegistrationSerializer._populate_header_data(registration_data, registration)
+        RegistrationSerializer._populate_header_data(registration_data, registration, applications=applications)
 
         documents = []
         if registration.documents:
@@ -119,7 +119,7 @@ class RegistrationSerializer:
 
         details: dict[str, Any] = {}
         if registration.registration_type == RegistrationType.HOST.value:
-            RegistrationSerializer.populate_host_registration_details(details, registration)
+            RegistrationSerializer.populate_host_registration_details(details, registration, applications=applications)
 
         elif registration.registration_type == RegistrationType.PLATFORM.value:
             RegistrationSerializer.populate_platform_registration_details(details, registration)
@@ -132,7 +132,12 @@ class RegistrationSerializer:
         return registration_data
 
     @classmethod
-    def _populate_header_data(cls, registration_data: dict, registration: Registration):
+    def _populate_header_data(
+        cls,
+        registration_data: dict,
+        registration: Registration,
+        applications: Optional[list[Application]] = None,
+    ):
         """Populates header data into response object."""
         has_failure = bool(
             registration_data.get(
@@ -154,7 +159,7 @@ class RegistrationSerializer:
         registration_data["header"]["examinerActions"] = cls._get_examiner_actions(registration)
         registration_data["header"]["assignee"] = cls._get_user_info(registration.reviewer_id, registration.reviewer)
         registration_data["header"]["decider"] = cls._get_user_info(registration.decider_id, registration.decider)
-        cls._populate_applications(registration_data, registration)
+        cls._populate_applications(registration_data, registration, applications=applications)
 
     @classmethod
     def _get_examiner_actions(cls, registration: Registration) -> list:
@@ -186,9 +191,15 @@ class RegistrationSerializer:
         return user_info
 
     @classmethod
-    def _populate_applications(cls, registration_data: dict, registration: Registration):
+    def _populate_applications(
+        cls,
+        registration_data: dict,
+        registration: Registration,
+        applications: Optional[list[Application]] = None,
+    ):
         """Populate applications data."""
-        applications = Application.get_all_by_registration_id(registration.id)
+        if applications is None:
+            applications = Application.get_all_by_registration_id(registration.id)
         if not applications:
             return
 
@@ -268,7 +279,12 @@ class RegistrationSerializer:
         return value
 
     @classmethod
-    def populate_host_registration_details(cls, registration_data: dict, registration: Registration):
+    def populate_host_registration_details(
+        cls,
+        registration_data: dict,
+        registration: Registration,
+        applications: Optional[list[Application]] = None,
+    ):
         """Populates host registration details into response object."""
         contacts = registration.rental_property.contacts or []
         primary_property_contact = next(
@@ -285,7 +301,7 @@ class RegistrationSerializer:
         )
         registration_data["unitAddress"] = cls._serialize_unit_address(registration.rental_property)
 
-        str_requirements = cls.get_str_requirements_from_application(registration)
+        str_requirements = cls.get_str_requirements_from_application(registration, applications=applications)
         rental_prop = registration.rental_property
         jurisdiction = rental_prop.jurisdiction or (
             str_requirements.get("organizationNm") if str_requirements else None
@@ -309,40 +325,51 @@ class RegistrationSerializer:
         ]
 
         if property_manager := registration.rental_property.property_manager:
-            primary_contact = property_manager.primary_contact
-            contact_dict = cls._build_primary_contact_dict(primary_contact)
-            is_business_pm = property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS
-            email_override_path = (
-                "propertyManager.business.primaryContact.emailAddress"
-                if is_business_pm
-                else "propertyManager.contact.emailAddress"
-            )
-            contact_dict["emailAddress"] = cls._get_override_value(
-                registration_json,
-                email_override_path,
-                contact_dict.get("emailAddress"),
-            )
+            cls._populate_property_manager_details(registration_data, registration, property_manager, registration_json)
 
-            if is_business_pm:
-                registration_data["propertyManager"] = {
-                    "business": {
-                        "legalName": property_manager.business_legal_name,
-                        "businessNumber": property_manager.business_number,
-                        "mailingAddress": cls._serialize_mailing_address(property_manager.business_mailing_address),
-                        "primaryContact": contact_dict,
-                    }
+    @classmethod
+    def _populate_property_manager_details(
+        cls,
+        registration_data: dict,
+        registration: Registration,
+        property_manager: PropertyManager,
+        registration_json: dict,
+    ):
+        """Populate property manager details into host registration response."""
+        primary_contact = property_manager.primary_contact
+        contact_dict = cls._build_primary_contact_dict(primary_contact)
+        is_business_pm = property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS
+        email_override_path = (
+            "propertyManager.business.primaryContact.emailAddress"
+            if is_business_pm
+            else "propertyManager.contact.emailAddress"
+        )
+        contact_dict["emailAddress"] = cls._get_override_value(
+            registration_json,
+            email_override_path,
+            contact_dict.get("emailAddress"),
+        )
+
+        if is_business_pm:
+            registration_data["propertyManager"] = {
+                "business": {
+                    "legalName": property_manager.business_legal_name,
+                    "businessNumber": property_manager.business_number,
+                    "mailingAddress": cls._serialize_mailing_address(property_manager.business_mailing_address),
+                    "primaryContact": contact_dict,
                 }
-            else:
-                registration_data["propertyManager"] = {"contact": contact_dict}
-                if primary_contact and primary_contact.address:
-                    registration_data["propertyManager"]["contact"]["mailingAddress"] = cls._serialize_mailing_address(
-                        primary_contact.address
-                    )
+            }
+        else:
+            registration_data["propertyManager"] = {"contact": contact_dict}
+            if primary_contact and primary_contact.address:
+                registration_data["propertyManager"]["contact"]["mailingAddress"] = cls._serialize_mailing_address(
+                    primary_contact.address
+                )
 
-            registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
-            registration_data["propertyManager"]["initiatedByPropertyManager"] = cls._get_initiated_by_property_manager(
-                registration
-            )
+        registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
+        registration_data["propertyManager"]["initiatedByPropertyManager"] = cls._get_initiated_by_property_manager(
+            registration
+        )
 
     @classmethod
     def _base_unit_details(cls, rental, jurisdiction: Optional[str]) -> dict[str, Any]:
@@ -404,13 +431,22 @@ class RegistrationSerializer:
         return str_req.get("organizationNm") if str_req else None
 
     @classmethod
-    def get_str_requirements_from_application(cls, registration: Registration) -> Optional[dict]:
+    def get_str_requirements_from_application(
+        cls,
+        registration: Registration,
+        applications: Optional[list[Application]] = None,
+    ) -> Optional[dict]:
         """Returns the strRequirements from the most recent application."""
-        latest_application = (
-            Application.query.filter_by(registration_id=registration.id)
-            .order_by(Application.application_date.desc())
-            .first()
-        )
+        if applications is not None:
+            if not applications:
+                return None
+            latest_application = max(applications, key=lambda app: app.application_date)
+        else:
+            latest_application = (
+                Application.query.filter_by(registration_id=registration.id)
+                .order_by(Application.application_date.desc())
+                .first()
+            )
         if not latest_application or not latest_application.application_json:
             return None
         return latest_application.application_json.get("registration", {}).get("strRequirements", {})
