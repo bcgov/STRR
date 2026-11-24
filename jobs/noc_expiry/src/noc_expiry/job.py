@@ -64,6 +64,11 @@ def update_status_for_noc_expired_applications(app):
     for application in applications:
         try:
             app.logger.info(f"Processing application # {str(application.id)}")
+            if not application.noc:
+                app.logger.warning(
+                    f"Skipping application {str(application.id)}: NOC pending but no notice of consideration found"
+                )
+                continue
             if application.noc.end_date < cut_off_datetime:
                 app.logger.info(
                     f"Updating status for application {str(application.id)}"
