@@ -52,7 +52,7 @@ class Registration(Versioned, BaseModel):
     sbc_account_id = db.Column(db.Integer, nullable=False, index=True)
     status = db.Column(Enum(RegistrationStatus), nullable=False, index=True)
     start_date = db.Column(db.DateTime, nullable=False)
-    expiry_date = db.Column(db.DateTime, nullable=False)
+    expiry_date = db.Column(db.DateTime, nullable=False, index=True)
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     cancelled_date = db.Column(db.DateTime, nullable=True)
     is_set_aside = db.Column(Boolean, default=False)
