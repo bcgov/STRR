@@ -40,12 +40,14 @@
 from __future__ import annotations
 
 import copy
+import logging
+import time
 from typing import List, Optional
 
 from nanoid import generate
 from sqlalchemy import Boolean, func
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Query, backref
+from sqlalchemy.orm import Query, backref, joinedload
 from sqlalchemy_utils.types.ts_vector import TSVectorType
 
 from strr_api.common.enum import BaseEnum, auto
@@ -53,10 +55,12 @@ from strr_api.enums.enum import ApplicationType, StrrRequirement
 from strr_api.models.base_model import BaseModel
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.interactions import CustomerInteraction
-from strr_api.models.rental import Registration
+from strr_api.models.rental import Registration, RentalProperty
 from strr_api.models.user import User
 
 from .db import db
+
+logger = logging.getLogger("api")
 
 
 def _generate_application_number() -> str:
@@ -144,6 +148,16 @@ class Application(BaseModel):
             "type",
             postgresql_where=db.text("registration_id IS NOT NULL"),
         ),
+        db.Index(
+            "ix_application_payment_account",
+            "payment_account",
+            postgresql_where=db.text("payment_account IS NOT NULL"),
+        ),
+        db.Index(
+            "ix_application_reviewer_id",
+            "reviewer_id",
+            postgresql_where=db.text("reviewer_id IS NOT NULL"),
+        ),
     )
 
     submitter = db.relationship(
@@ -212,43 +226,75 @@ class Application(BaseModel):
         return cls.query.filter_by(id=application_id, payment_account=account_id).one_or_none()
 
     @classmethod
-    def find_by_account(
-        cls, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
-    ) -> Application | None:
-        """Return the application by account, filter criteria."""
-        query = cls.query
-        if not is_examiner:
-            query = query.filter_by(payment_account=account_id)
+    def apply_serialization_eager_loading(cls, query: Query) -> Query:
+        """Attach joinedload/selectinload options for ApplicationSerializer.to_dict to avoid N+1 queries."""
+        return query.options(
+            joinedload(cls.submitter),
+            joinedload(cls.reviewer),
+            joinedload(cls.decider),
+            joinedload(cls.noc),
+            joinedload(cls.registration).joinedload(Registration.rental_property).joinedload(RentalProperty.address),
+            joinedload(cls.registration).selectinload(Registration.certificates),
+            joinedload(cls.registration).selectinload(Registration.documents),
+        )
+
+    @classmethod
+    def _apply_common_search_filters(cls, query: Query, filter_criteria: ApplicationSearch) -> Query:
+        """Apply shared filter criteria for both list and search application queries."""
         if filter_criteria.registration_types:
             query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
-        if filter_criteria.record_number:
+        if filter_criteria.record_number and filter_criteria.record_number.strip():
             query = cls._filter_by_application_registration_number(filter_criteria.record_number, query)
         if filter_criteria.statuses or filter_criteria.registration_statuses:
             query = cls._filter_by_application_or_registration_status(
                 filter_criteria.statuses, filter_criteria.registration_statuses, query
             )
-        if filter_criteria.assignee:
+        if filter_criteria.assignee and filter_criteria.assignee.strip():
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
-        if filter_criteria.local_gov:
+        local_gov = filter_criteria.local_gov.strip() if filter_criteria.local_gov else None
+        if local_gov:
             query = query.filter(
                 Application.registration_type == Registration.RegistrationType.HOST,
                 Application.application_json["registration"]["strRequirements"]["organizationNm"].astext.ilike(
-                    f"%{filter_criteria.local_gov}%"
+                    f"%{local_gov}%"
                 ),
             )
-        query = cls._apply_draft_and_scope_filters(query, filter_criteria)
-        query = cls._apply_email_failure_filter(query, filter_criteria.has_email_failure)
+        return cls._apply_email_failure_filter(query, filter_criteria.has_email_failure)
+
+    @classmethod
+    def _apply_sort_and_paginate(cls, query: Query, filter_criteria: ApplicationSearch):
+        """Apply eager loading, sorting, pagination, and batch email-failure flag hydration."""
+        query = cls.apply_serialization_eager_loading(query)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
         else:
             query = query.order_by(sort_column.desc())
-
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         CustomerInteraction.populate_application_email_failure_flags(
             paginated_result.items, known_filter=filter_criteria.has_email_failure
+        )
+        return paginated_result
+
+    @classmethod
+    def find_by_account(
+        cls, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
+    ) -> Application | None:
+        """Return the application by account, filter criteria."""
+        start_time = time.perf_counter()
+        query = cls.query
+        if not is_examiner:
+            query = query.filter_by(payment_account=account_id)
+        query = cls._apply_common_search_filters(query, filter_criteria)
+        query = cls._apply_draft_and_scope_filters(query, filter_criteria)
+        paginated_result = cls._apply_sort_and_paginate(query, filter_criteria)
+        logger.info(
+            "Application.find_by_account sql_query=%.2fms count=%d total=%d",
+            (time.perf_counter() - start_time) * 1000,
+            len(paginated_result.items),
+            paginated_result.total,
         )
         return paginated_result
 
@@ -510,46 +556,27 @@ class Application(BaseModel):
     @classmethod
     def search_applications(cls, filter_criteria: ApplicationSearch):
         """Returns the applications matching the search criteria."""
+        start_time = time.perf_counter()
         query = cls.query
         if filter_criteria.account_id:
             query = query.filter(Application.payment_account == str(filter_criteria.account_id))
-        if filter_criteria.search_text:
+        search_text = filter_criteria.search_text.strip() if filter_criteria.search_text else None
+        if search_text:
             query = query.filter(
                 db.or_(
-                    Application.application_tsv.match(filter_criteria.search_text),
-                    Application.application_number.ilike(f"%{filter_criteria.search_text}%"),
+                    Application.application_tsv.match(search_text),
+                    Application.application_number.ilike(f"%{search_text}%"),
                 )
             )
-        if filter_criteria.statuses or filter_criteria.registration_statuses:
-            query = cls._filter_by_application_or_registration_status(
-                filter_criteria.statuses, filter_criteria.registration_statuses, query
-            )
-        if filter_criteria.registration_types:
-            query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
-        if filter_criteria.record_number:
-            query = cls._filter_by_application_registration_number(filter_criteria.record_number, query)
-        if filter_criteria.assignee:
-            query = cls._filter_by_assignee(filter_criteria.assignee, query)
-        if filter_criteria.requirements:
-            query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
-        if filter_criteria.local_gov:
-            query = query.filter(
-                Application.registration_type == Registration.RegistrationType.HOST,
-                Application.application_json["registration"]["strRequirements"]["organizationNm"].astext.ilike(
-                    f"%{filter_criteria.local_gov}%"
-                ),
-            )
-        query = cls._apply_email_failure_filter(query, filter_criteria.has_email_failure)
+        query = cls._apply_common_search_filters(query, filter_criteria)
         if not filter_criteria.account_id:
             query = query.filter(Application.status != Application.Status.DRAFT)
-        sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
-        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
-            query = query.order_by(sort_column.asc())
-        else:
-            query = query.order_by(sort_column.desc())
-        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
-        CustomerInteraction.populate_application_email_failure_flags(
-            paginated_result.items, known_filter=filter_criteria.has_email_failure
+        paginated_result = cls._apply_sort_and_paginate(query, filter_criteria)
+        logger.info(
+            "Application.search_applications sql_query=%.2fms count=%d total=%d",
+            (time.perf_counter() - start_time) * 1000,
+            len(paginated_result.items),
+            paginated_result.total,
         )
         return paginated_result
 

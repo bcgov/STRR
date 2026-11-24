@@ -53,6 +53,20 @@ CONCURRENT_INDEXES = (
         "ix_strata_hotel_registration_registration_id",
         "ON strata_hotel_registration (registration_id)",
     ),
+    # Application search & list filter / eager-loading FK indexes
+    (
+        "ix_application_payment_account",
+        "ON application (payment_account) WHERE payment_account IS NOT NULL",
+    ),
+    (
+        "ix_application_reviewer_id",
+        "ON application (reviewer_id) WHERE reviewer_id IS NOT NULL",
+    ),
+    (
+        "ix_notice_of_consideration_application_id",
+        "ON notice_of_consideration (application_id)",
+    ),
+    ("ix_certificates_registration_id", "ON certificates (registration_id)"),
 )
 
 TRGM_INDEXES = (
@@ -60,6 +74,10 @@ TRGM_INDEXES = (
     (
         "ix_registrations_registration_number_trgm",
         "ON registrations USING gin (registration_number gin_trgm_ops)",
+    ),
+    (
+        "ix_application_application_number_trgm",
+        "ON application USING gin (application_number gin_trgm_ops)",
     ),
     (
         "ix_users_username_trgm",

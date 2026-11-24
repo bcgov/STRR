@@ -3301,3 +3301,46 @@ def test_search_registrations_bounded_query_count(mock_create_invoice, session, 
 
     assert len(result_more["registrations"]) >= 6
     assert query_count_more == query_count, f"Expected O(1) queries ({query_count}), got {query_count_more}"
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_list_applications_bounded_query_count(mock_create_invoice, session, client, jwt):
+    """Application.find_by_account + ApplicationSerializer.to_dict executes O(1) <= 8 SQL queries."""
+    from sqlalchemy import event
+
+    from strr_api.models import db
+    from strr_api.models.application import ApplicationSerializer
+    from strr_api.models.dataclass import ApplicationSearch
+
+    for _ in range(3):
+        _create_approved_host_registration(client, jwt)
+
+    query_count = [0]
+
+    def _count(_conn, _cursor, _statement, _parameters, _context, _executemany):
+        query_count[0] += 1
+
+    event.listen(db.engine, "before_cursor_execute", _count)
+    try:
+        paginated = Application.find_by_account(None, ApplicationSearch(page=1, limit=50), is_examiner=True)
+        serialized = [ApplicationSerializer.to_dict(app) for app in paginated.items]
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count)
+
+    assert len(serialized) >= 3
+    assert query_count[0] <= 8, f"Expected <= 8 O(1) SQL queries, got {query_count[0]}"
+    first_count = query_count[0]
+
+    for _ in range(3):
+        _create_approved_host_registration(client, jwt)
+
+    query_count[0] = 0
+    event.listen(db.engine, "before_cursor_execute", _count)
+    try:
+        paginated_more = Application.find_by_account(None, ApplicationSearch(page=1, limit=50), is_examiner=True)
+        serialized_more = [ApplicationSerializer.to_dict(app) for app in paginated_more.items]
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count)
+
+    assert len(serialized_more) >= 6
+    assert query_count[0] == first_count, f"Expected O(1) queries ({first_count}), got {query_count[0]}"
