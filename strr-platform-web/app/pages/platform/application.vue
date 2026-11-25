@@ -33,6 +33,14 @@ const isRenewal = computed(() => route.query.renew === 'true')
 const isRegRenewalFlow = computed(() => isRenewal.value && !!renewalRegId.value)
 const loading = ref(false)
 
+// date from which this draft can be submitted, if the renewal window has not started
+const earlyRenewalDate = computed(() => {
+  const header = platformStore.application?.header
+  return header && header.applicationNumber === applicationId.value
+    ? getEarlyRenewalDate(header.renewalWindowStartDate, header.hasRenewalWindowStarted)
+    : undefined
+})
+
 // fee stuff
 const {
   addReplaceFee,
@@ -236,7 +244,7 @@ const handlePlatformSubmit = async () => {
   }
 }
 
-watch(activeStepIndex, (val) => {
+watch([activeStepIndex, earlyRenewalDate], ([val, earlyDate]) => {
   const buttons: ConnectBtnControlItem[] = []
   if (val !== 0) {
     buttons.push({
@@ -251,7 +259,9 @@ watch(activeStepIndex, (val) => {
     action: isLastStep ? handlePlatformSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.submitAndPay') : t('btn.next'),
-    trailing: true
+    trailing: true,
+    disabled: isLastStep && !!earlyDate,
+    locked: isLastStep && !!earlyDate
   })
 
   setButtonControl({
@@ -299,7 +309,9 @@ setOnBeforeSessionExpired(() => submitPlatformApplication(true, applicationId.va
       v-model:active-step-index="activeStepIndex"
       v-model:active-step="activeStep"
       :stepper-label="$t('label.platAppStepLabel')"
-    />
+    >
+      <EarlyRenewalAlert v-if="earlyRenewalDate" :date="earlyRenewalDate" />
+    </ConnectStepper>
     <div v-if="activeStepIndex === 0" key="contact-information">
       <FormContactInfo :is-complete="activeStep.complete" />
     </div>

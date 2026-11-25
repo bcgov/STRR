@@ -39,6 +39,9 @@ CREATE_STRATA_HOTEL_REGISTRATION_REQUEST = os.path.join(
 )
 
 
+pytestmark = pytest.mark.usefixtures("renewal_window_open")
+
+
 @pytest.mark.parametrize(
     "request_json, isUnitOnPrincipalResidence",
     [

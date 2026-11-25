@@ -16,7 +16,7 @@ export const useButtonControl = () => {
     const updateButtonGrp = (buttonArray: ConnectBtnControlItem[], grp: 'left' | 'right') => {
       for (const [index, element] of buttonArray.entries()) {
         if (reset) {
-          element.disabled = false
+          element.disabled = element.locked ?? false
           element.loading = false
         } else {
           element.loading = (grp === buttonGrp) && index === buttonIndex

@@ -32,6 +32,12 @@ const { isSaveDraftEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
 const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
 const loading = ref(false)
 
+// date from which this draft can be submitted, if the renewal window has not started
+const earlyRenewalDate = computed(() => {
+  const header = permitStore.application?.header
+  return getEarlyRenewalDate(header?.renewalWindowStartDate, header?.hasRenewalWindowStarted)
+})
+
 // fee stuff
 const {
   addReplaceFee,
@@ -290,7 +296,9 @@ function updateButtonControl () {
     action: isLastStep ? handleSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.proceedToPay') : t('btn.next'),
-    trailing: true
+    trailing: true,
+    disabled: isLastStep && !!earlyRenewalDate.value,
+    locked: isLastStep && !!earlyRenewalDate.value
   })
 
   // default left side action buttons
@@ -324,7 +332,11 @@ async function handleStepperNewStep () {
 }
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
-watch([activeStepIndex, isRegistrationRenewal], updateButtonControl, { immediate: true, flush: 'sync' })
+watch(
+  [activeStepIndex, isRegistrationRenewal, earlyRenewalDate],
+  updateButtonControl,
+  { immediate: true, flush: 'sync' }
+)
 
 // remove unnecessary docs when/if exemption options change
 watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
@@ -417,7 +429,9 @@ setOnBeforeSessionExpired(() => {
       v-model:active-step="activeStep"
       :stepper-label="$t('strr.step.stepperLabel')"
       @new-step="handleStepperNewStep"
-    />
+    >
+      <EarlyRenewalAlert v-if="earlyRenewalDate" :date="earlyRenewalDate" />
+    </ConnectStepper>
     <div v-if="activeStepIndex === 0" key="define-your-rental">
       <FormDefineYourRental :is-complete="activeStep.complete" />
     </div>

@@ -79,6 +79,7 @@ vi.mock('@/composables/useRenewals', () => {
       hasRegistrationRenewalPaymentPending: { value: false },
       renewalDraftId: { value: '' },
       renewalPaymentPendingId: { value: '' },
+      earlyRenewalDate: { value: undefined },
       renewalDueDate: { value: 'Dec 31, 2025' },
       renewalDateCounter: { value: 20 },
       isRenewalPeriodClosed: { value: false },

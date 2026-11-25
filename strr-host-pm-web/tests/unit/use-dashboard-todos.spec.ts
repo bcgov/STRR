@@ -34,6 +34,7 @@ const mockHasRegistrationRenewalDraft = ref(false)
 const mockHasRegistrationRenewalPaymentPending = ref(false)
 const mockRenewalDraftId = ref<string | undefined>(undefined)
 const mockRenewalPaymentPendingId = ref<string | undefined>(undefined)
+const mockEarlyRenewalDate = ref<string | undefined>(undefined)
 const mockRenewalDueDate = ref('Jan 1, 2026')
 const mockRenewalDateCounter = ref(30)
 const mockIsRenewalPeriodClosed = ref(false)
@@ -65,6 +66,7 @@ vi.mock('@/composables/useRenewals', () => ({
     hasRegistrationRenewalPaymentPending: mockHasRegistrationRenewalPaymentPending,
     renewalDraftId: mockRenewalDraftId,
     renewalPaymentPendingId: mockRenewalPaymentPendingId,
+    earlyRenewalDate: mockEarlyRenewalDate,
     renewalDueDate: mockRenewalDueDate,
     renewalDateCounter: mockRenewalDateCounter,
     isRenewalPeriodClosed: mockIsRenewalPeriodClosed,
@@ -99,6 +101,7 @@ function resetState () {
   mockHasRegistrationRenewalPaymentPending.value = false
   mockRenewalDraftId.value = undefined
   mockRenewalPaymentPendingId.value = undefined
+  mockEarlyRenewalDate.value = undefined
   mockRenewalDueDate.value = 'Jan 1, 2026'
   mockRenewalDateCounter.value = 30
   mockIsRenewalPeriodClosed.value = false

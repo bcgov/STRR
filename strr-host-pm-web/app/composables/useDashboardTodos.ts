@@ -16,6 +16,7 @@ export const useDashboardTodos = () => {
     hasRegistrationRenewalPaymentPending,
     renewalDraftId,
     renewalPaymentPendingId,
+    earlyRenewalDate,
     renewalDueDate,
     renewalDateCounter,
     isRenewalPeriodClosed,
@@ -98,7 +99,8 @@ export const useDashboardTodos = () => {
       registration,
       isEligibleForRenewal,
       hasRegistrationRenewalDraft,
-      hasRegistrationRenewalPaymentPending
+      hasRegistrationRenewalPaymentPending,
+      earlyRenewalDate
     ], () => {
       const translationProps = {
         newLine: '<br/>',
@@ -145,7 +147,9 @@ export const useDashboardTodos = () => {
         todos.value.push({
           id: 'todo-renewal-draft',
           title: t('todos.renewalDraft.title'),
-          subtitle: t('todos.renewalDraft.subtitle'),
+          subtitle: earlyRenewalDate.value
+            ? t('todos.renewalDraft.earlySubtitle', { date: earlyRenewalDate.value })
+            : t('todos.renewalDraft.subtitle'),
           buttons: [
             {
               label: t('todos.renewalDraft.resumeButton'),

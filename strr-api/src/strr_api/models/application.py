@@ -55,6 +55,7 @@ from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.interactions import CustomerInteraction
 from strr_api.models.rental import Registration
 from strr_api.models.user import User
+from strr_api.utils.renewal_window import RenewalWindow
 
 from .db import db
 
@@ -678,6 +679,18 @@ class ApplicationSerializer:
             if application.decider.lastname:
                 decider_display_name = f"{decider_display_name} {application.decider.lastname}"
             application_dict["header"]["decider"]["displayName"] = decider_display_name
+
+        # Clients can send a previously returned header back, so never keep stored values of these fields
+        application_dict["header"].pop("renewalWindowStartDate", None)
+        application_dict["header"].pop("hasRenewalWindowStarted", None)
+        if (
+            application.type == ApplicationType.RENEWAL.value
+            and application.status == Application.Status.DRAFT
+            and application.registration
+        ):
+            renewal_window = RenewalWindow.for_registration(application.registration)
+            application_dict["header"]["renewalWindowStartDate"] = renewal_window.start_date.isoformat()
+            application_dict["header"]["hasRenewalWindowStarted"] = not renewal_window.is_not_yet_open
 
         application_dict["header"]["isCertificateIssued"] = False
         if application.registration_id:

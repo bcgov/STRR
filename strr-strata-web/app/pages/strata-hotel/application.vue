@@ -24,6 +24,14 @@ const { renewalRegId, isRegistrationRenewal, application } = storeToRefs(permitS
 const applicationId = ref(route.query.applicationId as string)
 const loading = ref(false)
 
+// date from which this draft can be submitted, if the renewal window has not started
+const earlyRenewalDate = computed(() => {
+  const header = permitStore.application?.header
+  return header && header.applicationNumber === applicationId.value
+    ? getEarlyRenewalDate(header.renewalWindowStartDate, header.hasRenewalWindowStarted)
+    : undefined
+})
+
 // fee stuff
 const {
   addReplaceFee,
@@ -195,7 +203,7 @@ const handleStrataSubmit = async () => {
 }
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
-watch(activeStepIndex, (val) => {
+watch([activeStepIndex, earlyRenewalDate], ([val, earlyDate]) => {
   const buttons: ConnectBtnControlItem[] = []
   if (val !== 0) {
     buttons.push({
@@ -210,7 +218,9 @@ watch(activeStepIndex, (val) => {
     action: isLastStep ? handleStrataSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.submitAndPay') : t('btn.next'),
-    trailing: true
+    trailing: true,
+    disabled: isLastStep && !!earlyDate,
+    locked: isLastStep && !!earlyDate
   })
 
   setButtonControl({
@@ -267,7 +277,9 @@ setOnBeforeSessionExpired(() => submitStrataApplication(true, applicationId.valu
       v-model:active-step-index="activeStepIndex"
       v-model:active-step="activeStep"
       :stepper-label="$t('strr.step.stepperLabel')"
-    />
+    >
+      <EarlyRenewalAlert v-if="earlyRenewalDate" :date="earlyRenewalDate" />
+    </ConnectStepper>
     <div v-if="activeStepIndex === 0" key="contact-information">
       <FormContactInfo :is-complete="activeStep.complete" />
     </div>

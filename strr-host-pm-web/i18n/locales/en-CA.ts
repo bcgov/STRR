@@ -302,6 +302,7 @@ export default {
     }
   },
   label: {
+    submitRenewalFrom: 'Can be submitted starting {date}',
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
@@ -638,6 +639,7 @@ export default {
     renewalDraft: {
       title: 'Application to Renew Registration',
       subtitle: 'DRAFT',
+      earlySubtitle: 'DRAFT - You can edit this application now and submit it starting {date}.',
       resumeButton: 'Resume Draft',
       deleteDraft: 'Delete Draft'
     },

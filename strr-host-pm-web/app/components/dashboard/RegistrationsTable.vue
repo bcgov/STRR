@@ -107,15 +107,6 @@ const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): str
   return renewalDraft?.applicationNumber
 }
 
-/** Returns the renewal warning window in days by registration type. */
-const getRenewalWindowDays = (registrationType?: ApplicationType): number => {
-  // Keep fallback values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
-  if (registrationType === ApplicationType.STRATA_HOTEL) {
-    return 60
-  }
-  return 40
-}
-
 /** Calculates whole days remaining until the expiry date in Pacific time. */
 const getDaysUntilExpiry = (expiryDate?: string): number | null => {
   if (!expiryDate) {
@@ -132,7 +123,7 @@ const getDaysUntilExpiry = (expiryDate?: string): number | null => {
 }
 
 /** Maps an expiry date to an expiry state used for UI styling and actions. */
-const getExpiryState = (registrationType: ApplicationType | undefined, expiryDate: string | undefined): ExpiryState => {
+const getExpiryState = (expiryDate?: string, hasRenewalWindowStarted?: boolean): ExpiryState => {
   const daysUntilExpiry = getDaysUntilExpiry(expiryDate)
   if (daysUntilExpiry === null) {
     return ExpiryState.ACTIVE
@@ -140,7 +131,7 @@ const getExpiryState = (registrationType: ApplicationType | undefined, expiryDat
   if (daysUntilExpiry < 0) {
     return ExpiryState.EXPIRED
   }
-  if (daysUntilExpiry <= getRenewalWindowDays(registrationType)) {
+  if (hasRenewalWindowStarted) {
     return ExpiryState.EXPIRING_SOON
   }
   return ExpiryState.ACTIVE
@@ -162,7 +153,7 @@ const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): Reg
   }
   return registrations.map((registration: RegistrationRecordWithTodos): RegistrationRow => {
     const displayAddress = registration.unitAddress
-    const expiryState = getExpiryState(registration.registrationType, registration.expiryDate)
+    const expiryState = getExpiryState(registration.expiryDate, registration.renewalWindow?.hasStarted)
     const renewalDraftExists = registration.hasRenewalDraft !== undefined
       ? registration.hasRenewalDraft
       : hasRenewalDraft(registration)
@@ -181,6 +172,9 @@ const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): Reg
       expiryState,
       hasRenewalDraft: renewalDraftExists,
       renewalDraftApplicationNumber,
+      earlyRenewalDate: renewalDraftExists
+        ? getEarlyRenewalDate(registration.renewalWindow?.startDate, registration.renewalWindow?.hasStarted)
+        : undefined,
       canRenew: canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending),
       registrationId: registration.id,
       hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(registration)
@@ -394,6 +388,9 @@ async function handleResumeRenewalDraft (row: RegistrationRow) {
             @click="handleRegistrationLinkClick(row)"
           />
         </div>
+        <p v-if="row.earlyRenewalDate" class="mt-2 text-xs" data-testid="early-renewal-date">
+          {{ $t('label.submitRenewalFrom', { date: row.earlyRenewalDate }) }}
+        </p>
       </template>
     </UTable>
   </ConnectPageSection>

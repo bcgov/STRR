@@ -48,6 +48,7 @@ export interface RegistrationRow {
   expiryState: ExpiryState
   hasRenewalDraft: boolean
   renewalDraftApplicationNumber?: string
+  earlyRenewalDate?: string
   canRenew: boolean
   registrationId: number
   hasEmailDeliveryFailure?: boolean
@@ -59,6 +60,7 @@ export interface RenewalTodoDetails {
   hasRenewalPaymentPending?: boolean
   renewalDraftId?: string | null
   renewalPaymentPendingId?: string | null
+  renewalWindow?: ApiRenewalWindow
 }
 
 export interface RegistrationRecordWithTodos extends RegistrationRecord, RenewalTodoDetails {}

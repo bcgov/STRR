@@ -47,8 +47,14 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
     }]
   }
 
-  const { hasRenewalTodo, hasRenewalDraft, hasRenewalPaymentPending, renewalDraftId, renewalPaymentPendingId } =
-    await getTodoRegistration(registration.value.id)
+  const {
+    hasRenewalTodo,
+    hasRenewalDraft,
+    hasRenewalPaymentPending,
+    renewalDraftId,
+    renewalPaymentPendingId,
+    renewalWindow
+  } = await getTodoRegistration(registration.value.id)
 
   if (!hasRenewalTodo && !hasRenewalDraft && !hasRenewalPaymentPending) {
     return []
@@ -78,11 +84,14 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
     })
   }
 
-  if (hasRenewalDraft) {
+  if (hasRenewalDraft && renewalDraftId) {
+    const earlyRenewalDate = getEarlyRenewalDate(renewalWindow?.startDate, renewalWindow?.hasStarted)
     renewalTodos.push({
       id: 'todo-renewal-draft',
       title: t('todos.renewalDraft.title'),
-      subtitle: t('todos.renewalDraft.subtitle'),
+      subtitle: earlyRenewalDate
+        ? t('todos.renewalDraft.earlySubtitle', { date: earlyRenewalDate })
+        : t('todos.renewalDraft.subtitle'),
       buttons: [
         {
           label: t('todos.renewalDraft.resumeButton'),
@@ -110,7 +119,7 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
     })
   }
 
-  if (hasRenewalPaymentPending) {
+  if (hasRenewalPaymentPending && renewalPaymentPendingId) {
     renewalTodos.push({
       id: 'todo-renewal-payment-pending',
       title: t('todos.renewalPayment.title'),

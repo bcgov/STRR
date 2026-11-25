@@ -14,6 +14,9 @@ export const useRenewals = () => {
   const renewalDraftId = ref('')
   const renewalPaymentPendingId = ref('')
 
+  // date from which a renewal draft can be submitted, if the renewal window has not started
+  const earlyRenewalDate = ref<string | undefined>(undefined)
+
   /** Checks if 3 years past since expiry date and renewal is closed for a registration. */
   const checkIsRenewalPeriodClosed = (
     reg: Partial<RegistrationRecord> | ApiRegistrationResp | HostRegistrationResp | null | undefined
@@ -65,6 +68,7 @@ export const useRenewals = () => {
       isEligibleForRenewal.value = false
       hasRegistrationRenewalDraft.value = false
       hasRegistrationRenewalPaymentPending.value = false
+      earlyRenewalDate.value = undefined
       return
     }
 
@@ -73,9 +77,11 @@ export const useRenewals = () => {
       hasRenewalDraft,
       hasRenewalPaymentPending,
       renewalDraftId: draftId,
-      renewalPaymentPendingId: paymentPendingId
+      renewalPaymentPendingId: paymentPendingId,
+      renewalWindow
     } = await getTodoRegistration(registration.value.id)
 
+    earlyRenewalDate.value = getEarlyRenewalDate(renewalWindow?.startDate, renewalWindow?.hasStarted)
     isEligibleForRenewal.value = hasRenewalTodo
     hasRegistrationRenewalDraft.value = hasRenewalDraft
     hasRegistrationRenewalPaymentPending.value = hasRenewalPaymentPending
@@ -161,7 +167,8 @@ export const useRenewals = () => {
             hasRenewalDraft: todoInfo.hasRenewalDraft,
             hasRenewalPaymentPending: todoInfo.hasRenewalPaymentPending,
             renewalDraftId: todoInfo.renewalDraftId,
-            renewalPaymentPendingId: todoInfo.renewalPaymentPendingId
+            renewalPaymentPendingId: todoInfo.renewalPaymentPendingId,
+            renewalWindow: todoInfo.renewalWindow
           } as T & RenewalTodoDetails
         } catch {
           return {
@@ -183,6 +190,7 @@ export const useRenewals = () => {
     hasRegistrationRenewalPaymentPending,
     renewalDraftId,
     renewalPaymentPendingId,
+    earlyRenewalDate,
     isRenewalPeriodClosed,
     renewalDueDate,
     renewalDateCounter,

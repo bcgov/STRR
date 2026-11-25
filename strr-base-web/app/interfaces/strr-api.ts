@@ -108,6 +108,11 @@ export interface ApplicationHeader {
   registrationStatus?: RegistrationStatus
   registrationAddress?: ApiUnitAddress
   registrationNocStatus?: RegistrationNocStatus
+
+  // below will only exist for draft renewals
+  renewalWindowStartDate?: string // calendar date in Vancouver, YYYY-MM-DD
+  hasRenewalWindowStarted?: boolean
+
   assignee?: {
     username: string
     displayName: string
@@ -157,6 +162,16 @@ export interface ApiDocument {
 export interface ApiRegistrationTodoTaskResp {
   task: {
     type: RegistrationTodoType,
-    details?: string
+    detail?: string
   }
+}
+
+export interface ApiRenewalWindow {
+  startDate: string // calendar date in Vancouver, YYYY-MM-DD
+  hasStarted: boolean
+}
+
+export interface ApiRegistrationTodosResp {
+  todos: ApiRegistrationTodoTaskResp[]
+  renewalWindow?: ApiRenewalWindow
 }

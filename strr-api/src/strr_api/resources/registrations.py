@@ -83,18 +83,13 @@ from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ACTION,
     REGISTRATION_STATES_STAFF_ASSIGNABLE,
 )
+from strr_api.utils.renewal_window import RenewalWindow, get_days_before_expiry
 from strr_api.utils.user_context import UserContext
 from strr_api.validators.DocumentUploadValidator import limit_document_upload_size, validate_document_upload
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
 
-# Days before expiry when renewal todos should appear
-DAYS_BEFORE_EXPIRY_BY_TYPE = {
-    RegistrationType.STRATA_HOTEL.value: 60,
-    RegistrationType.HOST.value: 40,
-    RegistrationType.PLATFORM.value: 40,
-}
 VALID_REGISTRATION_SORT_FIELDS = ["id", "registration_number", "start_date", "expiry_date", "status"]
 
 
@@ -102,6 +97,22 @@ def _parse_optional_bool_arg(param_name: str):
     """Parse an optional boolean query parameter ('true'/'false') or return None when omitted/empty."""
     raw_val = request.args.get(param_name, None)
     return raw_val.lower() == "true" if raw_val is not None and raw_val != "" else None
+
+
+def _get_early_renewal_draft_todos(registration_id: int) -> list[dict]:
+    """Return the todo for the most recently saved renewal draft of the registration, if any."""
+    draft = (
+        Application.query.filter(
+            Application.registration_id == registration_id,
+            Application.type == ApplicationType.RENEWAL.value,
+            Application.status == Application.Status.DRAFT.value,
+        )
+        .order_by(Application.application_date.desc())
+        .first()
+    )
+    if not draft:
+        return []
+    return [{"task": {"type": "REGISTRATION_RENEWAL_DRAFT", "detail": draft.application_number}}]
 
 
 @bp.route("", methods=("GET",))
@@ -706,6 +717,7 @@ def get_todos(registration_id):
             raise AuthException()
 
         todos = []
+        renewal_window = RenewalWindow.for_registration(registration)
 
         if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
             todos.append({"task": {"type": "NOC_PENDING"}})
@@ -713,15 +725,14 @@ def get_todos(registration_id):
         if registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]:
             # Get the current time in UTC
             current_time_utc = datetime.utcnow()
-            registration_expiry_datetime = registration.expiry_date
 
-            # Window in which todos should appear
-            days_before_expiry = DAYS_BEFORE_EXPIRY_BY_TYPE.get(registration.registration_type, 40)
-            threshold_datetime_start = registration_expiry_datetime - timedelta(days=days_before_expiry)
-            threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
+            days_before_expiry = get_days_before_expiry(registration.registration_type)
             recent_submission_threshold = current_time_utc - relativedelta(years=1) + timedelta(days=days_before_expiry)
 
-            if threshold_datetime_start.date() <= current_time_utc.date() <= threshold_datetime_end.date():
+            if renewal_window.is_not_yet_open:
+                # A draft can be edited before the window opens, but it cannot be submitted until then
+                todos.extend(_get_early_renewal_draft_todos(registration.id))
+            elif renewal_window.is_open:
                 renewal_application = (
                     Application.query.filter(
                         Application.registration_id == registration.id,
@@ -736,24 +747,11 @@ def get_todos(registration_id):
                 )
 
                 if renewal_application:
-                    if renewal_application.status == Application.Status.PAYMENT_DUE.value:
-                        todos.append(
-                            {
-                                "task": {
-                                    "type": "REGISTRATION_RENEWAL_PAYMENT_PENDING",
-                                    "detail": renewal_application.application_number,
-                                }
-                            }
-                        )
-                    else:
-                        todos.append(
-                            {
-                                "task": {
-                                    "type": "REGISTRATION_RENEWAL_DRAFT",
-                                    "detail": renewal_application.application_number,
-                                }
-                            }
-                        )
+                    is_payment_due = renewal_application.status == Application.Status.PAYMENT_DUE.value
+                    todo_type = (
+                        "REGISTRATION_RENEWAL_PAYMENT_PENDING" if is_payment_due else "REGISTRATION_RENEWAL_DRAFT"
+                    )
+                    todos.append({"task": {"type": todo_type, "detail": renewal_application.application_number}})
                 else:
                     submitted_renewal_application = (
                         Application.query.filter(
@@ -774,7 +772,13 @@ def get_todos(registration_id):
                     if not submitted_renewal_application:
                         todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
 
-        return {"todos": todos}, HTTPStatus.OK
+        return {
+            "todos": todos,
+            "renewalWindow": {
+                "startDate": renewal_window.start_date.isoformat(),
+                "hasStarted": not renewal_window.is_not_yet_open,
+            },
+        }, HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
     except Exception as exception:

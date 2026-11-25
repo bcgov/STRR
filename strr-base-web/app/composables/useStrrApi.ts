@@ -1,5 +1,5 @@
 import type { ApplicationSortBy, ApplicationSortOrder } from '~/enums/applications-sort-e'
-import type { ApiRegistrationTodoTaskResp } from '~/interfaces/strr-api'
+import type { ApiRegistrationTodosResp } from '~/interfaces/strr-api'
 
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
@@ -104,8 +104,8 @@ export const useStrrApi = () => {
   }
 
   // Get a list of todo tasks for specific registration
-  const getRegistrationToDos = async (registrationId: number): Promise<{todos: ApiRegistrationTodoTaskResp[]}> => {
-    return await $strrApi<{ todos: ApiRegistrationTodoTaskResp[]}>(`/registrations/${registrationId}/todos`)
+  const getRegistrationToDos = async (registrationId: number): Promise<ApiRegistrationTodosResp> => {
+    return await $strrApi<ApiRegistrationTodosResp>(`/registrations/${registrationId}/todos`)
       .catch((e) => {
         logFetchError(e, `Unable to get registration todos for ${registrationId}`)
         return { todos: [] }

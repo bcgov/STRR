@@ -5,6 +5,7 @@ const props = defineProps<{
 
 type ApplicationSubmitErrorKey =
   | 'renewalAlreadyInProgress'
+  | 'renewalWindowNotOpen'
   | 'badRequest'
   | 'internal'
   | 'unknown'
@@ -24,6 +25,10 @@ function resolveApplicationSubmitErrorKey (error: unknown): ApplicationSubmitErr
 
   if (statusCode === 409 && errorCode === 'RENEWAL_ALREADY_IN_PROGRESS') {
     return 'renewalAlreadyInProgress'
+  }
+
+  if (statusCode === 400 && errorCode === 'RENEWAL_WINDOW_NOT_OPEN') {
+    return 'renewalWindowNotOpen'
   }
 
   if (statusCode !== undefined && statusCode > 399 && statusCode < 500) {

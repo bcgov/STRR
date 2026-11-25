@@ -211,6 +211,7 @@ class ErrorMessage(Enum):
         "Continue with your existing renewal application, or wait until it reaches a final decision."
     )
     RENEWAL_APPLICATION_NO_REGISTRATION_ID = "Renewal application does not have a linked registration id."
+    RENEWAL_WINDOW_NOT_OPEN = "The renewal period for this registration has not started yet."
     EXAMINER_NOTE_TEXT_REQUIRED = "Note text is required."
     EXAMINER_NOTE_TEXT_TOO_LONG = "Note text exceeds maximum length."
     EXAMINER_NOTE_APPLICATION_REGISTERED = (

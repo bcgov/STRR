@@ -139,7 +139,7 @@ export const getTodoApplication = (
 
 export const getTodoRegistration = async (regId: number) => {
   const { getRegistrationToDos } = useStrrApi()
-  const { todos } = await getRegistrationToDos(regId)
+  const { todos, renewalWindow } = await getRegistrationToDos(regId)
 
   // Single-pass Map indexing for O(N) lookup efficiency
   const tasksByType = new Map<RegistrationTodoType, ApiRegistrationTodoTaskResp>()
@@ -158,7 +158,8 @@ export const getTodoRegistration = async (regId: number) => {
     hasRenewalDraft: !!renewalDraftTask,
     hasRenewalPaymentPending: !!renewalPaymentTask,
     renewalDraftId: renewalDraftTask?.detail ?? null,
-    renewalPaymentPendingId: renewalPaymentTask?.detail ?? null
+    renewalPaymentPendingId: renewalPaymentTask?.detail ?? null,
+    renewalWindow
   }
 }
 

@@ -52,6 +52,7 @@ from sqlalchemy.orm import Session as AppSession
 
 from strr_api import db as _db
 from strr_api.config import Testing
+from strr_api.utils.renewal_window import RenewalWindow
 
 
 @contextmanager
@@ -139,3 +140,9 @@ def session(app, db_engine):
         transaction.rollback()
         connection.close()
         _db.session = original_session_lookup
+
+
+@pytest.fixture
+def renewal_window_open(monkeypatch):
+    """Let renewals be submitted regardless of the registration expiry date."""
+    monkeypatch.setattr(RenewalWindow, "is_not_yet_open", property(lambda self: False))

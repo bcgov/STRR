@@ -340,6 +340,10 @@ export default {
           title: 'Renewal Already in Progress',
           content: 'A renewal application is already in progress for this registration. Go to your dashboard and continue it. If it has already been submitted, wait until it reaches a final decision before starting another renewal.'
         },
+        renewalWindowNotOpen: {
+          title: 'Renewal Period Not Started',
+          content: 'The renewal period for this registration has not started yet. You can save your application as a draft and submit it once the renewal period starts.'
+        },
         badRequest: {
           title: 'Invalid Request',
           content: 'There was an issue with the information submitted. Please review your input and try again.'
@@ -408,6 +412,7 @@ export default {
   text: {
     completeFilingToDisplay: 'Complete your filing to display',
     defaultDateFormat: 'YYYY-MM-DD',
+    earlyRenewal: '{boldStart}Next renewal opens {date}.{boldEnd} You can save this draft now and submit it then.',
     filingsWillAppear: 'Filings that require your attention will appear here',
     notAvailable: 'N/A',
     notEntered: 'Not Entered',
@@ -453,6 +458,7 @@ export default {
     renewalDraft: {
       title: 'Application to Renew Registration',
       subtitle: 'DRAFT',
+      earlySubtitle: 'DRAFT - You can edit this application now and submit it starting {date}.',
       resumeButton: 'Resume Draft',
       deleteDraft: 'Delete Draft'
     },

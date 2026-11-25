@@ -199,6 +199,9 @@ export default {
     }
   },
   table: {},
+  text: {
+    earlyRenewal: '{boldStart}Le prochain renouvellement ouvre le {date}.{boldEnd} Vous pouvez enregistrer ce brouillon maintenant et le soumettre ensuite.'
+  },
   toast: {},
   validation: {
     emailMatch: "L'adresse e-mail ne correspond pas"

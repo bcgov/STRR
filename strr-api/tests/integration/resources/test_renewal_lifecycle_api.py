@@ -38,6 +38,9 @@ from tests.unit.utils.application_flow_helpers import (
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 
+pytestmark = pytest.mark.usefixtures("renewal_window_open")
+
+
 @pytest.fixture
 def mock_invoice():
     with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE) as mock:

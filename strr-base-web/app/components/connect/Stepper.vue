@@ -189,6 +189,10 @@ onMounted(() => {
       </button>
     </li>
   </ol>
+  <!-- content between the steps and the active step title; negative margin offsets the title's top padding -->
+  <div class="!-mb-5 empty:hidden">
+    <slot />
+  </div>
   <div v-if="stepsModel[activeStepIndexModel]?.i18nPrefix" class="space-y-5 py-5">
     <ConnectTypographyH2 :text="$t(`${stepsModel[activeStepIndexModel]?.i18nPrefix}.title.${activeStepIndexModel}`)" />
     <p>

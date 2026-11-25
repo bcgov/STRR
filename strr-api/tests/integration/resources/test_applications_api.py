@@ -514,6 +514,7 @@ def test_put_renewal_draft_registration_id_mismatch_returns_bad_request(
     assert ErrorMessage.REGISTRATION_ID_MISMATCH.value in (err.get("message") or "")
 
 
+@pytest.mark.usefixtures("renewal_window_open")
 @patch("strr_api.services.strr_pay.create_invoice")
 @pytest.mark.slow
 def test_put_renewal_draft_final_submit_with_invoice_mock(

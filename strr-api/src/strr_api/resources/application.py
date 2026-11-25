@@ -81,6 +81,7 @@ from strr_api.services.application_service import (
     APPLICATION_UNPAID_STATES,
 )
 from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
+from strr_api.utils.renewal_window import RenewalWindow
 from strr_api.validators.DocumentUploadValidator import limit_document_upload_size, validate_document_upload
 from strr_api.validators.RegistrationRequestValidator import validate_request
 
@@ -132,7 +133,9 @@ def create_application(application_number: Optional[str] = None):
       200:
         description: Application created or updated; JSON body is serialized application.
       400:
-        description: Validation or business rule failure (e.g. missing registrationId for renewal).
+        description: >
+          Validation or business rule failure (e.g. missing registrationId for renewal, or a non-draft renewal
+          submitted before its renewal period starts, errorCode RENEWAL_WINDOW_NOT_OPEN).
       401:
         description: Unauthorized.
       404:
@@ -226,6 +229,13 @@ def create_application(application_number: Optional[str] = None):
                         http_status=HTTPStatus.CONFLICT,
                         error_code="RENEWAL_ALREADY_IN_PROGRESS",
                     )
+
+            if not is_draft and RenewalWindow.for_registration(registration).is_not_yet_open:
+                return error_response(
+                    message=ErrorMessage.RENEWAL_WINDOW_NOT_OPEN.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                    error_code="RENEWAL_WINDOW_NOT_OPEN",
+                )
 
         # Validate only the final submissions
         if not is_draft:
