@@ -2,7 +2,7 @@
   "name": "strr-strata-web",
   "private": true,
   "type": "module",
-  "version": "1.2.13",
+  "version": "1.2.14",
   "engines": {
     "node": ">=24"
   },
@@ -51,6 +51,7 @@
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
     "nuxt": "4.6.4",
+    "uuid": "^11.1.1",
     "vue-country-flag-next": "^2.3.2",
     "vue-router": "^4.6.4"
   },
