@@ -170,6 +170,55 @@ describe('Registration Renewal Todo', () => {
   })
 })
 
+describe('Early Renewal Date', () => {
+  beforeEach(resetState)
+
+  it.each([
+    [false, 'January 15, 2027'],
+    [true, undefined]
+  ])('is set only when the window has not started (started: %s)', async (hasStarted, expected) => {
+    mockRegistration.value = { ...mockHostRegistration }
+    mockGetTodoRegistration.mockResolvedValue({
+      ...emptyTodoRegistration,
+      hasRenewalDraft: true,
+      renewalWindow: { startDate: '2027-01-15', hasStarted }
+    })
+    const { earlyRenewalDate } = useRenewals()
+    await flushPromises()
+    expect(earlyRenewalDate.value).toBe(expected)
+  })
+
+  it('is undefined when the API does not return a window', async () => {
+    mockRegistration.value = { ...mockHostRegistration }
+    const { earlyRenewalDate } = useRenewals()
+    await flushPromises()
+    expect(earlyRenewalDate.value).toBeUndefined()
+  })
+
+  it('is cleared when there is no registration', async () => {
+    mockRegistration.value = { ...mockHostRegistration }
+    mockGetTodoRegistration.mockResolvedValue({
+      ...emptyTodoRegistration,
+      renewalWindow: { startDate: '2027-01-15', hasStarted: false }
+    })
+    const { earlyRenewalDate, getRegistrationRenewalTodos } = useRenewals()
+    await flushPromises()
+    expect(earlyRenewalDate.value).toBe('January 15, 2027')
+
+    mockRegistration.value = null
+    await getRegistrationRenewalTodos()
+    expect(earlyRenewalDate.value).toBeUndefined()
+  })
+
+  it('fetchRegistrationsWithRenewalTodos - includes the renewal window', async () => {
+    const renewalWindow = { startDate: '2027-01-15', hasStarted: false }
+    mockGetTodoRegistration.mockResolvedValue({ ...emptyTodoRegistration, renewalWindow })
+    const { fetchRegistrationsWithRenewalTodos } = useRenewals()
+    const result = await fetchRegistrationsWithRenewalTodos([{ id: 1 }])
+    expect(result[0]!.renewalWindow).toEqual(renewalWindow)
+  })
+})
+
 describe('Renewal Helper Functions', () => {
   beforeEach(resetState)
 

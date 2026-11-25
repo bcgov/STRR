@@ -16,7 +16,8 @@ from tests.integration.application_seed import host_renewal_application_json
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
 
-HOST_REGISTRATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json")
+MOCKS = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/json")
+HOST_REGISTRATION = os.path.join(MOCKS, "host_registration.json")
 
 
 @pytest.fixture
@@ -28,7 +29,7 @@ def headers(jwt):
 
 @pytest.fixture
 def make_registration(session):
-    def _make(days_to_expiry):
+    def _make(days_to_expiry, registration_type="HOST"):
         user = User(
             username="testUser",
             firstname="Test",
@@ -44,7 +45,7 @@ def make_registration(session):
             start_date=expiry - timedelta(days=364),
             expiry_date=expiry,
             status=RegistrationStatus.ACTIVE,
-            registration_type="HOST",
+            registration_type=registration_type,
             sbc_account_id=ACCOUNT_ID,
             registration_number=f"H{random.randint(100000000, 999999999)}",
             user_id=user.id,
@@ -81,6 +82,19 @@ def test_todos_include_early_draft(client, headers, make_registration):
         "startDate": RenewalWindow.for_registration(registration).start_date.isoformat(),
         "hasStarted": False,
     }
+
+
+@pytest.mark.parametrize("newest_first", [True, False])
+def test_todos_return_most_recently_saved_early_draft(client, headers, make_registration, newest_first):
+    registration = make_registration(200)
+    drafts = [_make_renewal(registration, Application.Status.DRAFT) for _ in range(2)]
+    newest, oldest = drafts if newest_first else reversed(drafts)
+    oldest.application_date = datetime.now(timezone.utc) - timedelta(days=1)
+    oldest.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+
+    assert rv.json["todos"] == [{"task": {"type": "REGISTRATION_RENEWAL_DRAFT", "detail": newest.application_number}}]
 
 
 def test_todos_early_without_draft_has_no_renewal(client, headers, make_registration):
@@ -154,5 +168,53 @@ def test_early_draft_can_be_saved_but_not_submitted(mock_invoice, client, header
     registration.expiry_date = registration.expiry_date - timedelta(days=180)
     registration.save()
     rv = client.put(f"/applications/{number}", json=payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    mock_invoice.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "registration_type, mock_file, days_to_expiry",
+    [
+        ("HOST", "host_registration.json", 50),
+        ("PLATFORM", "platform_registration.json", 50),
+        ("STRATA_HOTEL", "strata_hotel_registration.json", 70),
+    ],
+)
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_early_submit_without_draft_is_rejected(
+    mock_invoice, client, headers, make_registration, registration_type, mock_file, days_to_expiry
+):
+    with open(os.path.join(MOCKS, mock_file)) as f:
+        base_json = json.load(f)
+    registration = make_registration(days_to_expiry, registration_type)
+    payload = host_renewal_application_json(registration.id, base_json=base_json)
+
+    rv = client.post("/applications", json=payload, headers=headers)
+
+    assert rv.status_code == HTTPStatus.BAD_REQUEST
+    assert rv.json["errorCode"] == "RENEWAL_WINDOW_NOT_OPEN"
+    mock_invoice.assert_not_called()
+    assert Application.query.filter_by(registration_id=registration.id).count() == 0
+
+
+@pytest.mark.parametrize(
+    "registration_type, mock_file, days_to_expiry",
+    [
+        ("HOST", "host_registration.json", 30),
+        ("PLATFORM", "platform_registration.json", 30),
+        ("STRATA_HOTEL", "strata_hotel_registration.json", 50),
+    ],
+)
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_submit_without_draft_in_window_is_accepted(
+    mock_invoice, client, headers, make_registration, registration_type, mock_file, days_to_expiry
+):
+    with open(os.path.join(MOCKS, mock_file)) as f:
+        base_json = json.load(f)
+    registration = make_registration(days_to_expiry, registration_type)
+    payload = host_renewal_application_json(registration.id, base_json=base_json)
+
+    rv = client.post("/applications", json=payload, headers=headers)
+
     assert rv.status_code == HTTPStatus.OK
     mock_invoice.assert_called_once()

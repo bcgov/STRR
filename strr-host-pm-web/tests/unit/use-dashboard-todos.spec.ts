@@ -314,6 +314,23 @@ describe('Setup Renewal Todos watcher', () => {
     expect(todo.buttons![1]!.icon).toBe('i-mdi-delete')
   })
 
+  it('renewal draft todo shows when an early draft can be submitted, until the window starts', async () => {
+    mockIsRenewalsEnabled.value = true
+    mockRegistration.value = { ...mockHostRegistration }
+    mockHasRegistrationRenewalDraft.value = true
+    mockRenewalDraftId.value = 'draft-abc'
+    mockEarlyRenewalDate.value = 'January 15, 2027'
+    const { todos, setupRenewalTodosWatch } = useDashboardTodos()
+    setupRenewalTodosWatch()
+    const subtitle = () => todos.value.find(t => t.id === 'todo-renewal-draft')!.subtitle
+    expect(subtitle()).toBe($t('todos.renewalDraft.earlySubtitle', { date: 'January 15, 2027' }))
+    expect(subtitle()).toContain('January 15, 2027')
+
+    mockEarlyRenewalDate.value = undefined
+    await nextTick()
+    expect(subtitle()).toBe($t('todos.renewalDraft.subtitle'))
+  })
+
   it('payment pending todo with a single payment button when payment is awaiting', () => {
     mockIsRenewalsEnabled.value = true
     mockRegistration.value = { ...mockHostRegistration }
