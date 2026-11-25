@@ -49,5 +49,4 @@ To learn more about next step options, visit our [website](https://www2.gov.bc.c
 
 ---
 
-**Short-Term Rental Branch**\
-Ministry of Local Government, Housing, Sport and Culture
+[[strr-signature.md]]

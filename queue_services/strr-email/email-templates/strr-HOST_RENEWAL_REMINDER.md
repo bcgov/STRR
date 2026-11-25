@@ -56,5 +56,4 @@ For information about renewals and registration requirements:
 - Contact the Service BC Contact Centre at [1-833-828-2240](tel:+18338282240)
 - Email: [STRregistry@sbc.gov.bc.ca](mailto:STRregistry@sbc.gov.bc.ca) (include your registration number in the subject line)
 
-**Short-Term Rental Branch**\
-Ministry of Local Government, Housing, Sport and Culture
+[[strr-signature.md]]

@@ -923,6 +923,8 @@ def substitute_template_parts(template_code: str) -> str:
         "strr-important-next-steps",
         "strr-tac",
         "strr-provisional-approval-info",
+        # last so it also fills the marker inside the parts above (e.g. strr-footer)
+        "strr-signature",
     ]
 
     # substitute template parts - marked up by [[filename.md]]

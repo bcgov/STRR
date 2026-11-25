@@ -48,5 +48,4 @@ Email: [STRregistry@sbc.gov.bc.ca](mailto:STRregistry@sbc.gov.bc.ca) (include yo
 
 Thank you,
 
-**Short-Term Rental Branch**\
-Ministry of Local Government, Housing, Sport and Culture
+[[strr-signature.md]]
