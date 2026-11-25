@@ -44,7 +44,7 @@ Your registration must follow the [Terms and Conditions]({{ tac_url }}).
 
 If you have questions about your registration, please contact us.
 
-Email: [{{ ops_email }}](mailto:{{ ops_email }}) (include your registration number in the subject line)
+Email: [STRregistry@sbc.gov.bc.ca](mailto:STRregistry@sbc.gov.bc.ca) (include your registration number in the subject line)
 
 Thank you,
 
