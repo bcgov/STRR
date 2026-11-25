@@ -39,6 +39,9 @@ const platformStore = reactive({
   })
 })
 mockNuxtImport('useStrrPlatformStore', () => () => platformStore)
+mockNuxtImport('useConnectLaunchdarklyStore', () => () => ({
+  getStoredFlag: (name: string) => name === 'enable-save-draft'
+}))
 
 mockNuxtImport('useButtonControl', () => () => ({
   setButtonControl: (control: ConnectBtnControl) => { buttonControl = control },
@@ -116,6 +119,7 @@ describe('Early renewal draft in the application wizard', () => {
     wrapper.findComponent(StepperStub).vm.$emit('update:activeStepIndex', 3)
     await flushPromises()
     expect(lastButton()).toMatchObject({ disabled: true, locked: true })
+    expect(buttonControl!.leftButtons).toHaveLength(3) // cancel, save and exit, save
     expect(buttonControl!.leftButtons.some(button => button.disabled)).toBe(false)
   })
 
