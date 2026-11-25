@@ -8,6 +8,7 @@ export interface ApplicationRow {
   dateSubmitted?: Date | string
   applicationNumber: string
   paymentToken?: number
+  earlyRenewalDate?: string
   hasEmailDeliveryFailure?: boolean
   disabled?: boolean
   class?: string
