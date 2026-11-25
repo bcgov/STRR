@@ -510,3 +510,27 @@ def test_registration_query_execute_query_cdc(app, session, host_registration):
         res = RegistrationService.execute_query({}, can_export=True)
         assert "items" in res
         assert any(item["registrationNumber"] == reg.registration_number for item in res["items"])
+
+
+def test_registration_query_cdc_subquery_pushes_down_min_changed(app):
+    """Every UNION ALL branch of the CDC subquery must filter on min_changed when provided."""
+    with app.app_context():
+        min_changed = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        unfiltered = str(RegistrationService._build_cdc_changes_subquery().element.compile())
+        filtered = str(RegistrationService._build_cdc_changes_subquery(min_changed=min_changed).element.compile())
+
+        assert unfiltered.count(">= :") == 0
+        branches = filtered.count("UNION ALL") + 1
+        assert branches >= 2
+        assert filtered.count(">= :") == branches
+
+
+def test_registration_query_execute_query_cdc_updated_since(app, session, host_registration):
+    """CDC updatedSince keeps recent registrations and excludes everything when the cutoff is in the future."""
+    with app.app_context():
+        reg = host_registration["registration"]
+        past = RegistrationService.execute_query({"updatedSince": "2000-01-01T00:00:00Z"}, can_export=True)
+        assert any(item["registrationNumber"] == reg.registration_number for item in past["items"])
+
+        future = RegistrationService.execute_query({"updatedSince": "2999-01-01T00:00:00Z"}, can_export=True)
+        assert future["items"] == []

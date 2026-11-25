@@ -1459,6 +1459,14 @@ class RegistrationService:
         return res
 
     @classmethod
+    def _parse_cdc_cursor(cls, cursor_position: Optional[dict[str, Any]]) -> tuple[Optional[datetime], Any]:
+        """Extract (changed_timestamp, registration_id) from a decoded CDC cursor payload."""
+        if not cursor_position:
+            return None, None
+        c_str = cursor_position.get("changed")
+        return (cls._parse_timestamp(c_str) if c_str else None), cursor_position.get("registrationId")
+
+    @classmethod
     def _execute_cdc_query(
         cls,
         updated_since: Optional[datetime],
@@ -1468,13 +1476,9 @@ class RegistrationService:
         include_pii: bool,
     ) -> dict[str, Any]:
         """Execute CDC synchronization query ordered by (changed ASC, registration_id ASC)."""
-        cursor_changed, cursor_reg_id = None, None
-        if cursor_position:
-            if c_str := cursor_position.get("changed"):
-                cursor_changed = cls._parse_timestamp(c_str)
-            cursor_reg_id = cursor_position.get("registrationId")
-
-        union_sub = cls._build_cdc_changes_subquery()
+        cursor_changed, cursor_reg_id = cls._parse_cdc_cursor(cursor_position)
+        min_changed = cursor_changed if (cursor_changed and cursor_reg_id) else updated_since
+        union_sub = cls._build_cdc_changes_subquery(min_changed=min_changed)
         agg_sub = (
             select(union_sub.c.registration_id, func.max(union_sub.c.changed).label("max_changed"))
             .group_by(union_sub.c.registration_id)
@@ -1521,9 +1525,12 @@ class RegistrationService:
         return {"items": items, "nextCursor": next_cursor}
 
     @classmethod
-    def _build_cdc_changes_subquery(cls):
+    def _build_cdc_changes_subquery(cls, min_changed: Optional[datetime] = None):
         """Construct unified changes subquery from registrations and historical tables."""
-        subqueries = [select(Registration.id.label("registration_id"), Registration.updated_date.label("changed"))]
+        reg_stmt = select(Registration.id.label("registration_id"), Registration.updated_date.label("changed"))
+        if min_changed is not None:
+            reg_stmt = reg_stmt.where(Registration.updated_date >= min_changed)
+        subqueries = [reg_stmt]
         meta = db.metadata.tables
         history_tables = (
             ("registrations_history", "id"),
@@ -1535,11 +1542,10 @@ class RegistrationService:
             if tbl_name in meta:
                 t = meta[tbl_name]
                 col = getattr(t.c, col_name)
-                subqueries.append(
-                    select(col.label("registration_id"), t.c.changed.label("changed")).filter(
-                        col.isnot(None), t.c.changed.isnot(None)
-                    )
-                )
+                filters = [col.isnot(None), t.c.changed.isnot(None)]
+                if min_changed is not None:
+                    filters.append(t.c.changed >= min_changed)
+                subqueries.append(select(col.label("registration_id"), t.c.changed.label("changed")).filter(*filters))
         return union_all(*subqueries).subquery("changes")
 
     @classmethod
