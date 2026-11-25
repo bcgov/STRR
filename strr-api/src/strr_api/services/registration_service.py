@@ -1459,6 +1459,14 @@ class RegistrationService:
         return res
 
     @classmethod
+    def _parse_cdc_cursor(cls, cursor_position: Optional[dict[str, Any]]) -> tuple[Optional[datetime], Any]:
+        """Extract (changed_timestamp, registration_id) from a decoded CDC cursor payload."""
+        if not cursor_position:
+            return None, None
+        c_str = cursor_position.get("changed")
+        return (cls._parse_timestamp(c_str) if c_str else None), cursor_position.get("registrationId")
+
+    @classmethod
     def _execute_cdc_query(
         cls,
         updated_since: Optional[datetime],
@@ -1468,12 +1476,7 @@ class RegistrationService:
         include_pii: bool,
     ) -> dict[str, Any]:
         """Execute CDC synchronization query ordered by (changed ASC, registration_id ASC)."""
-        cursor_changed, cursor_reg_id = None, None
-        if cursor_position:
-            if c_str := cursor_position.get("changed"):
-                cursor_changed = cls._parse_timestamp(c_str)
-            cursor_reg_id = cursor_position.get("registrationId")
-
+        cursor_changed, cursor_reg_id = cls._parse_cdc_cursor(cursor_position)
         min_changed = cursor_changed if (cursor_changed and cursor_reg_id) else updated_since
         union_sub = cls._build_cdc_changes_subquery(min_changed=min_changed)
         agg_sub = (
