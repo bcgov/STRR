@@ -269,28 +269,6 @@ describe('Dashboard Registrations Table', () => {
       expect(viewLink).toBeTruthy()
     })
 
-    it.each([
-      [false, true],
-      [true, false]
-    ])('shows when an early renewal draft can be submitted (window started: %s)', async (hasStarted, isShown) => {
-      asyncDataMocks['host-registrations-list'] = {
-        registrations: [createRegistration({
-          expiryDate: daysFromNowIso(200),
-          hasRenewalDraft: true,
-          renewalDraftId: '12345678901234',
-          renewalWindow: { startDate: '2027-01-15', hasStarted }
-        })],
-        total: 1
-      }
-
-      const wrapper = await mountSuspended(RegistrationsTable, {
-        global: { plugins: [baseEnI18n] }
-      })
-
-      expect(wrapper.findAll('button').some(btn => btn.text().includes('label.resumeDraft'))).toBe(true)
-      expect(wrapper.find('[data-testid="early-renewal-date"]').exists()).toBe(isShown)
-    })
-
     it('View button stores selected registration id on click', async () => {
       asyncDataMocks['host-registrations-list'] = {
         registrations: [createRegistration({ expiryDate: daysFromNowIso(200) })],

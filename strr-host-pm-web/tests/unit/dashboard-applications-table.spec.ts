@@ -150,31 +150,6 @@ describe('Dashboard Applications Table', () => {
     expect(numberLink.text()).toContain('12345678901234')
   })
 
-  it.each([
-    ['shows when an early renewal draft can be submitted', '2027-01-15', false, true],
-    ['shows no date once the renewal window has started', '2027-01-15', true, false],
-    ['shows no date for a new registration draft', undefined, undefined, false]
-  ])('%s', async (_, renewalWindowStartDate, hasRenewalWindowStarted, isShown) => {
-    asyncDataMocks['host-applications-list'] = {
-      applications: [createApplication({
-        header: {
-          status: ApplicationStatus.DRAFT,
-          hostStatus: 'Draft',
-          renewalWindowStartDate,
-          hasRenewalWindowStarted
-        }
-      })],
-      total: 1,
-      filteredCount: 1
-    }
-
-    const wrapper = await mountSuspended(ApplicationsTable, {
-      global: { plugins: [baseEnI18n] }
-    })
-
-    expect(wrapper.find('[data-testid="early-renewal-date"]').exists()).toBe(isShown)
-  })
-
   it('renders Resume Draft action and opens draft application', async () => {
     asyncDataMocks['host-applications-list'] = {
       applications: [createApplication({

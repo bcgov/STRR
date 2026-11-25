@@ -172,9 +172,6 @@ const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): Reg
       expiryState,
       hasRenewalDraft: renewalDraftExists,
       renewalDraftApplicationNumber,
-      earlyRenewalDate: renewalDraftExists
-        ? getEarlyRenewalDate(registration.renewalWindow?.startDate, registration.renewalWindow?.hasStarted)
-        : undefined,
       canRenew: canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending),
       registrationId: registration.id,
       hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(registration)
@@ -388,9 +385,6 @@ async function handleResumeRenewalDraft (row: RegistrationRow) {
             @click="handleRegistrationLinkClick(row)"
           />
         </div>
-        <p v-if="row.earlyRenewalDate" class="mt-2 text-xs" data-testid="early-renewal-date">
-          {{ $t('label.submitRenewalFrom', { date: row.earlyRenewalDate }) }}
-        </p>
       </template>
     </UTable>
   </ConnectPageSection>

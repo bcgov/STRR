@@ -8,7 +8,6 @@ export interface ApplicationRow {
   dateSubmitted?: Date | string
   applicationNumber: string
   paymentToken?: number
-  earlyRenewalDate?: string
   hasEmailDeliveryFailure?: boolean
   disabled?: boolean
   class?: string
@@ -49,7 +48,6 @@ export interface RegistrationRow {
   expiryState: ExpiryState
   hasRenewalDraft: boolean
   renewalDraftApplicationNumber?: string
-  earlyRenewalDate?: string
   canRenew: boolean
   registrationId: number
   hasEmailDeliveryFailure?: boolean

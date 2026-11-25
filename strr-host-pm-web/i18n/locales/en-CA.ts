@@ -302,7 +302,6 @@ export default {
     }
   },
   label: {
-    submitRenewalFrom: 'Can be submitted starting {date}',
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',

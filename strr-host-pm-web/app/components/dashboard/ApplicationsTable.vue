@@ -100,7 +100,6 @@ const mapApplicationsList = (applications: HostApplicationResp['applications']):
       dateSubmitted: app.header.applicationDateTime,
       applicationNumber: app.header.applicationNumber,
       paymentToken: app.header.paymentToken,
-      earlyRenewalDate: getEarlyRenewalDate(app.header.renewalWindowStartDate, app.header.hasRenewalWindowStarted),
       hasEmailDeliveryFailure: hasRecordEmailDeliveryFailure(app)
     }
   })
@@ -341,9 +340,6 @@ function handlePayNow (row: ApplicationRow) {
             />
           </template>
         </div>
-        <p v-if="row.earlyRenewalDate" class="mt-2 text-xs" data-testid="early-renewal-date">
-          {{ $t('label.submitRenewalFrom', { date: row.earlyRenewalDate }) }}
-        </p>
       </template>
     </UTable>
   </ConnectPageSection>
