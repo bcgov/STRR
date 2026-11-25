@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test'
 
 const DASHBOARD_URL = '/en-CA/dashboard'
+const LONG_UNBROKEN_NAME = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' +
+  '!@#$%^&*()_+-=[]{}|;:,.<>?`~" ' +
+  'ᐃᐅᐊᐱᐳᐸᑎᑑᑕᑭᑲᑯᒋᒍᒐᒥᒧᒪᓂᓄᓇᓯᓱᓴᔂᔅᔈᔑᔓᔕᔦᔨᔪᕂᕆᕋᕐᕕᕙᕞᕽᖀᖄᖅᖋᖏᖓᖖᖠᖤᖨᖬᖯᖳᖷᖻᖾᗂᗅᗈᗌᗐᗔᗘᗜᗠᗤᗨᗬᗰᗴᗸᗼᘀᘄᘈᘌᘐᘔᘘᘜᘠᘤᘨᘬᘰᘴᘸᘼᙀᙄᙈᙌᙐᙔᙘᙜᙠᙤᙨᙬᙰᙴᙸᙼ ' +
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
 
 test.describe('Examiner Dashboard', () => {
   test('load the page with tabs, table and its components', async ({ page }) => {
@@ -70,5 +74,43 @@ test.describe('Examiner Dashboard', () => {
     await expect(searchInput).toHaveValue('abc')
     await page.getByTestId('clear-filters-button').click()
     await expect(searchInput).toHaveValue('')
+  })
+
+  test('long unbroken applicant name clamps without horizontal table overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+
+    await page.route('**/applications?*', async (route) => {
+      const response = await route.fetch()
+      const json = await response.json()
+      if (json.applications?.length) {
+        const first = json.applications[0]
+        if (first.registration?.registrationType === 'HOST') {
+          first.registration.primaryContact = {
+            ...first.registration.primaryContact,
+            firstName: LONG_UNBROKEN_NAME,
+            lastName: ''
+          }
+        } else if (first.registration?.businessDetails) {
+          first.registration.businessDetails.legalName = LONG_UNBROKEN_NAME
+        }
+      }
+      await route.fulfill({ response, json })
+    })
+
+    await page.goto(DASHBOARD_URL)
+    await expect(page.getByTestId('examiner-dashboard-page')).toBeVisible({ timeout: 30000 })
+
+    const table = page.getByTestId('applications-table')
+    await expect(table.locator('tbody tr').first()).toBeVisible({ timeout: 15000 })
+
+    const hasHorizontalOverflow = await table.evaluate((el) => {
+      return el.scrollWidth > el.clientWidth
+    })
+    expect(hasHorizontalOverflow).toBe(false)
+
+    const longNameSpan = table.locator('tbody tr').first().locator('span.line-clamp-2').first()
+    await expect(longNameSpan).toBeVisible()
+    const box = await longNameSpan.boundingBox()
+    expect(box?.height).toBeLessThanOrEqual(52)
   })
 })

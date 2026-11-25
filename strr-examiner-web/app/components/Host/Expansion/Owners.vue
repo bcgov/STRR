@@ -66,7 +66,7 @@ const hostOwners = computed<HostOwner[]>(() => {
       class: 'hidden'
     }"
     :ui="{ td: {
-      base: 'align-text-top',
+      base: 'whitespace-normal max-w-xs align-text-top [overflow-wrap:anywhere]',
       padding: 'first:p-0'
     }}"
   >

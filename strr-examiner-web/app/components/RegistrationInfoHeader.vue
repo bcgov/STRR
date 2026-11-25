@@ -77,20 +77,32 @@ const registrationCountdown = computed(() => {
   >
     <div class="app-inner-container">
       <div class="mb-2">
-        <div class="relative mb-4 flex justify-between text-2xl leading-none">
-          <div class="flex items-center space-x-3">
-            <span class="border-r-2 border-gray-700 pr-3 font-bold">
+        <div class="relative mb-4 flex items-center justify-between gap-4 text-2xl leading-none">
+          <div class="flex min-w-0 flex-1 items-center gap-x-3">
+            <span class="shrink-0 border-r-2 border-gray-700 pr-3 font-bold">
               {{ activeReg.registrationNumber }}
             </span>
-            <span
+            <UTooltip
               v-if="getApplicationName()"
-              class="border-r-2 border-gray-700 pr-3"
+              :text="getApplicationName()"
+              :prevent="getApplicationName().length <= 50"
+              :popper="{ placement: 'auto', offsetDistance: 8 }"
+              :ui="{
+                base: [
+                  '[@media(pointer:coarse)]:hidden h-auto px-2.5 py-2',
+                  'text-xs font-normal whitespace-normal [overflow-wrap:anywhere] relative'
+                ].join(' '),
+                width: 'max-w-md'
+              }"
+              class="min-w-0 border-r-2 border-gray-700 pr-3"
             >
-              {{ getApplicationName() }}
-            </span>
+              <span class="line-clamp-2 [overflow-wrap:anywhere]">
+                {{ getApplicationName() }}
+              </span>
+            </UTooltip>
             <span
               v-if="activeReg.registrationType === ApplicationType.STRATA_HOTEL"
-              class="border-r-2 border-gray-700 pr-3"
+              class="shrink-0 border-r-2 border-gray-700 pr-3"
             >
               <UButton
                 icon="mdi-web"
@@ -108,7 +120,7 @@ const registrationCountdown = computed(() => {
               variant="link"
               icon="i-mdi-history"
               size="sm"
-              class="gap-1"
+              class="shrink-0 gap-1"
               data-testid="toggle-history-btn"
               @click="checkAndPerformAction(() => toggleFilingHistory())"
             />

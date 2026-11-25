@@ -67,7 +67,7 @@ const additionalContacts = computed(() => {
     data-testid="host-sub-header"
     class="app-inner-container"
   >
-    <div class="grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray">
+    <div class="grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray *:min-w-0">
       <div
         id="rental-unit-details"
         class="space-y-2"
@@ -134,15 +134,18 @@ const additionalContacts = computed(() => {
           <UIcon name="i-mdi-map-marker-outline" />
           {{ displayFullAddress(activeReg.primaryContact?.mailingAddress) }}
         </div>
-        <div class="flex gap-1">
+        <div class="flex min-w-0 gap-1">
           <UIcon name="i-mdi-account" class="size-5 shrink-0 text-gray-700" />
           <UButton
-            :label="displayContactFullName(activeReg.primaryContact!)"
             :padded="false"
-            class="w-full whitespace-normal text-left"
+            class="min-w-0 flex-1 whitespace-normal text-left [overflow-wrap:anywhere]"
             variant="link"
             @click="checkAndPerformAction(() => openHostOwners('primaryContact'))"
-          />
+          >
+            <span class="line-clamp-3">
+              {{ displayContactFullName(activeReg.primaryContact!) }}
+            </span>
+          </UButton>
         </div>
         <div class="flex items-center gap-1">
           <UIcon name="i-mdi-at" :class="{ 'text-red-600': isEmailFailed }" />

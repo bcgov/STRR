@@ -983,7 +983,7 @@ const tabLinks = computed(() => [
             padding: enableTableFilters ? 'px-0 py-0' : 'px-2 py-3'
           },
           td: {
-            base: 'whitespace-normal max-w-96 align-middle h-[72px]',
+            base: 'whitespace-normal max-w-96 align-middle h-[72px] [overflow-wrap:anywhere]',
             padding: 'py-2 pl-2 pr-4',
             color: 'text-bcGovColor-midGray',
             font: '',
@@ -1240,6 +1240,25 @@ const tabLinks = computed(() => [
             </UTooltip>
           </div>
           <span v-else>-</span>
+        </template>
+
+        <template #applicantName-data="{ row }">
+          <UTooltip
+            :text="row.applicantName"
+            :prevent="!row.applicantName || row.applicantName.length <= 50"
+            :popper="{ placement: 'auto', offsetDistance: 8 }"
+            :ui="{
+              base: [
+                '[@media(pointer:coarse)]:hidden h-auto px-2.5 py-2',
+                'text-xs font-normal whitespace-normal [overflow-wrap:anywhere] relative'
+              ].join(' '),
+              width: 'max-w-md'
+            }"
+          >
+            <span class="line-clamp-2 max-w-60">
+              {{ row.applicantName }}
+            </span>
+          </UTooltip>
         </template>
 
         <template #propertyAddress-data="{ row }">

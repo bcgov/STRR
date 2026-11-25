@@ -19,7 +19,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
     data-testid="strata-sub-header"
     class="app-inner-container"
   >
-    <div class="grid grid-cols-4 gap-x-5 divide-x bg-white py-4 text-sm text-bcGovColor-midGray">
+    <div class="grid grid-cols-4 gap-x-5 divide-x bg-white py-4 text-sm text-bcGovColor-midGray *:min-w-0">
       <div
         data-testid="strata-primary-building"
         class="space-y-2"
@@ -46,15 +46,17 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
           <b>{{ $t('strr.label.business').toUpperCase() }}</b>
           <ConnectInfoWithIcon
             icon="i-mdi-domain"
-            class="whitespace-nowrap"
           >
             <UButton
-              :label="businessDetails?.legalName"
               :padded="false"
-              class="whitespace-normal text-left"
+              class="min-w-0 flex-1 whitespace-normal text-left [overflow-wrap:anywhere]"
               variant="link"
               @click="strataExpansion.openBusiness()"
-            />
+            >
+              <span class="line-clamp-3">
+                {{ businessDetails?.legalName }}
+              </span>
+            </UButton>
           </ConnectInfoWithIcon>
 
           <ConnectInfoWithIcon
@@ -87,15 +89,17 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
           <b>{{ $t('strr.label.representative').toUpperCase() }}</b>
           <ConnectInfoWithIcon
             icon="i-mdi-account"
-            class="whitespace-nowrap"
           >
             <UButton
-              :label="displayContactFullName(activeReg?.strataHotelRepresentatives[0])"
               :padded="false"
-              class="whitespace-normal text-left"
+              class="min-w-0 flex-1 whitespace-normal text-left [overflow-wrap:anywhere]"
               variant="link"
               @click="strataExpansion.openIndividuals()"
-            />
+            >
+              <span class="line-clamp-3">
+                {{ displayContactFullName(activeReg?.strataHotelRepresentatives[0]) }}
+              </span>
+            </UButton>
           </ConnectInfoWithIcon>
 
           <ConnectInfoWithIcon

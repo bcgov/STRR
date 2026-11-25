@@ -10,7 +10,7 @@ defineProps<{
 </script>
 <template>
   <CommonExpansionTemplate :label="$t('strr.label.individuals')">
-    <div class="flex space-x-10 *:space-y-1">
+    <div class="flex space-x-10 *:min-w-0 *:space-y-1 *:[overflow-wrap:anywhere]">
       <div v-if="primaryRep">
         <strong class="text-gray-900">{{ $t('strr.label.representative').toUpperCase() }}</strong>
         <ConnectInfoWithIcon icon="i-mdi-account">

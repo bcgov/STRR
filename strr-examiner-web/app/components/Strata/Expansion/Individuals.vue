@@ -12,8 +12,12 @@ const compParty = isApplication.value
   <CommonExpansionTemplate
     :label="$t('strr.label.individuals')"
   >
-    <div class="flex">
-      <div v-for="(rep, index) in strataHotelRepresentatives" :key="index" class="w-1/3 space-y-2">
+    <div class="flex gap-x-6">
+      <div
+        v-for="(rep, index) in strataHotelRepresentatives"
+        :key="index"
+        class="w-1/3 min-w-0 space-y-2 [overflow-wrap:anywhere]"
+      >
         <b>{{ index === 0
           ? $t('strr.label.representative').toUpperCase() :
             $t('strr.label.secondaryRepresentative').toUpperCase()
@@ -42,7 +46,7 @@ const compParty = isApplication.value
           :content="rep?.emailAddress"
         />
       </div>
-      <div v-if="isApplication" class="space-y-2">
+      <div v-if="isApplication" class="min-w-0 flex-1 space-y-2 [overflow-wrap:anywhere]">
         <b>{{ $t('strr.label.completingParty').toUpperCase() }}</b>
         <ConnectInfoWithIcon
           icon="i-mdi-account"

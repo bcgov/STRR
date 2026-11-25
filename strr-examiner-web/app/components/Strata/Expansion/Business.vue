@@ -13,7 +13,7 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
     :label="$t('strr.label.businesses')"
   >
     <div class="flex gap-x-10">
-      <div class="space-y-2">
+      <div class="min-w-0 space-y-2 [overflow-wrap:anywhere]">
         <b>{{ $t('strr.label.business').toUpperCase() }}</b>
         <ConnectInfoWithIcon
           icon="i-mdi-domain"

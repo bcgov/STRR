@@ -19,7 +19,7 @@ const getColLabels = (labels: string[]) => {
     <div
       :class="[
         'grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray',
-        '*:*:space-y-1 *:space-y-4 *:px-3 first:*:pl-0'
+        '*:min-w-0 *:*:space-y-1 *:space-y-4 *:px-3 *:[overflow-wrap:anywhere] first:*:pl-0'
       ]"
     >
       <div>
