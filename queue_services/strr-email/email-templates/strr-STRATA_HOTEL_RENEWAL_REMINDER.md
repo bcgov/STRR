@@ -1,6 +1,7 @@
 # Short-Term Rental Registration Renewal Reminder
 
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}\
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
+
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
 **Street Address:**&nbsp;{{street_address}}\
