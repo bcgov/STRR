@@ -57,4 +57,4 @@ For information about renewals and registration requirements:
 - Email: [STRregistry@sbc.gov.bc.ca](mailto:STRregistry@sbc.gov.bc.ca) (include your registration number in the subject line)
 
 **Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+Ministry of Local Government, Housing, Sport and Culture

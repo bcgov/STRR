@@ -30,4 +30,4 @@ Your short-term rental registration has been **suspended**.
 ---
 
 **Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+Ministry of Local Government, Housing, Sport and Culture

@@ -58,4 +58,4 @@ To learn more about next step options, visit our [website](https://www2.gov.bc.c
 ---
 
 **Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+Ministry of Local Government, Housing, Sport and Culture

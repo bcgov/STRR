@@ -36,4 +36,4 @@ _**If your registration expires before submitting the renewal**, your registrati
 ---
 
 **Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+Ministry of Local Government, Housing, Sport and Culture
