@@ -1,18 +1,25 @@
-# Short-Term Rental Registration _Provisionally_ Approved
-Your application to register the short-term rental described below is **_provisionally_ approved**.
+# Your short-term rental registration is provisionally approved
 
----
+Good news! Your application has been **provisionally approved**, and you can now use the registration number below on your short-term rental listings.
 
-[[strr-important-next-steps.md]]
+[[strr-registration-details.md]]
 
----
+[[strr-what-you-need-to-do.md]]
 
-[[strr-provisional-approval-info.md]]
+## What does "provisionally approved" mean?
 
----
+A provisional approval means your application appears to meet registration requirements. However, we have not yet completed a full review of your supporting documents.
 
-[[strr-tac.md]]
+After a full review, we will let you know the outcome of your registration. You may continue operating your short-term rental using the registration number above.
 
----
+In some cases, our review finds that the application does not meet all requirements. If this happens:
 
-[[strr-footer.md]]
+- We will contact you with further instructions
+- You may need to submit further documentation
+- The registration could be suspended or cancelled if requirements are not met
+
+## Terms and conditions
+
+Your registration must follow the [Terms and Conditions]({{ tac_url }}).
+
+[[strr-questions.md]]

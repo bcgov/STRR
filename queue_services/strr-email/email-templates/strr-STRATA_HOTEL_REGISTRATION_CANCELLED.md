@@ -33,5 +33,4 @@ To learn more about next step options, visit our [website](https://www2.gov.bc.c
 
 ---
 
-**Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+[[strr-signature.md]]

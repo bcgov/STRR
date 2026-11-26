@@ -37,5 +37,4 @@ Please be aware that we may not reach a final decision until after the deadline 
 
 ---
 
-**Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+[[strr-signature.md]]

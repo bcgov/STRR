@@ -29,5 +29,4 @@ Your short-term rental registration has been **suspended**.
 
 ---
 
-**Short-Term Rental Branch**\
-Ministry of Housing and Municipal Affairs
+[[strr-signature.md]]

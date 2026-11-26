@@ -1,6 +1,13 @@
-# Short-Term Rental Registration Approved
-Your application to register the short-term rental described below is **approved**.
+# Your short-term rental registration is approved
 
----
+Good news! Your short-term rental registration has been **approved**.
 
-[[strr-host-approval-body.md]]
+[[strr-registration-details.md]]
+
+[[strr-what-you-need-to-do.md]]
+
+## Terms and conditions
+
+Your registration must follow the [Terms and Conditions]({{ tac_url }}). If you do not follow them, we may suspend or cancel your registration.
+
+[[strr-questions.md]]
