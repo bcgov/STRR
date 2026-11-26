@@ -920,7 +920,7 @@ def substitute_template_parts(template_code: str) -> str:
         "strr-host-approval-body",
         "strr-footer",
         "strr-important-deadlines",
-        "strr-important-next-steps",
+        "strr-what-you-need-to-do",
         "strr-tac",
         "strr-provisional-approval-info",
         "strr-registration-details",
