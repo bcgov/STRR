@@ -461,3 +461,57 @@ def test_strata_hotel_registration_noc_email_posts_to_notify(
     assert stored.registration_id == registration.id
     assert stored.status == InteractionStatus.SENT
     assert stored.meta_data["email_type"] == "STRATA_HOTEL_REGISTRATION_NOC"
+
+
+def test_orphaned_interaction_shared_key_only_fails_own_record(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    random_string,
+    random_integer,
+):
+    """A rejected email whose key is shared across registrations fails only its own interaction."""
+    from strr_test_utils.parent_fixtures import seed_parent_user_registration_application
+
+    shared_key = "2026:RENEWAL_REMINDER:40"
+    registrations = [
+        seed_parent_user_registration_application(
+            session, random_string, random_integer, commit=True
+        )["registration"]
+        for _ in range(2)
+    ]
+    interaction_uuids = [
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_RENEWAL_REMINDER",
+                registration_number=registration.registration_number,
+            ),
+            idempotency_key=shared_key,
+            registration_id=registration.id,
+        )
+        for registration in registrations
+    ]
+
+    # Like Dispatch Test Email: the interaction_uuid has no stored row, so the key is the fallback.
+    ce = simple_cloud_event(
+        data={
+            "registration_number": registrations[0].registration_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    statuses = [
+        session.scalar(
+            select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == uuid)
+        ).status
+        for uuid in interaction_uuids
+    ]
+    assert statuses == [InteractionStatus.FAILED, InteractionStatus.QUEUED]
