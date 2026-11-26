@@ -25,12 +25,8 @@ const applicationId = ref(route.query.applicationId as string)
 const loading = ref(false)
 
 // date from which this draft can be submitted, if the renewal window has not started
-const earlyRenewalDate = computed(() => {
-  const header = permitStore.application?.header
-  return header && header.applicationNumber === applicationId.value
-    ? getEarlyRenewalDate(header.renewalWindowStartDate, header.hasRenewalWindowStarted)
-    : undefined
-})
+const earlyRenewalDate = computed(() =>
+  getDraftEarlyRenewalDate(permitStore.application?.header, applicationId.value))
 
 // fee stuff
 const {

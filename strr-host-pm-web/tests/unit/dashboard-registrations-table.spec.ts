@@ -48,6 +48,8 @@ mockNuxtImport('useAsyncData', () => {
   })
 })
 
+const WINDOW_STARTED = { startDate: '2026-01-01', hasStarted: true }
+
 const createRegistration = (overrides: Record<string, any> = {}) => {
   const baseRegistration = {
     id: 308,
@@ -227,7 +229,7 @@ describe('Dashboard Registrations Table', () => {
       asyncDataMocks['host-registrations-list'] = {
         registrations: [createRegistration({
           expiryDate: daysFromNowIso(20),
-          renewalWindow: { startDate: '2026-01-01', hasStarted: true }
+          renewalWindow: WINDOW_STARTED
         })],
         total: 1
       }
@@ -303,7 +305,7 @@ describe('Dashboard Registrations Table', () => {
       asyncDataMocks['host-registrations-list'] = {
         registrations: [createRegistration({
           expiryDate: daysFromNowIso(20),
-          renewalWindow: { startDate: '2026-01-01', hasStarted: true }
+          renewalWindow: WINDOW_STARTED
         })],
         total: 1
       }
@@ -339,7 +341,7 @@ describe('Dashboard Registrations Table', () => {
         createRegistration({
           registrationNumber: 'HEXPIRING002',
           expiryDate: daysFromNowIso(20),
-          renewalWindow: { startDate: '2026-01-01', hasStarted: true }
+          renewalWindow: WINDOW_STARTED
         })
       ],
       total: 2

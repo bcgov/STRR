@@ -1,10 +1,11 @@
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, type Ref } from 'vue'
+import { defineComponent, h, reactive, ref, type Ref } from 'vue'
 import { baseEnI18n } from '../mocks/i18n'
 import { mockApplication } from '../mocks/mockedData'
 import { applicationPageStubs } from './helpers/renewal-test-utils'
+import { EarlyRenewalAlert } from '#components'
 import Application from '~/pages/application.vue'
 
 const replaceMock = vi.fn().mockResolvedValue(undefined)
@@ -30,7 +31,7 @@ const {
 
 const submitApplicationMock = vi.fn()
 const openAppSubmitErrorMock = vi.fn()
-let lastButtonControl: { leftButtons: { action: () => void | Promise<void> }[] } | null = null
+let lastButtonControl: ConnectBtnControl | null = null
 
 const duplicateRenewalError = {
   statusCode: 409,
@@ -72,8 +73,9 @@ vi.mock('#baseWeb/utils/todoItems', () => ({
   })
 }))
 
+// reactive, so the page reads unwrapped refs as it would from a pinia store
 vi.mock('@/stores/hostPermit', () => ({
-  useHostPermitStore: () => ({
+  useHostPermitStore: () => reactive({
     loadHostRegistrationData: vi.fn(() => {
       registrationRef.value = { id: 7 }
     }),
@@ -171,10 +173,15 @@ vi.mock('@/composables/useHostPmModals', () => ({
   useHostPmModals: () => ({ openConfirmUnsavedChanges: vi.fn().mockResolvedValue(true) })
 }))
 
-const draftSaveStubs = applicationPageStubs
+const StepperStub = defineComponent({
+  name: 'ConnectStepper',
+  emits: ['update:activeStepIndex'],
+  setup: (_, { slots }) => () => h('div', slots.default?.())
+})
 
-const mountRenewalApplication = () =>
-  mountSuspended(Application, { global: { plugins: [baseEnI18n], stubs: draftSaveStubs } })
+const mountRenewalApplication = () => mountSuspended(Application, {
+  global: { plugins: [baseEnI18n], stubs: { ...applicationPageStubs, ConnectStepper: StepperStub } }
+})
 
 async function clickSaveDraft () {
   const saveAction = lastButtonControl?.leftButtons?.[2]?.action
@@ -191,6 +198,7 @@ describe('Application page — renewal draft save', () => {
     mockRoute.query = { renew: 'true' }
     renewalRegId.value = '42'
     registrationRef.value = undefined
+    applicationRef.value = undefined
     isRegistrationRenewalRef.value = false
     submitApplicationMock.mockReset()
     openAppSubmitErrorMock.mockReset()
@@ -246,4 +254,57 @@ describe('Application page — renewal draft save', () => {
     expect(openAppSubmitErrorMock).toHaveBeenCalledWith(duplicateRenewalError)
     expect(replaceMock).not.toHaveBeenCalled()
   }, 10000)
+})
+
+describe('Application page — early renewal draft', () => {
+  const ALERT = '[data-testid="early-renewal-alert"]'
+  const lastButton = () => lastButtonControl!.rightButtons.at(-1)!
+
+  const mountWithDraft = async (hasRenewalWindowStarted: boolean) => {
+    applicationRef.value = {
+      header: {
+        applicationNumber: '123',
+        applicationType: 'renewal',
+        status: 'DRAFT',
+        renewalWindowStartDate: '2027-01-15',
+        hasRenewalWindowStarted
+      }
+    }
+    const wrapper = await mountRenewalApplication()
+    await flushPromises()
+    return wrapper
+  }
+
+  const goToLastStep = async (wrapper: Awaited<ReturnType<typeof mountRenewalApplication>>) => {
+    wrapper.findComponent(StepperStub).vm.$emit('update:activeStepIndex', 3)
+    await flushPromises()
+  }
+
+  beforeEach(() => {
+    lastButtonControl = null
+    mockRoute.query = { renew: 'true' }
+    renewalRegId.value = '42'
+    registrationRef.value = undefined
+  })
+
+  it('shows the alert and blocks only the submit button before the window starts', async () => {
+    const wrapper = await mountWithDraft(false)
+
+    expect(wrapper.find(ALERT).exists()).toBe(true)
+    expect(wrapper.findComponent(EarlyRenewalAlert).props('date')).toBe('January 15, 2027')
+    expect(lastButton()).toMatchObject({ disabled: false, locked: false })
+
+    await goToLastStep(wrapper)
+    expect(lastButton()).toMatchObject({ disabled: true, locked: true })
+    expect(lastButtonControl!.leftButtons.some(button => button.disabled)).toBe(false)
+  })
+
+  // when the alert shows is covered by getEarlyRenewalDate in strr-base-web
+  it('shows no alert and allows submit once the window has started', async () => {
+    const wrapper = await mountWithDraft(true)
+    await goToLastStep(wrapper)
+
+    expect(wrapper.find(ALERT).exists()).toBe(false)
+    expect(lastButton()).toMatchObject({ disabled: false, locked: false })
+  })
 })

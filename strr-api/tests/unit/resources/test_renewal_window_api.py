@@ -173,16 +173,19 @@ def test_early_draft_can_be_saved_but_not_submitted(mock_invoice, client, header
 
 
 @pytest.mark.parametrize(
-    "registration_type, mock_file, days_to_expiry",
+    "registration_type, mock_file, days_to_expiry, is_open",
     [
-        ("HOST", "host_registration.json", 50),
-        ("PLATFORM", "platform_registration.json", 50),
-        ("STRATA_HOTEL", "strata_hotel_registration.json", 70),
+        ("HOST", "host_registration.json", 50, False),
+        ("PLATFORM", "platform_registration.json", 50, False),
+        ("STRATA_HOTEL", "strata_hotel_registration.json", 70, False),
+        ("HOST", "host_registration.json", 30, True),
+        ("PLATFORM", "platform_registration.json", 30, True),
+        ("STRATA_HOTEL", "strata_hotel_registration.json", 50, True),
     ],
 )
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_early_submit_without_draft_is_rejected(
-    mock_invoice, client, headers, make_registration, registration_type, mock_file, days_to_expiry
+def test_submit_without_draft_is_accepted_only_in_window(
+    mock_invoice, client, headers, make_registration, registration_type, mock_file, days_to_expiry, is_open
 ):
     with open(os.path.join(MOCKS, mock_file)) as f:
         base_json = json.load(f)
@@ -191,30 +194,8 @@ def test_early_submit_without_draft_is_rejected(
 
     rv = client.post("/applications", json=payload, headers=headers)
 
-    assert rv.status_code == HTTPStatus.BAD_REQUEST
-    assert rv.json["errorCode"] == "RENEWAL_WINDOW_NOT_OPEN"
-    mock_invoice.assert_not_called()
-    assert Application.query.filter_by(registration_id=registration.id).count() == 0
-
-
-@pytest.mark.parametrize(
-    "registration_type, mock_file, days_to_expiry",
-    [
-        ("HOST", "host_registration.json", 30),
-        ("PLATFORM", "platform_registration.json", 30),
-        ("STRATA_HOTEL", "strata_hotel_registration.json", 50),
-    ],
-)
-@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_submit_without_draft_in_window_is_accepted(
-    mock_invoice, client, headers, make_registration, registration_type, mock_file, days_to_expiry
-):
-    with open(os.path.join(MOCKS, mock_file)) as f:
-        base_json = json.load(f)
-    registration = make_registration(days_to_expiry, registration_type)
-    payload = host_renewal_application_json(registration.id, base_json=base_json)
-
-    rv = client.post("/applications", json=payload, headers=headers)
-
-    assert rv.status_code == HTTPStatus.OK
-    mock_invoice.assert_called_once()
+    assert rv.status_code == (HTTPStatus.OK if is_open else HTTPStatus.BAD_REQUEST)
+    if not is_open:
+        assert rv.json["errorCode"] == "RENEWAL_WINDOW_NOT_OPEN"
+    assert mock_invoice.call_count == int(is_open)
+    assert Application.query.filter_by(registration_id=registration.id).count() == int(is_open)

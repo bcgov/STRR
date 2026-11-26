@@ -147,9 +147,7 @@ export const useDashboardTodos = () => {
         todos.value.push({
           id: 'todo-renewal-draft',
           title: t('todos.renewalDraft.title'),
-          subtitle: earlyRenewalDate.value
-            ? t('todos.renewalDraft.earlySubtitle', { date: earlyRenewalDate.value })
-            : t('todos.renewalDraft.subtitle'),
+          subtitle: getRenewalDraftSubtitle(t, earlyRenewalDate.value),
           buttons: [
             {
               label: t('todos.renewalDraft.resumeButton'),

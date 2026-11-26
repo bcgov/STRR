@@ -123,29 +123,15 @@ describe('Early renewal draft in the application wizard', () => {
     expect(buttonControl!.leftButtons.some(button => button.disabled)).toBe(false)
   })
 
-  it.each([
-    ['the window has started', { renewalWindowStartDate: '2027-01-15', hasRenewalWindowStarted: true }],
-    ['the API does not return a window', {}]
-  ])('shows no alert and allows submit when %s', async (_, fields) => {
-    header = { ...header, ...fields }
+  // when the alert shows is covered by getDraftEarlyRenewalDate in strr-base-web
+  it('shows no alert and allows submit once the window has started', async () => {
+    header = { ...header, renewalWindowStartDate: '2027-01-15', hasRenewalWindowStarted: true }
     const wrapper = await mountApplication()
     wrapper.findComponent(StepperStub).vm.$emit('update:activeStepIndex', 3)
     await flushPromises()
 
     expect(wrapper.find(ALERT).exists()).toBe(false)
     expect(lastButton()).toMatchObject({ disabled: false, locked: false })
-  })
-
-  it('ignores an application left in the store by another draft', async () => {
-    header = {
-      ...header,
-      applicationNumber: '999',
-      renewalWindowStartDate: '2027-01-15',
-      hasRenewalWindowStarted: false
-    }
-    const wrapper = await mountApplication()
-
-    expect(wrapper.find(ALERT).exists()).toBe(false)
   })
 })
 
@@ -157,21 +143,16 @@ describe('Renewal draft todo on the dashboard', () => {
 
   const draftTodo = (detail?: string) => ({ task: { type: 'REGISTRATION_RENEWAL_DRAFT', detail } })
 
-  it.each([
-    [false, 'todos.renewalDraft.earlySubtitle'],
-    [true, 'todos.renewalDraft.subtitle']
-  ])('uses the early subtitle only if the window has not started (started: %s)', async (
-    hasStarted,
-    expected
-  ) => {
+  // the subtitle choice is covered by getRenewalDraftSubtitle in strr-base-web
+  it('uses the early subtitle before the window starts', async () => {
     mockGetRegistrationToDos.mockResolvedValue({
       todos: [draftTodo('456')],
-      renewalWindow: { startDate: '2027-01-15', hasStarted }
+      renewalWindow: { startDate: '2027-01-15', hasStarted: false }
     })
     const wrapper = await mountDashboard()
 
     // the text itself is in the base layer locale, which is not loaded here
-    expect(wrapper.find('#todo-renewal-draft').text()).toBe(expected)
+    expect(wrapper.find('#todo-renewal-draft').text()).toBe('todos.renewalDraft.earlySubtitle')
   })
 
   it('skips draft and payment todos that have no application number', async () => {

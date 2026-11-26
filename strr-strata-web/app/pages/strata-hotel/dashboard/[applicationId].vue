@@ -89,9 +89,7 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
     renewalTodos.push({
       id: 'todo-renewal-draft',
       title: t('todos.renewalDraft.title'),
-      subtitle: earlyRenewalDate
-        ? t('todos.renewalDraft.earlySubtitle', { date: earlyRenewalDate })
-        : t('todos.renewalDraft.subtitle'),
+      subtitle: getRenewalDraftSubtitle(t, earlyRenewalDate),
       buttons: [
         {
           label: t('todos.renewalDraft.resumeButton'),
