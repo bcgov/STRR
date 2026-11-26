@@ -676,23 +676,20 @@ def _extract_property_manager_email(property_manager) -> str | None:
 
 
 def _extract_host_registration_emails(registration: Registration) -> list[str]:
-    """Extract emails for host rental property contacts, property manager, and applicant."""
+    """Extract emails for host primary rental property contact and property manager."""
     emails: list[str] = []
     if not registration.rental_property:
         return emails
 
     for property_contact in registration.rental_property.contacts or []:
+        if not getattr(property_contact, "is_primary", False):
+            continue
         contact = getattr(property_contact, "contact", None)
         if contact and contact.email:
             emails.append(contact.email)
 
     if pm_email := _extract_property_manager_email(registration.rental_property.property_manager):
         emails.append(pm_email)
-
-    applicant = getattr(registration, "user", None)
-    applicant_email = getattr(applicant, "email", None) if applicant else None
-    if applicant_email:
-        emails.append(applicant_email)
 
     return emails
 

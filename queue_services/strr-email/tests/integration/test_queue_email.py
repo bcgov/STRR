@@ -234,9 +234,12 @@ def test_email_mocked_notify(
     """Test email service using a mocked notify service to create an Interaction record."""
 
     # Callback
+    notify_payloads = []
+
     def notify_callback(request):
         """Return the callback struct that comes from notify."""
         payload = json.loads(request.body)
+        notify_payloads.append(payload)
         response = {
             "content": {
                 "id": random_integer(6),
@@ -268,6 +271,9 @@ def test_email_mocked_notify(
 
     # Create a registration with enough info to email out.
     registration = create_registration(session, setup_parents_committed)
+    if registration.user:
+        registration.user.email = "me@I.com"
+        session.commit()
 
     # Create a CustomerInteraction
     email_info = EmailInfo(
@@ -308,6 +314,10 @@ def test_email_mocked_notify(
     assert stored.notify_reference
     assert stored.registration_id == registration.id
     assert stored.status == InteractionStatus.SENT
+    assert [payload["recipients"] for payload in notify_payloads] == [
+        "remove@gov.bc.ca",
+        "thor@daxiom.com",
+    ]
 
 
 @pytest.mark.conf(
