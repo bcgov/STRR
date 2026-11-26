@@ -41,6 +41,9 @@ export const useDocumentStore = defineStore('strata/document', () => {
 
   async function removeStoredDocument (uiDoc: UiDocument) {
     const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
+    if (index === -1) {
+      return // not in the list (e.g. upload failed before it was added), nothing to remove
+    }
     storedDocuments.value.splice(index, 1)
     if (uiDoc.apiDoc.fileKey) {
       await deleteDocument(uiDoc.apiDoc.fileKey)

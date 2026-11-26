@@ -69,7 +69,7 @@ describe('Document Store', () => {
       loading: false
     } as UiDocument
 
-    await expect(docStore.addDocumentToRegistration(uiDoc, 12345)).rejects.toThrow('Upload failed')
+    await expect(docStore.addDocumentToRegistration(uiDoc, 12345)).resolves.toBeUndefined()
 
     expect(mockOpenErrorModal).toHaveBeenCalledWith(
       'error.docUpload.generic.title',

@@ -494,6 +494,23 @@ describe('Document Removal', () => {
     // Delete failure is acceptable - application_json is already updated, so no 502 issue
   })
 
+  it('should keep existing documents and not save draft when an upload is rejected', async () => {
+    const store = useDocumentStore()
+    const existingDoc = makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)
+    store.storedDocuments = [existingDoc]
+    mockPermitStore.application = { header: { status: 'FULL_REVIEW', applicationNumber: 'APP-123' } }
+    mockStrrApi.mockRejectedValueOnce(new Error('File contents do not match the file type'))
+    // upload never succeeded, so the new doc has no apiDoc and was never added to storedDocuments
+    const rejectedDoc = { ...makeUiDoc('2', DocumentUploadType.UTILITY_BILL), apiDoc: {} as ApiDocument }
+
+    await store.addDocumentToRegistration(rejectedDoc, 12345)
+
+    expect(mockOpenErrorModal).toHaveBeenCalled()
+    expect(store.storedDocuments).toHaveLength(1)
+    expect(store.storedDocuments[0]?.id).toBe(existingDoc.id)
+    expect(mockSubmitApplication).not.toHaveBeenCalled()
+  })
+
   it('should not remove any document if names do not match the given types', async () => {
     const store = useDocumentStore()
     store.storedDocuments = [makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)]

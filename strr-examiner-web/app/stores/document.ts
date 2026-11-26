@@ -130,7 +130,6 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
     } catch (e) {
       logFetchError(e, 'Error uploading document to registration')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
-      throw e
     } finally {
       uiDoc.loading = false
     }
@@ -170,7 +169,6 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
     } catch (e) {
       logFetchError(e, 'Error uploading document to application')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
-      throw e
     } finally {
       uiDoc.loading = false
     }
