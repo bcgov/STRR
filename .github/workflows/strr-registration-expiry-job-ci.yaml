@@ -23,7 +23,7 @@ defaults:
 
 jobs:
    registration-expiry-job-ci:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@e6d847a51e7d15134761f29ae284a8acb0e369e0 # main
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@e174092b408449f6bcb8a4d756c295cd72786faf # main
     with:
       app_name: " registration-expiry-job-cd"
       working_directory: "./jobs/registration_expiry"

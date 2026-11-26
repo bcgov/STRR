@@ -31,7 +31,7 @@ on:
 
 jobs:
   registration-expiry-job-cd:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@e6d847a51e7d15134761f29ae284a8acb0e369e0 # main
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@e174092b408449f6bcb8a4d756c295cd72786faf # main
     with:
       target: ${{ inputs.target }}
       app_name: "registration-expiry-job"
