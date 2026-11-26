@@ -923,6 +923,8 @@ def substitute_template_parts(template_code: str) -> str:
         "strr-important-next-steps",
         "strr-tac",
         "strr-provisional-approval-info",
+        "strr-registration-details",
+        "strr-questions",
         # last so it also fills the marker inside the parts above (e.g. strr-footer)
         "strr-signature",
     ]

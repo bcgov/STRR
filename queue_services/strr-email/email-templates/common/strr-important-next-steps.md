@@ -1,27 +1,8 @@
-# Important Next Steps
+## What you need to do
 
-1. Log in to the platform where your short-term rental is listed, such as Airbnb, Vrbo, or another booking site.
+To keep your listing active and compliant:
 
-1. Follow the platform instructions to update your listing with your registration information below.
-   {% if unit_number %}
-   **Registration Number:**
-   {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
-
-   **Short-Term Rental Address:**\
-   **Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}\
-   **Street Number:**&nbsp; {{street_number}}\
-   **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}\
-   **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
-   **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
-   {% else %}
-   **Registration Number:**
-   {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
-
-   **Short-Term Rental Address:**\
-   **Street Number:**&nbsp; {{street_number}}\
-   **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}\
-   **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}\
-   **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
-   {% endif %}
-
-1. Repeat the above steps for each platform your short-term rental is listed on.
+1. Sign in to each platform where your short-term rental is advertised (for example, Airbnb, Vrbo, or another booking site)
+2. Add your registration number to your listing by following the platform's instructions
+3. Repeat these steps for every platform where your property is listed
+4. Mark your expiry date down on your calendar to ensure you renew in time next year
