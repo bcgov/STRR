@@ -35,5 +35,4 @@ _**If your registration expires before submitting the renewal**, your registrati
 
 ---
 
-**Short-Term Rental Branch**\
-Ministry of Local Government, Housing, Sport and Culture
+[[strr-signature.md]]

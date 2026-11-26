@@ -912,8 +912,8 @@ def substitute_template_parts(template_code: str) -> str:
 
     This functionality is restricted by:
     - markup must be exactly [[partname.md]] and have no extra spaces around file name
-    - template parts should only be one level deep
-    parts. There is no recursive search and replace.
+    - parts are substituted once each, in template_parts order. A part can use another
+      part only if that one comes later in the list. There is no recursive search and replace.
     """
     template_parts = [
         "strr-host-approval",
@@ -923,6 +923,8 @@ def substitute_template_parts(template_code: str) -> str:
         "strr-important-next-steps",
         "strr-tac",
         "strr-provisional-approval-info",
+        # last so it also fills the marker inside the parts above (e.g. strr-footer)
+        "strr-signature",
     ]
 
     # substitute template parts - marked up by [[filename.md]]

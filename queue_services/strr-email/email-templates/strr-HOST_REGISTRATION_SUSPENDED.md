@@ -47,5 +47,4 @@ Your short-term rental registration has been **suspended**.
 
 ---
 
-**Short-Term Rental Branch**\
-Ministry of Local Government, Housing, Sport and Culture
+[[strr-signature.md]]
