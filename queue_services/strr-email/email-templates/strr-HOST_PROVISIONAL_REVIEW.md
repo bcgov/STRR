@@ -4,7 +4,7 @@ Good news! Your application has been **provisionally approved**, and you can now
 
 [[strr-registration-details.md]]
 
-[[strr-important-next-steps.md]]
+[[strr-what-you-need-to-do.md]]
 
 ## What does "provisionally approved" mean?
 

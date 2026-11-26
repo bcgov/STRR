@@ -4,7 +4,7 @@ Good news! Your short-term rental registration has been **approved**.
 
 [[strr-registration-details.md]]
 
-[[strr-important-next-steps.md]]
+[[strr-what-you-need-to-do.md]]
 
 ## Terms and conditions
 
