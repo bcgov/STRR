@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   strata-ui-ci:
-    uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@e6d847a51e7d15134761f29ae284a8acb0e369e0 # main
+    uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@e174092b408449f6bcb8a4d756c295cd72786faf # main
     with:
       app_name: "strr-strata-hotel-ui"
       working_directory: "./strr-strata-web"
