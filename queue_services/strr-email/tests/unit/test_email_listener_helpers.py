@@ -384,12 +384,21 @@ def test_get_registration_email_recipients(cfg_app, with_pm):
     assert "me@i.com" not in recipients
 
 
-def test_extract_host_registration_emails_edge_cases():
-    reg_no_prop = MagicMock(rental_property=None, user=MagicMock(email="me@I.com"))
+def test_extract_host_registration_emails_edge_cases(capsys):
+    reg_no_prop = MagicMock(
+        registration_number="H-NONE", rental_property=None, user=MagicMock(email="me@I.com")
+    )
     assert el._extract_host_registration_emails(reg_no_prop) == []
+    assert "has no rental_property" in capsys.readouterr().out
 
     rp_empty = MagicMock(contacts=None, property_manager=None)
-    assert el._extract_host_registration_emails(MagicMock(rental_property=rp_empty)) == []
+    assert (
+        el._extract_host_registration_emails(
+            MagicMock(registration_number="H-EMPTY", rental_property=rp_empty)
+        )
+        == []
+    )
+    assert "has no primary property contact email" in capsys.readouterr().out
 
     missing_contact = MagicMock(is_primary=True, contact=None)
     blank_email = MagicMock(is_primary=True, contact=MagicMock(email=""))
