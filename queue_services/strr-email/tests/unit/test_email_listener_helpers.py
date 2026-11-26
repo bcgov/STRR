@@ -372,15 +372,50 @@ def test_get_registration_email_recipients(cfg_app, with_pm):
     reg = MagicMock(
         registration_type=Registration.RegistrationType.HOST.value,
         rental_property=rp,
-        user=MagicMock(email="primary@example.com"),  # duplicate applicant
+        user=MagicMock(email="me@I.com"),  # IdP user email must not be included
     )
     with cfg_app.app_context():
         out = el._get_registration_email_recipients(reg)
     recipients = out.split(",")
-    # Deduplication and lowercasing
+    # Deduplication and lowercasing; non-primary contacts and IdP user email excluded
     assert recipients.count("primary@example.com") == 1
     assert "housing@test.gov" in recipients
-    assert "secondary@example.com" in recipients
+    assert "secondary@example.com" not in recipients
+    assert "me@i.com" not in recipients
+
+
+def test_extract_host_registration_emails_edge_cases(capsys):
+    reg_no_prop = MagicMock(
+        registration_number="H-NONE", rental_property=None, user=MagicMock(email="me@I.com")
+    )
+    assert el._extract_host_registration_emails(reg_no_prop) == []
+    assert "has no rental_property" in capsys.readouterr().out
+
+    rp_empty = MagicMock(contacts=None, property_manager=None)
+    assert (
+        el._extract_host_registration_emails(
+            MagicMock(registration_number="H-EMPTY", rental_property=rp_empty)
+        )
+        == []
+    )
+    assert "has no primary property contact email" in capsys.readouterr().out
+
+    missing_contact = MagicMock(is_primary=True, contact=None)
+    blank_email = MagicMock(is_primary=True, contact=MagicMock(email=""))
+    co_host = MagicMock(is_primary=False, contact=MagicMock(email="cohost@example.com"))
+    primary = MagicMock(is_primary=True, contact=MagicMock(email="primary@example.com"))
+    pm = MagicMock(
+        primary_contact=None, contact=MagicMock(email=None, email_address="pm@example.com")
+    )
+    rp_edge = MagicMock(
+        contacts=[missing_contact, blank_email, co_host, primary],
+        property_manager=pm,
+    )
+    reg_edge = MagicMock(rental_property=rp_edge, user=MagicMock(email="me@I.com"))
+    assert el._extract_host_registration_emails(reg_edge) == [
+        "primary@example.com",
+        "pm@example.com",
+    ]
 
 
 def test_normalize_and_deduplicate_emails():
