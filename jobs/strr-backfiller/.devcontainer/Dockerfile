@@ -11,4 +11,4 @@ ENV PYTHONUNBUFFERED 1
 # Remove the broken Yarn repository list first so apt-get update doesn't fail
 RUN rm -f /etc/apt/sources.list.d/yarn.list \
     && apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends postgresql-client libpq-dev libpango1.0-0
+    && apt-get -y install --no-install-recommends postgresql-client libpq-dev libpango-1.0-0 libpangoft2-1.0-0
