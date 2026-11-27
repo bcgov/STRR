@@ -48,6 +48,7 @@ from flask import jsonify
 from flask import request
 from jinja2 import Template
 from simple_cloudevent import SimpleCloudEvent
+from sqlalchemy import or_
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import InteractionStatus
 from strr_api.enums.enum import RegistrationNocStatus
@@ -112,9 +113,37 @@ def _fail_orphaned_interaction(email_info, reason: str) -> None:
         if interaction_uuid:
             interaction = CustomerInteraction.find_by_uuid(interaction_uuid)
         if not interaction and interaction_key:
-            interaction = CustomerInteraction.query.filter_by(
-                idempotency_key=interaction_key
-            ).one_or_none()
+            # Idempotency keys are shared across records (e.g. "{year}:RENEWAL_REMINDER:{days}"),
+            # so only fall back to the key when it can be scoped to this email's record.
+            application_number = getattr(email_info, "application_number", None)
+            registration_number = getattr(email_info, "registration_number", None)
+            record_filters = []
+            if application_number and (
+                application := Application.find_by_application_number(application_number)
+            ):
+                record_filters.append(CustomerInteraction.application_id == application.id)
+            if registration_number and (
+                registration := RegistrationService.find_by_registration_number(registration_number)
+            ):
+                record_filters.append(CustomerInteraction.registration_id == registration.id)
+            if record_filters:
+                matches = CustomerInteraction.query.filter(
+                    CustomerInteraction.idempotency_key == interaction_key,
+                    CustomerInteraction.status == InteractionStatus.QUEUED,
+                    or_(*record_filters),
+                ).all()
+                if len(matches) == 1:
+                    interaction = matches[0]
+                elif matches:
+                    # Can't tell which row this message belongs to, so don't guess.
+                    logger.warning(
+                        "strr.email.orphaned_interaction_ambiguous interaction_key=%s "
+                        "application_number=%s registration_number=%s matches=%s",
+                        interaction_key,
+                        application_number,
+                        registration_number,
+                        len(matches),
+                    )
 
         if interaction and interaction.status == InteractionStatus.QUEUED:
             interaction.status = InteractionStatus.FAILED

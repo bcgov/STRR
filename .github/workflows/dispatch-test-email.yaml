@@ -116,7 +116,7 @@ jobs:
             "data": {
               "$RECORD_KEY": "$RECORD_NUMBER",
               "emailType": "$EMAIL_TYPE",
-              "interaction": "$(date +%Y):TEST_NOTIFICATION:40",
+              "interaction": "$(date +%Y):TEST_NOTIFICATION:$INTERACTION_UUID",
               "interaction_uuid": "$INTERACTION_UUID"
             }
           }

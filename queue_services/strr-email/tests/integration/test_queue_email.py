@@ -461,3 +461,261 @@ def test_strata_hotel_registration_noc_email_posts_to_notify(
     assert stored.registration_id == registration.id
     assert stored.status == InteractionStatus.SENT
     assert stored.meta_data["email_type"] == "STRATA_HOTEL_REGISTRATION_NOC"
+
+
+def test_orphaned_interaction_shared_key_only_fails_own_record(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    random_string,
+    random_integer,
+):
+    """A rejected email whose key is shared across registrations fails only its own interaction."""
+    from strr_test_utils.parent_fixtures import seed_parent_user_registration_application
+
+    shared_key = f"{datetime.now().year}:RENEWAL_REMINDER:40"
+    registrations = [
+        seed_parent_user_registration_application(
+            session, random_string, random_integer, commit=True
+        )["registration"]
+        for _ in range(2)
+    ]
+    interaction_uuids = [
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_RENEWAL_REMINDER",
+                registration_number=registration.registration_number,
+            ),
+            idempotency_key=shared_key,
+            registration_id=registration.id,
+        )
+        for registration in registrations
+    ]
+
+    # Like Dispatch Test Email: the interaction_uuid has no stored row, so the key is the fallback.
+    ce = simple_cloud_event(
+        data={
+            "registration_number": registrations[0].registration_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    statuses = [
+        session.scalar(
+            select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == uuid)
+        ).status
+        for uuid in interaction_uuids
+    ]
+    assert statuses == [InteractionStatus.FAILED, InteractionStatus.QUEUED]
+
+
+def test_orphaned_interaction_shared_key_application_path(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    random_string,
+    random_integer,
+):
+    """The application_number path also only fails the interaction for its own application."""
+    from strr_test_utils.parent_fixtures import seed_parent_user_registration_application
+
+    shared_key = f"{datetime.now().year}:TEST_NOTIFICATION:40"
+    applications = [
+        seed_parent_user_registration_application(
+            session, random_string, random_integer, commit=True
+        )["application"]
+        for _ in range(2)
+    ]
+    interaction_uuids = [
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_AUTO_APPROVED",
+                application_number=application.application_number,
+            ),
+            idempotency_key=shared_key,
+            application_id=application.id,
+        )
+        for application in applications
+    ]
+
+    ce = simple_cloud_event(
+        data={
+            "application_number": applications[0].application_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    statuses = [
+        session.scalar(
+            select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == uuid)
+        ).status
+        for uuid in interaction_uuids
+    ]
+    assert statuses == [InteractionStatus.FAILED, InteractionStatus.QUEUED]
+
+
+def test_orphaned_interaction_same_record_duplicate_key_fails_none(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    setup_parents_committed,
+):
+    """Two QUEUED rows on the same record and key: neither is failed, since we can't tell which."""
+    shared_key = f"{datetime.now().year}:TEST_NOTIFICATION:40"
+    registration = setup_parents_committed["registration"]
+    interaction_uuids = [
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_RENEWAL_REMINDER",
+                registration_number=registration.registration_number,
+            ),
+            idempotency_key=shared_key,
+            registration_id=registration.id,
+        )
+        for _ in range(2)
+    ]
+
+    ce = simple_cloud_event(
+        data={
+            "registration_number": registration.registration_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    statuses = [
+        session.scalar(
+            select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == uuid)
+        ).status
+        for uuid in interaction_uuids
+    ]
+    assert statuses == [InteractionStatus.QUEUED, InteractionStatus.QUEUED]
+
+
+def test_orphaned_interaction_both_numbers_matches_registration_row(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    random_string,
+    random_integer,
+):
+    """An event with both numbers still fails a row that was queued with only registration_id."""
+    from strr_test_utils.parent_fixtures import seed_parent_user_registration_application
+
+    shared_key = f"{datetime.now().year}:TEST_NOTIFICATION:40"
+    seeded = seed_parent_user_registration_application(
+        session, random_string, random_integer, commit=True
+    )
+    application, registration = seeded["application"], seeded["registration"]
+    interaction_uuid = InteractionService.queued(
+        channel_type=ChannelType.EMAIL,
+        payload=EmailInfo(
+            email_type="HOST_RENEWAL_REMINDER",
+            registration_number=registration.registration_number,
+        ),
+        idempotency_key=shared_key,
+        registration_id=registration.id,
+    )
+
+    ce = simple_cloud_event(
+        data={
+            "application_number": application.application_number,
+            "registration_number": registration.registration_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    stored = session.scalar(
+        select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == interaction_uuid)
+    )
+    assert stored.status == InteractionStatus.FAILED
+
+
+def test_orphaned_interaction_both_numbers_application_and_registration_rows_fails_none(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    random_string,
+    random_integer,
+):
+    """Both numbers, a QUEUED row on the application and one on its registration: fail neither."""
+    from strr_test_utils.parent_fixtures import seed_parent_user_registration_application
+
+    shared_key = f"{datetime.now().year}:TEST_NOTIFICATION:40"
+    seeded = seed_parent_user_registration_application(
+        session, random_string, random_integer, commit=True
+    )
+    application, registration = seeded["application"], seeded["registration"]
+    interaction_uuids = [
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_AUTO_APPROVED",
+                application_number=application.application_number,
+            ),
+            idempotency_key=shared_key,
+            application_id=application.id,
+        ),
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_RENEWAL_REMINDER",
+                registration_number=registration.registration_number,
+            ),
+            idempotency_key=shared_key,
+            registration_id=registration.id,
+        ),
+    ]
+
+    ce = simple_cloud_event(
+        data={
+            "application_number": application.application_number,
+            "registration_number": registration.registration_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    statuses = [
+        session.scalar(
+            select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == uuid)
+        ).status
+        for uuid in interaction_uuids
+    ]
+    assert statuses == [InteractionStatus.QUEUED, InteractionStatus.QUEUED]
