@@ -1,9 +1,23 @@
-import { describe, beforeEach, it, expect } from 'vitest'
+import { describe, beforeEach, it, expect, vi } from 'vitest'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { mockStoredDocument } from '../mocks/mockedData'
+
+const mockStrrApi = vi.fn().mockResolvedValue(undefined)
+const mockOpenErrorModal = vi.fn()
+
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
+  $strrApi: mockStrrApi,
+  $i18n: { t: (key: string) => key }
+}))
+
+mockNuxtImport('useStrrModals', () => () => ({ openErrorModal: mockOpenErrorModal }))
 
 describe('Document Store', () => {
   beforeEach(() => {
     useDocumentStore().$reset()
+    mockStrrApi.mockReset()
+    mockStrrApi.mockResolvedValue(undefined)
+    mockOpenErrorModal.mockClear()
   })
 
   it('reset function clears storedDocuments', () => {
@@ -69,5 +83,22 @@ describe('Document Store', () => {
     expect(store.storedDocuments).toHaveLength(2)
     await store.resetApiDocs()
     expect(store.storedDocuments).toHaveLength(0)
+  })
+
+  it('keeps existing documents and deletes nothing when a dashboard upload is rejected', async () => {
+    const store = useDocumentStore()
+    store.storedDocuments.push(mockStoredDocument)
+    mockStrrApi.mockRejectedValueOnce(new Error('File contents do not match the file type'))
+    // upload never succeeded, so the new doc has no apiDoc and was never added to storedDocuments
+    const rejectedDoc: UiDocument = { ...mockStoredDocument, id: 'doc-rejected', apiDoc: {} as ApiDocument }
+
+    await store.addDocumentToApplication(rejectedDoc, 'APP-123')
+
+    expect(mockOpenErrorModal).toHaveBeenCalled()
+    expect(store.storedDocuments).toHaveLength(1)
+    expect(store.storedDocuments[0]!.id).toBe(mockStoredDocument.id)
+    // only the failed PUT, no DELETE /documents/{fileKey}
+    expect(mockStrrApi).toHaveBeenCalledTimes(1)
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications/APP-123/documents', expect.objectContaining({ method: 'PUT' }))
   })
 })

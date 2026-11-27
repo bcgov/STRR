@@ -42,7 +42,9 @@ const addDocumentToList = (doc: File) => {
 
 const removeDocumentFromList = (uiDoc: UiDocument) => {
   const index = documentList.value.findIndex(item => uiDoc.id === item.id)
-  documentList.value.splice(index, 1)
+  if (index !== -1) {
+    documentList.value.splice(index, 1)
+  }
 }
 
 const cancelDocumentsUpload = () => {
