@@ -114,19 +114,20 @@ def _fail_orphaned_interaction(email_info, reason: str) -> None:
         if not interaction and interaction_key:
             # Idempotency keys are shared across records (e.g. "{year}:RENEWAL_REMINDER:{days}"),
             # so only fall back to the key when it can be scoped to this email's record.
+            # Newest first, in case the same record has more than one QUEUED row on the key.
             query = CustomerInteraction.query.filter_by(
                 idempotency_key=interaction_key, status=InteractionStatus.QUEUED
-            )
+            ).order_by(CustomerInteraction.id.desc())
             application_number = getattr(email_info, "application_number", None)
             registration_number = getattr(email_info, "registration_number", None)
             if application_number and (
                 application := Application.find_by_application_number(application_number)
             ):
-                interaction = query.filter_by(application_id=application.id).one_or_none()
+                interaction = query.filter_by(application_id=application.id).first()
             elif registration_number and (
                 registration := RegistrationService.find_by_registration_number(registration_number)
             ):
-                interaction = query.filter_by(registration_id=registration.id).one_or_none()
+                interaction = query.filter_by(registration_id=registration.id).first()
 
         if interaction and interaction.status == InteractionStatus.QUEUED:
             interaction.status = InteractionStatus.FAILED
