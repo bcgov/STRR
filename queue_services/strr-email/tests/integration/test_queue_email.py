@@ -659,3 +659,63 @@ def test_orphaned_interaction_both_numbers_matches_registration_row(
         select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == interaction_uuid)
     )
     assert stored.status == InteractionStatus.FAILED
+
+
+def test_orphaned_interaction_both_numbers_application_and_registration_rows_fails_none(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    random_string,
+    random_integer,
+):
+    """Both numbers, a QUEUED row on the application and one on its registration: fail neither."""
+    from strr_test_utils.parent_fixtures import seed_parent_user_registration_application
+
+    shared_key = f"{datetime.now().year}:TEST_NOTIFICATION:40"
+    seeded = seed_parent_user_registration_application(
+        session, random_string, random_integer, commit=True
+    )
+    application, registration = seeded["application"], seeded["registration"]
+    interaction_uuids = [
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_AUTO_APPROVED",
+                application_number=application.application_number,
+            ),
+            idempotency_key=shared_key,
+            application_id=application.id,
+        ),
+        InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=EmailInfo(
+                email_type="HOST_RENEWAL_REMINDER",
+                registration_number=registration.registration_number,
+            ),
+            idempotency_key=shared_key,
+            registration_id=registration.id,
+        ),
+    ]
+
+    ce = simple_cloud_event(
+        data={
+            "application_number": application.application_number,
+            "registration_number": registration.registration_number,
+            "email_type": "NOT_A_REAL_EMAIL_TYPE",
+            "interaction": shared_key,
+            "interaction_uuid": "00000000-0000-0000-0000-000000000000",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    statuses = [
+        session.scalar(
+            select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == uuid)
+        ).status
+        for uuid in interaction_uuids
+    ]
+    assert statuses == [InteractionStatus.QUEUED, InteractionStatus.QUEUED]
