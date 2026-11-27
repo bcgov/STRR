@@ -33,9 +33,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Manages Auth service interactions."""
 
+import hashlib
+import threading
 from http import HTTPStatus
 
 import requests
+from cachelib import SimpleCache
 from flask import current_app
 from requests.exceptions import HTTPError
 
@@ -48,6 +51,21 @@ from strr_api.utils.user_context import UserContext, user_context
 
 class AuthService:
     """Wrapper service to interact with the Auth API."""
+
+    _DEFAULT_TOKEN_TTL = 270
+    _token_cache = SimpleCache(default_timeout=_DEFAULT_TOKEN_TTL)
+    _token_lock = threading.Lock()
+
+    @staticmethod
+    def _compute_token_ttl(expires_in) -> int | None:
+        """Compute safe cache TTL in seconds, or None if the token should not be cached."""
+        if expires_in is None:
+            return AuthService._DEFAULT_TOKEN_TTL
+        try:
+            ttl = int(expires_in)
+        except (TypeError, ValueError):
+            return None
+        return ttl - min(30, ttl // 5) if ttl > 0 else None
 
     @classmethod
     def get_service_client_token(
@@ -67,27 +85,40 @@ class AuthService:
         if timeout is None:
             timeout = int(current_app.config.get("AUTH_SVC_TIMEOUT", 20))
 
-        data = "grant_type=client_credentials"
+        cache_key = hashlib.sha256(f"{client_id}:{client_secret}:{token_url}".encode()).hexdigest()
+        if cached_token := cls._token_cache.get(cache_key):
+            return cached_token
 
-        # get service account token
-        res = requests.post(
-            url=token_url,
-            data=data,
-            headers={"content-type": "application/x-www-form-urlencoded"},
-            auth=(client_id, client_secret),
-            timeout=timeout,
-        )
+        with cls._token_lock:
+            if cached_token := cls._token_cache.get(cache_key):
+                return cached_token
 
-        try:
-            return res.json().get("access_token")
-        except Exception:
-            return None
+            res = requests.post(
+                url=token_url,
+                data="grant_type=client_credentials",
+                headers={"content-type": "application/x-www-form-urlencoded"},
+                auth=(client_id, client_secret),
+                timeout=timeout,
+            )
+
+            try:
+                token_data = res.json()
+                access_token = token_data.get("access_token")
+            except Exception:
+                return None
+
+            if not access_token:
+                return None
+
+            if ttl := cls._compute_token_ttl(token_data.get("expires_in")):
+                cls._token_cache.set(cache_key, access_token, timeout=ttl)
+
+            return access_token
 
     @classmethod
     def search_accounts(cls, account_name: str):
         """Searches for an existing account."""
         token = AuthService.get_service_client_token()
-        print(token)
         endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs?name={account_name.strip()}"
         accounts = RestService.get(endpoint=endpoint, token=token).json()
         return accounts

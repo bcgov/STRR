@@ -4,6 +4,8 @@
 # you may not use this file except in compliance with the License.
 """Tests for AuthService (HTTP/RestService mocked)."""
 
+import threading
+import time
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +16,14 @@ from strr_api.requests.SBCAccountCreationRequest import SBCAccountCreationReques
 from strr_api.services.auth_service import AuthService
 
 
+@pytest.fixture(autouse=True)
+def clear_token_cache():
+    """Ensure service client token cache is isolated per test."""
+    AuthService._token_cache.clear()
+    yield
+    AuthService._token_cache.clear()
+
+
 @patch("strr_api.services.auth_service.requests.post")
 def test_get_service_client_token_success(mock_post, app_ctx):
     mock_post.return_value.json.return_value = {"access_token": "tok"}
@@ -21,6 +31,80 @@ def test_get_service_client_token_success(mock_post, app_ctx):
         client_id="id", client_secret="sec", token_url="https://token", timeout=5
     )
     assert token == "tok"
+
+
+@patch("strr_api.services.auth_service.requests.post")
+def test_get_service_client_token_caches_within_ttl(mock_post, app_ctx):
+    mock_post.return_value.json.return_value = {"access_token": "cached-tok", "expires_in": 300}
+
+    first = AuthService.get_service_client_token("id", "sec", "https://token")
+    second = AuthService.get_service_client_token("id", "sec", "https://token")
+
+    assert first == "cached-tok"
+    assert second == "cached-tok"
+    mock_post.assert_called_once()
+
+
+@patch("strr_api.services.auth_service.requests.post")
+def test_get_service_client_token_refreshes_near_expiry(mock_post, app_ctx):
+    mock_post.side_effect = [
+        MagicMock(json=MagicMock(return_value={"access_token": "tok-1", "expires_in": 300})),
+        MagicMock(json=MagicMock(return_value={"access_token": "tok-2", "expires_in": 300})),
+    ]
+    now = [1000.0]
+
+    with patch("cachelib.simple.time", side_effect=lambda: now[0]):
+        first = AuthService.get_service_client_token("id", "sec", "https://token")
+        now[0] = 1275.0  # past 300 - 30 = 270s cached TTL
+        second = AuthService.get_service_client_token("id", "sec", "https://token")
+
+    assert first == "tok-1"
+    assert second == "tok-2"
+    assert mock_post.call_count == 2
+
+
+@patch("strr_api.services.auth_service.requests.post")
+def test_get_service_client_token_does_not_cache_zero_ttl(mock_post, app_ctx):
+    mock_post.return_value.json.return_value = {"access_token": "ephemeral", "expires_in": 0}
+
+    AuthService.get_service_client_token("id", "sec", "https://token")
+    AuthService.get_service_client_token("id", "sec", "https://token")
+
+    assert mock_post.call_count == 2
+
+
+@patch("strr_api.services.auth_service.requests.post")
+def test_get_service_client_token_invalid_expires_in_still_returns_token(mock_post, app_ctx):
+    mock_post.return_value.json.return_value = {"access_token": "tok-raw", "expires_in": ""}
+
+    first = AuthService.get_service_client_token("id", "sec", "https://token")
+    second = AuthService.get_service_client_token("id", "sec", "https://token")
+
+    assert first == "tok-raw"
+    assert second == "tok-raw"
+    assert mock_post.call_count == 2
+
+
+@patch("strr_api.services.auth_service.requests.post")
+def test_get_service_client_token_coalesces_concurrent_fetches(mock_post, app_ctx):
+    def slow_post(*_args, **_kwargs):
+        time.sleep(0.05)
+        return MagicMock(json=MagicMock(return_value={"access_token": "shared-tok", "expires_in": 300}))
+
+    mock_post.side_effect = slow_post
+    results: list[str] = []
+
+    def worker():
+        results.append(AuthService.get_service_client_token("id", "sec", "https://token", timeout=5))
+
+    threads = [threading.Thread(target=worker) for _ in range(5)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert results == ["shared-tok"] * 5
+    mock_post.assert_called_once()
 
 
 @patch("strr_api.services.auth_service.requests.post")

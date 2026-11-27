@@ -32,7 +32,7 @@ export async function authSetup (
 
     // permanent TOS as of Summer 2025
     const agreeToTerms = page.getByText('I agree to the BC Login')
-    if (agreeToTerms) {
+    if (await agreeToTerms.waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false)) {
       await agreeToTerms.click()
       await page.getByRole('button', { name: 'Continue' }).click()
     }
