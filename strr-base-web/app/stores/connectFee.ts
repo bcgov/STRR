@@ -112,8 +112,9 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     placeholderFeeItem.value.filingTypeCode = code
   }
 
-  const setPlaceholderServiceFee = (fees: number) => {
-    placeholderFeeItem.value.serviceFees = fees
+  const setPlaceholderServiceFee = (fees: number | undefined) => {
+    // fees can be undefined when the Pay API call fails, the fee widget calls toFixed() on this value
+    placeholderFeeItem.value.serviceFees = fees ?? 0
   }
 
   // info about the fee under the Fee Widget, set by the Host app

@@ -171,13 +171,16 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   })
 }))
 
+const mockStrrFees = {
+  fee1: { amount: 100, feeCode: 'STR_HOST_1' },
+  fee2: { amount: 450, feeCode: 'STR_HOST_2' },
+  fee3: { amount: 100, feeCode: 'STR_HOST_3' }
+}
+const mockFetchStrrFees = vi.fn().mockResolvedValue(mockStrrFees)
+
 vi.mock('@/composables/useHostApplicationFee', () => ({
   useHostApplicationFee: () => ({
-    fetchStrrFees: vi.fn().mockResolvedValue({
-      fee1: { amount: 100, feeCode: 'STR_HOST_1' },
-      fee2: { amount: 450, feeCode: 'STR_HOST_2' },
-      fee3: { amount: 100, feeCode: 'STR_HOST_3' }
-    }),
+    fetchStrrFees: (...args: unknown[]) => mockFetchStrrFees(...args),
     getApplicationFee: vi.fn().mockReturnValue({ amount: 100, feeCode: 'STR_HOST_1' })
   })
 }))
@@ -489,5 +492,32 @@ describe('Rental Application - Step 3', () => {
     expect(formReview.exists()).toBe(true)
 
     expect(formReview.find('[data-testid="alert-leaving-application"]').exists()).toBe(true)
+  })
+})
+
+describe('Rental Application - fees', () => {
+  it('sets the placeholder service fee when the fee loads', async () => {
+    mockFetchStrrFees.mockResolvedValueOnce({ ...mockStrrFees, fee1: { ...mockStrrFees.fee1, serviceFees: 1.5 } })
+    const feeStore = useConnectFeeStore()
+    const spy = vi.spyOn(feeStore, 'setPlaceholderServiceFee')
+
+    await mountSuspended(Application, { global: { plugins: [baseEnI18n] } })
+    await flushPromises()
+
+    expect(spy).toHaveBeenCalledWith(1.5)
+    spy.mockRestore()
+  })
+
+  it('does not set the placeholder service fee when the fee fails to load (Pay API unavailable)', async () => {
+    mockFetchStrrFees.mockResolvedValueOnce({ fee1: undefined, fee2: undefined, fee3: undefined })
+    const feeStore = useConnectFeeStore()
+    const spy = vi.spyOn(feeStore, 'setPlaceholderServiceFee')
+
+    const wrapper = await mountSuspended(Application, { global: { plugins: [baseEnI18n] } })
+    await flushPromises()
+
+    expect(wrapper.findComponent(ConnectStepper).exists()).toBe(true)
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 })
