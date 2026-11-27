@@ -623,3 +623,26 @@ def test_get_application_update_email_content_for_strata_hotel_noc(mock_to_dict,
         == "https://strata.test.registry.gov.bc.ca/en-CA/strata-hotel/application/SH-9999"
     )
     assert email["content"]["body"] == "<html>sh app noc</html>"
+
+
+def test_fail_orphaned_interaction_skips_key_fallback_without_record():
+    """With no uuid match and no resolvable record, the shared key is not used to guess a row."""
+    info = el.EmailInfo(
+        email_type="HOST_RENEWAL_REMINDER",
+        registration_number="H000000000",
+        interaction="2026:TEST_NOTIFICATION:40",
+        interaction_uuid="00000000-0000-0000-0000-000000000000",
+    )
+    with (
+        patch("strr_api.models.CustomerInteraction") as interaction_model,
+        patch.object(el.Application, "find_by_application_number", return_value=None),
+        patch.object(
+            el.RegistrationService, "find_by_registration_number", return_value=None
+        ) as find_registration,
+    ):
+        interaction_model.find_by_uuid.return_value = None
+        el._fail_orphaned_interaction(info, "Unhandled email_type")
+
+    find_registration.assert_called_once_with("H000000000")
+    fetched = [name for name, *_ in interaction_model.query.mock_calls]
+    assert not [name for name in fetched if name.endswith(("first", "one_or_none", "all"))]
