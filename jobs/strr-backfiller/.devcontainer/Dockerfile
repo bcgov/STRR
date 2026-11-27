@@ -1,6 +1,9 @@
-FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
+FROM mcr.microsoft.com/devcontainers/python:1-3.12-bookworm
 
 ENV PYTHONUNBUFFERED 1
+
+# Remove the broken Yarn repository list so apt-get update doesn't fail
+RUN rm -f /etc/apt/sources.list.d/yarn.list
 
 # [Optional] If your requirements rarely change, uncomment this section to add them to the image.
 # COPY requirements.txt /tmp/pip-tmp/
