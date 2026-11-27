@@ -356,7 +356,8 @@ export const useDocumentStore = defineStore('host/document', () => {
     // Remove document from local list to ensure createApplicationBody uses updated list
     const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
     if (index === -1) {
-      return // not in the list (e.g. upload failed before it was added), nothing to remove
+      // already removed (e.g. double click) or never added - splice(-1, 1) would drop the last document
+      return
     }
     storedDocuments.value.splice(index, 1)
 
@@ -436,7 +437,6 @@ export const useDocumentStore = defineStore('host/document', () => {
     } catch (e) {
       logFetchError(e, 'Error uploading document')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
-      await removeStoredDocument(uiDoc)
     } finally {
       // cleanup loading on ui object
       uiDoc.loading = false

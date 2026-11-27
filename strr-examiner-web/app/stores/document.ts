@@ -96,7 +96,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
    *
    * @param {UiDocument} uiDoc - The document to upload, containing file data and metadata.
    * @param {number} registrationId - The registration ID to which the document is being added.
-   * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
+   * @returns {Promise<void>} Always resolves; upload errors are shown in an error modal instead of being thrown.
    */
   async function addDocumentToRegistration (uiDoc: UiDocument, registrationId: number): Promise<void> {
     try {
@@ -140,7 +140,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
    *
    * @param {UiDocument} uiDoc - The document to upload, containing file data and metadata.
    * @param {string} applicationNumber - The application number to which the document is being added.
-   * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
+   * @returns {Promise<void>} Always resolves; upload errors are shown in an error modal instead of being thrown.
    */
   async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
     try {

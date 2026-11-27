@@ -41,8 +41,8 @@ export const useDocumentStore = defineStore('strata/document', () => {
 
   async function removeStoredDocument (uiDoc: UiDocument) {
     const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
-    if (index === -1) {
-      return // not in the list (e.g. upload failed before it was added), nothing to remove
+    if (index < 0) {
+      return // not in the list, nothing to remove or delete
     }
     storedDocuments.value.splice(index, 1)
     if (uiDoc.apiDoc.fileKey) {
@@ -83,7 +83,6 @@ export const useDocumentStore = defineStore('strata/document', () => {
     } catch (e) {
       logFetchError(e, 'Error uploading document')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
-      await removeStoredDocument(uiDoc)
     } finally {
       // cleanup loading on ui object
       uiDoc.loading = false
