@@ -62,7 +62,6 @@ Each component has its own CI and CD GitHub Actions workflow under [`.github/wor
 
 - `*-ci.yaml` — runs on PRs, path-filtered to the relevant directory. `strr-api-ci.yaml` enforces an 80% test coverage gate.
 - `*-cd.yaml` — runs on push to `main`/`feature`/`hotfix`/`release` branches, with a manual deploy-target input (dev/test/prod).
-- `e2e.yml` — a manually-dispatched Cypress smoke-test workflow, separate from the per-app Playwright e2e suites.
 
 ## Documentation
 
