@@ -11,6 +11,7 @@ export function manageAccountChangeDashboard (_oldAccount: Account, newAccount: 
   const path = useLocalePath()('/platform/dashboard')
   // full reload so the dashboard data and account middleware run for the new account
   // (wait a tick so the persisted account store is saved first)
-  nextTick(() => reloadNuxtApp({ path }))
+  // force: without it nuxt skips a reload to the same path within 10s, so a quick second switch wouldn't reload
+  nextTick(() => reloadNuxtApp({ path, force: true }))
   return true
 }
