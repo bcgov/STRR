@@ -164,8 +164,6 @@ run.sh
 lint.sh
 unit-tests.sh
 
-# Cypress related files
-**/cypress.env.json
 **/node_modules
 **/videos/
 **/screenshots/
