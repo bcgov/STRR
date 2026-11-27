@@ -34,9 +34,72 @@ const state = reactive({
 
 const createAccountFormRef = ref<Form<CreateAccountSchema>>()
 
+const MIN_ACCOUNT_NAME_SEARCH_LENGTH = 3
+const ACCOUNT_NAME_DEBOUNCE_MS = 450
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+let accountSearchAbortController: AbortController | null = null
+
+function cancelPendingAccountNameSearch () {
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer)
+    debounceTimer = null
+  }
+  if (accountSearchAbortController) {
+    accountSearchAbortController.abort()
+    accountSearchAbortController = null
+  }
+}
+
+function isAbortError (err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false
+  }
+  return err.name === 'AbortError' || (err as { cause?: { name?: string } }).cause?.name === 'AbortError'
+}
+
+async function checkAccountNameExists (trimmedName: string): Promise<boolean> {
+  cancelPendingAccountNameSearch()
+  const controller = new AbortController()
+  accountSearchAbortController = controller
+
+  try {
+    loadingCheckAccountName.value = true
+    // also returns limit: number, orgs: Array<any>, page: number, but we only need the total here
+    const { total } = await $strrApi<{ total: number }>('/accounts/search', { // TODO: move function to store/composable?
+      params: { name: trimmedName },
+      signal: controller.signal
+    })
+    if (controller.signal.aborted) {
+      return false
+    }
+    accountExists.value = total > 0
+    return true
+  } catch (e) {
+    if (controller.signal.aborted || isAbortError(e)) {
+      return false
+    }
+    logFetchError(e, 'Error checking if account name exists')
+    accountExists.value = true // assume account exists if api error
+    return true
+  } finally {
+    if (accountSearchAbortController === controller) {
+      accountSearchAbortController = null
+      loadingCheckAccountName.value = false
+    }
+  }
+}
+
 async function handleCreateAccount () {
   try {
     loadingSubmitForm.value = true
+    const trimmedName = state.accountName.trim()
+    if (trimmedName.length < MIN_ACCOUNT_NAME_SEARCH_LENGTH || loadingCheckAccountName.value) {
+      const completed = await checkAccountNameExists(trimmedName)
+      if (!completed || accountExists.value || state.accountName.trim() !== trimmedName) {
+        createAccountFormRef.value?.validate('accountName', { silent: true })
+        return
+      }
+    }
     const response = await $strrApi<{sbc_account_id: number, user_id: number}>('/accounts', { // TODO: move function to store/composable?
       method: 'POST',
       body: {
@@ -60,32 +123,32 @@ async function handleCreateAccount () {
   }
 }
 
-// validate account name already exists
-watchDebounced(
-  () => state.accountName,
-  async (newVal) => {
-    if (newVal.trim() !== '') {
-      try {
-        loadingCheckAccountName.value = true
-        // also returns limit: number, orgs: Array<any>, page: number, but we only need the total here
-        const { total } = await $strrApi<{ total: number }>('/accounts/search', { // TODO: move function to store/composable?
-          params: { name: newVal }
-        })
-        accountExists.value = total > 0
-      } catch (e) {
-        logFetchError(e, 'Error checking if account name exists')
-        accountExists.value = true // assume account exists if api error
-      } finally {
-        loadingCheckAccountName.value = false
-      }
-    } else {
-      accountExists.value = false // set to false if accountName is empty
+// Validate account name existence on trimmed changes, keeping Save disabled while a search is pending
+watch(
+  () => state.accountName.trim(),
+  (trimmedName) => {
+    cancelPendingAccountNameSearch()
+    accountExists.value = false
+
+    if (trimmedName.length < MIN_ACCOUNT_NAME_SEARCH_LENGTH) {
+      loadingCheckAccountName.value = false
+      createAccountFormRef.value?.validate('accountName', { silent: true })
+      return
     }
-    // revalidate input after accountExists ref is updated
-    createAccountFormRef.value?.validate('accountName', { silent: true })
-  },
-  { debounce: 150 } // short debounce to get the 'on input' real time validation, this may need to be tweaked
+
+    loadingCheckAccountName.value = true
+    debounceTimer = setTimeout(async () => {
+      debounceTimer = null
+      if (await checkAccountNameExists(trimmedName)) {
+        createAccountFormRef.value?.validate('accountName', { silent: true })
+      }
+    }, ACCOUNT_NAME_DEBOUNCE_MS)
+  }
 )
+
+onScopeDispose(() => {
+  cancelPendingAccountNameSearch()
+})
 
 useHead({
   title: t('page.createAccount.title')
