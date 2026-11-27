@@ -511,6 +511,21 @@ describe('Document Removal', () => {
     expect(mockSubmitApplication).not.toHaveBeenCalled()
   })
 
+  it('should leave the list alone and not save or delete when the document is not in it', async () => {
+    const store = useDocumentStore()
+    const docA = makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)
+    const docB = makeUiDoc('2', DocumentUploadType.UTILITY_BILL)
+    store.storedDocuments = [docA, docB]
+    mockPermitStore.application = { header: { status: 'draft', applicationNumber: 'APP-123' } }
+
+    // e.g. second click on remove, or a doc removed while its upload was still running
+    await store.removeStoredDocument(makeUiDoc('3', DocumentUploadType.UTILITY_BILL))
+
+    expect(store.storedDocuments.map(d => d.id)).toEqual(['1', '2'])
+    expect(mockSubmitApplication).not.toHaveBeenCalled()
+    expect(mockStrrApi).not.toHaveBeenCalled()
+  })
+
   it('should not remove any document if names do not match the given types', async () => {
     const store = useDocumentStore()
     store.storedDocuments = [makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)]

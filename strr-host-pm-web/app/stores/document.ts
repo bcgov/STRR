@@ -355,6 +355,10 @@ export const useDocumentStore = defineStore('host/document', () => {
   async function removeStoredDocument (uiDoc: UiDocument) {
     // Remove document from local list to ensure createApplicationBody uses updated list
     const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
+    if (index === -1) {
+      // already removed (e.g. double click) or never added - splice(-1, 1) would drop the last document
+      return
+    }
     storedDocuments.value.splice(index, 1)
 
     // Save draft with updated document list

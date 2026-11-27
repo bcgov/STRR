@@ -85,6 +85,22 @@ describe('Document Store', () => {
     expect(store.storedDocuments).toHaveLength(0)
   })
 
+  it('does nothing when removing a document that is not in storedDocuments', async () => {
+    const store = useDocumentStore()
+    store.storedDocuments.push(mockStoredDocument)
+    const missingDoc: UiDocument = {
+      ...mockStoredDocument,
+      id: 'doc-missing',
+      apiDoc: { ...mockStoredDocument.apiDoc, fileKey: 'missing-key' }
+    }
+
+    await store.removeStoredDocument(missingDoc)
+
+    expect(store.storedDocuments).toHaveLength(1)
+    expect(store.storedDocuments[0]!.id).toBe(mockStoredDocument.id)
+    expect(mockStrrApi).not.toHaveBeenCalled()
+  })
+
   it('keeps existing documents and deletes nothing when a dashboard upload is rejected', async () => {
     const store = useDocumentStore()
     store.storedDocuments.push(mockStoredDocument)
