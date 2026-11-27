@@ -144,5 +144,7 @@ describe('manageAccountChangeDashboard', () => {
     await nextTick()
     expect(mockReloadNuxtApp).toHaveBeenCalledOnce()
     expect(mockReloadNuxtApp.mock.calls[0]![0].path).toContain('/platform/dashboard')
+    // forced, so a second switch within nuxt's 10s reload guard still reloads
+    expect(mockReloadNuxtApp.mock.calls[0]![0].force).toBe(true)
   })
 })
