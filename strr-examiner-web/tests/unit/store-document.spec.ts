@@ -69,7 +69,7 @@ describe('Document Store', () => {
       loading: false
     } as UiDocument
 
-    await expect(docStore.addDocumentToRegistration(uiDoc, 12345)).rejects.toThrow('Upload failed')
+    await expect(docStore.addDocumentToRegistration(uiDoc, 12345)).resolves.toBeUndefined()
 
     expect(mockOpenErrorModal).toHaveBeenCalledWith(
       'error.docUpload.generic.title',
@@ -78,6 +78,32 @@ describe('Document Store', () => {
     )
     expect(uiDoc.loading).toBe(false)
     expect(exStore.activeReg!.documents).toHaveLength(mockDocuments.length) // no doc appended
+  })
+
+  it('should show error modal and resolve when adding document to application fails', async () => {
+    const exStore = useExaminerStore()
+    exStore.activeRecord = { ...mockHostRegistration, documents: [...mockDocuments] }
+    const recordBefore = exStore.activeRecord
+
+    const docStore = useExaminerDocumentStore()
+    mockStrrApi.mockRejectedValueOnce(new Error('Upload failed'))
+
+    const uiDoc = {
+      file: new File(['content'], 'utility-bill.pdf', { type: 'application/pdf' }),
+      type: DocumentUploadType.UTILITY_BILL,
+      loading: false
+    } as UiDocument
+
+    await expect(docStore.addDocumentToApplication(uiDoc, 'APP12345')).resolves.toBeUndefined()
+
+    expect(mockOpenErrorModal).toHaveBeenCalledWith(
+      'error.docUpload.generic.title',
+      'error.docUpload.generic.description',
+      false
+    )
+    expect(uiDoc.loading).toBe(false)
+    expect(exStore.activeRecord).toBe(recordBefore) // record not replaced
+    expect(exStore.activeReg!.documents).toHaveLength(mockDocuments.length)
   })
 
   it('should append document to activeReg when adding document to registration', async () => {
