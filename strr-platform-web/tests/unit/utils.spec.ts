@@ -1,5 +1,5 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
-import { describe, beforeEach, it, expect } from 'vitest'
+import { describe, beforeEach, it, expect, vi } from 'vitest'
 import {
   mockApiAddress,
   mockEmptyApiAddress,
@@ -13,6 +13,15 @@ const mockSideDetails = ref<{ label: string, value: string }[]>([])
 
 mockNuxtImport('useConnectDetailsHeaderStore', () => () => ({
   sideDetails: mockSideDetails
+}))
+
+const { mockReloadNuxtApp, mockSwitchCurrentAccount } = vi.hoisted(() => ({
+  mockReloadNuxtApp: vi.fn(),
+  mockSwitchCurrentAccount: vi.fn()
+}))
+mockNuxtImport('reloadNuxtApp', () => mockReloadNuxtApp)
+mockNuxtImport('useConnectAccountStore', () => () => ({
+  switchCurrentAccount: mockSwitchCurrentAccount
 }))
 
 describe('formatBusinessDetails functions', () => {
@@ -124,5 +133,18 @@ describe('setPlatformSideHeaderDetails', () => {
   it('should not push anything when both fields are empty', () => {
     setPlatformSideHeaderDetails()
     expect(mockSideDetails.value).toHaveLength(0)
+  })
+})
+
+describe('manageAccountChangeDashboard', () => {
+  it('should switch account and reload the platform dashboard instead of leaving the app', async () => {
+    const result = manageAccountChangeDashboard({ id: 1 } as unknown as Account, { id: 2 } as unknown as Account)
+    expect(result).toBe(true)
+    expect(mockSwitchCurrentAccount).toHaveBeenCalledWith(2)
+    await nextTick()
+    expect(mockReloadNuxtApp).toHaveBeenCalledOnce()
+    expect(mockReloadNuxtApp.mock.calls[0]![0].path).toContain('/platform/dashboard')
+    // forced, so a second switch within nuxt's 10s reload guard still reloads
+    expect(mockReloadNuxtApp.mock.calls[0]![0].force).toBe(true)
   })
 })
